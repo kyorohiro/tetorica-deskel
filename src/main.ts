@@ -1,5 +1,9 @@
 import "./style.css";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  register,
+  unregisterAll,
+} from "@tauri-apps/plugin-global-shortcut";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
@@ -9,13 +13,12 @@ if (!app) {
 app.innerHTML = `
   <div id="root">
     <div id="toolbar" data-tauri-drag-region>
-      <button id="toggleClick">click: off</button>
-
+      <button id="toggleClickCursor">cursor: off</button>
+      <button id="togglePin">pin: off</button>
       <label>
         grid
         <input id="grid" type="range" min="20" max="300" value="80" />
-      </label>
-
+      </label><br>
       <label>
         opacity
         <input id="opacity" type="range" min="0.05" max="1" step="0.05" value="0.7" />
@@ -49,6 +52,7 @@ const state = {
   lineWidth: 1,
   color: "#00ff88",
   clickThrough: false,
+  alwaysOnTop: false,
 };
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -61,7 +65,7 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 function resizeCanvas(): void {
-  if(!ctx) {
+  if (!ctx) {
     return;
   }
   const dpr = window.devicePixelRatio || 1;
@@ -78,7 +82,7 @@ function resizeCanvas(): void {
 }
 
 function drawGrid(w: number, h: number): void {
-  if(!ctx) {
+  if (!ctx) {
     return;
   }
   ctx.strokeStyle = hexToRgba(state.color, state.opacity);
@@ -100,7 +104,7 @@ function drawGrid(w: number, h: number): void {
 }
 
 function drawCross(w: number, h: number): void {
-  if(!ctx) {
+  if (!ctx) {
     return;
   }
   ctx.strokeStyle = hexToRgba(state.color, Math.min(1, state.opacity + 0.15));
@@ -118,7 +122,7 @@ function drawCross(w: number, h: number): void {
 }
 
 function draw(): void {
-  if(!ctx) {
+  if (!ctx) {
     return;
   }
   const w = window.innerWidth;
@@ -134,7 +138,8 @@ function bindUI(): void {
   const opacity = document.getElementById("opacity") as HTMLInputElement;
   const lineWidth = document.getElementById("lineWidth") as HTMLInputElement;
   const color = document.getElementById("color") as HTMLInputElement;
-  const toggleClick = document.getElementById("toggleClick") as HTMLButtonElement;
+  const toggleClickCursor = document.getElementById("toggleClickCursor") as HTMLButtonElement;
+  const togglePin = document.getElementById("togglePin") as HTMLButtonElement;
 
   grid.addEventListener("input", () => {
     state.grid = Number(grid.value);
@@ -156,18 +161,69 @@ function bindUI(): void {
     draw();
   });
 
-  toggleClick.addEventListener("click", async () => {
-    state.clickThrough = !state.clickThrough;
-    await win.setIgnoreCursorEvents(state.clickThrough);
-    toggleClick.textContent = `click: ${state.clickThrough ? "on" : "off"}`;
+  toggleClickCursor.addEventListener("click", async () => {
+    await toggleClickCursorThrough();
+  });
+  togglePin.addEventListener("click", async () => {
+    await toggleAlwaysOnTop();
+  });
+  
+}
+
+//
+// shortcut
+//
+async function setClickThrough(value: boolean): Promise<void> {
+  console.log(">  setClickThrough ", value)
+  state.clickThrough = value;
+  await win.setIgnoreCursorEvents(value);
+  if(value) {
+    await setAlwaysOnTop(value);
+  }
+
+  const btn = document.getElementById("toggleClickCursor") as HTMLButtonElement | null;
+  if (btn) {
+    btn.textContent = `click: ${value ? "on" : "off"}`;
+  }
+}
+
+async function setAlwaysOnTop(value: boolean): Promise<void> {
+  console.log(">  setAlwaysOnTop ", value);
+  state.alwaysOnTop = value;
+  await win.setAlwaysOnTop(value);
+
+  const btn = document.getElementById("togglePin") as HTMLButtonElement | null;
+  if (btn) {
+    btn.textContent = `pin: ${value ? "on" : "off"}`;
+  }
+}
+
+async function toggleAlwaysOnTop(): Promise<void> {
+  await setAlwaysOnTop(!state.alwaysOnTop);
+}
+
+async function toggleClickCursorThrough(): Promise<void> {
+  console.log("> toggleClickCursorThrough ", state.clickThrough)
+  await setClickThrough(!state.clickThrough);
+}
+
+async function setupShortcuts(): Promise<void> {
+  await unregisterAll();
+
+  await register("CommandOrControl+Shift+X", async (event) => {
+    if (event.state === "Pressed") {
+      await toggleClickCursorThrough();
+    }
   });
 }
 
+//
 async function init(): Promise<void> {
   bindUI();
   window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
-  await win.setAlwaysOnTop(true);
+  setupShortcuts();
 }
+
 
 void init();
