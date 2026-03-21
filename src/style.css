@@ -23,19 +23,26 @@ body {
   top: 12px;
   left: 12px;
   z-index: 10;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border-radius: 12px;
   background: rgba(20, 20, 20, 0.6);
-  color: #fff;
+  color: white;
   user-select: none;
   backdrop-filter: blur(6px);
-
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
+}
+
+.toolbar-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.toolbar-row + .toolbar-row {
+  margin-top: 8px;
 }
 
 #toolbar.visible {

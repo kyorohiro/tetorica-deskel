@@ -10,31 +10,41 @@ if (!app) {
   throw new Error("#app not found");
 }
 
-const TOGGLE_CLICK_SHORTCUT = "CommandOrControl+Shift+X";
+const TOGGLE_CLICK_SHORTCUT = "CommandOrControl+Shift+J";
 
 app.innerHTML = `
   <div id="root">
     <div id="toolbar" data-tauri-drag-region>
-      <button id="toggleClickCursor">cursor: off</button>
-      <button id="togglePin">pin: off</button>
-      <label>
-        grid
-        <input id="grid" type="range" min="20" max="300" value="80" />
-      </label><br>
-      <label>
-        opacity
-        <input id="opacity" type="range" min="0.05" max="1" step="0.05" value="0.7" />
-      </label>
+      <div class="toolbar-row">
+        <button id="toggleClickCursor">cursor: off</button>
+        <button id="togglePin">pin: off</button>
+      </div>
+      <div class="toolbar-row">
+        <label>
+          grid
+          <input id="grid" type="range" min="20" max="300" value="80" />
+        </label>
 
-      <label>
-        line
-        <input id="lineWidth" type="range" min="1" max="6" step="1" value="1" />
-      </label>
+        <label>
+          opacity
+          <input id="opacity" type="range" min="0.05" max="1" step="0.05" value="0.7" />
+        </label>
+      </div>
 
-      <label>
-        color
-        <input id="color" type="color" value="#00ff88" />
-      </label>
+      <div class="toolbar-row" id="morePanel" hidden>
+        <label>
+          line
+          <input id="lineWidth" type="range" min="1" max="6" step="1" value="1" />
+        </label>
+
+        <label>
+          color
+          <input id="color" type="color" value="#00ff88" />
+        </label>
+      </div>
+      <div class="toolbar-row">
+        <button id="changeShortcut">shortcut</button>
+      </div>
     </div>
 
     <canvas id="canvas"></canvas>
