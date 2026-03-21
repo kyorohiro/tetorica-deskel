@@ -10,6 +10,8 @@ if (!app) {
   throw new Error("#app not found");
 }
 
+const TOGGLE_CLICK_SHORTCUT = "CommandOrControl+Shift+X";
+
 app.innerHTML = `
   <div id="root">
     <div id="toolbar" data-tauri-drag-region>
@@ -43,7 +45,7 @@ const win = getCurrentWindow();
 function updateWindowTitle(): void {
   console.log("> updateWindowTitle", state.clickThrough);
   const title = state.clickThrough
-    ? 'Back to normal: CommandOrControl+Shift+X'
+    ? `Back to normal: ${TOGGLE_CLICK_SHORTCUT}`
     : "Tetorica Deskel";
   console.log(title);
   void win.setTitle(title);
@@ -235,6 +237,7 @@ function bindUI(): void {
 
   toggleClickCursor.addEventListener("click", async () => {
     await toggleClickCursorThrough();
+    await showToast(`click-through: ${TOGGLE_CLICK_SHORTCUT}`);
     saveSettings();
   });
   togglePin.addEventListener("click", async () => {
@@ -286,12 +289,30 @@ async function toggleClickCursorThrough(): Promise<void> {
   await setClickThrough(!state.clickThrough);
 }
 
+function showToast(message: string): void {
+  let toast = document.getElementById("toast");
+
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "toast";
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  window.setTimeout(() => {
+    toast?.classList.remove("show");
+  }, 1500);
+}
+
+
 async function setupShortcuts(): Promise<void> {
   await unregisterAll();
-
-  await register("CommandOrControl+Shift+X", async (event) => {
+  await register(TOGGLE_CLICK_SHORTCUT, async (event) => {
     if (event.state === "Pressed") {
       await toggleClickCursorThrough();
+      await showToast(`click-through: ${TOGGLE_CLICK_SHORTCUT}`);
     }
   });
 }
@@ -326,7 +347,7 @@ function showToolbar() {
     if (!toolbar.matches(':hover')) {
       toolbar.classList.remove('visible');
     }
-  }, 1500);
+  }, 2500);
 }
 
 function hideToolbarSoon() {
