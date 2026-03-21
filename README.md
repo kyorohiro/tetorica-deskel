@@ -21,6 +21,13 @@ Works with any app (Clip Studio, browser, PDF, etc.)
 
 ---
 
+## Download
+
+Prebuilt binaries are available on the GitHub Releases page.
+
+👉 https://github.com/kyorohiro/tetorica-deskel/releases
+
+
 ## 🚀 Features
 
 * Transparent overlay window
