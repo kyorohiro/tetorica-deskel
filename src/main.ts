@@ -40,20 +40,88 @@ app.innerHTML = `
 `;
 
 const win = getCurrentWindow();
+function updateWindowTitle(): void {
+  console.log("> updateWindowTitle", state.clickThrough);
+  const title = state.clickThrough
+    ? 'Back to normal: CommandOrControl+Shift+X'
+    : "Tetorica Deskel";
+  console.log(title);
+  void win.setTitle(title);
+}
+
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d");
 if (!ctx) {
   throw new Error("2D context not available");
 }
 
-const state = {
+type Settings = {
+  grid: number;
+  opacity: number;
+  lineWidth: number;
+  color: string;
+};
+
+const DEFAULT_SETTINGS: Settings = {
   grid: 80,
   opacity: 0.7,
   lineWidth: 1,
   color: "#00ff88",
+};
+
+const SETTINGS_KEY = "tetorica-deskel-settings";
+
+
+const saved = loadSettings();
+console.log("saved ", saved);
+
+const state = {
+  grid: saved.grid,
+  opacity: saved.opacity,
+  lineWidth: saved.lineWidth,
+  color: saved.color,
   clickThrough: false,
   alwaysOnTop: false,
 };
+
+function loadSettings(): Settings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) {
+      return DEFAULT_SETTINGS;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<Settings>;
+
+    return {
+      grid: typeof parsed.grid === "number" ? parsed.grid : DEFAULT_SETTINGS.grid,
+      opacity: typeof parsed.opacity === "number" ? parsed.opacity : DEFAULT_SETTINGS.opacity,
+      lineWidth:
+        typeof parsed.lineWidth === "number"
+          ? parsed.lineWidth
+          : DEFAULT_SETTINGS.lineWidth,
+      color: typeof parsed.color === "string" ? parsed.color : DEFAULT_SETTINGS.color,
+    };
+  } catch (error) {
+    console.error("failed to load settings", error);
+    return DEFAULT_SETTINGS;
+  }
+}
+
+function saveSettings(): void {
+  const settings: Settings = {
+    grid: state.grid,
+    opacity: state.opacity,
+    lineWidth: state.lineWidth,
+    color: state.color,
+  };
+
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (error) {
+    console.error("failed to save settings", error);
+  }
+}
 
 function hexToRgba(hex: string, alpha: number): string {
   const value = hex.replace("#", "");
@@ -144,25 +212,30 @@ function bindUI(): void {
   grid.addEventListener("input", () => {
     state.grid = Number(grid.value);
     draw();
+    saveSettings();
   });
 
   opacity.addEventListener("input", () => {
     state.opacity = Number(opacity.value);
     draw();
+    saveSettings();
   });
 
   lineWidth.addEventListener("input", () => {
     state.lineWidth = Number(lineWidth.value);
     draw();
+    saveSettings();
   });
 
   color.addEventListener("input", () => {
     state.color = color.value;
     draw();
+    saveSettings();
   });
 
   toggleClickCursor.addEventListener("click", async () => {
     await toggleClickCursorThrough();
+    saveSettings();
   });
   togglePin.addEventListener("click", async () => {
     await toggleAlwaysOnTop();
@@ -185,6 +258,12 @@ async function setClickThrough(value: boolean): Promise<void> {
   if (btn) {
     btn.textContent = `click: ${value ? "on" : "off"}`;
   }
+  if(value) {
+    hideToolbarSoon();
+  } else {
+    showToolbar();
+  }
+  updateWindowTitle();
 }
 
 async function setAlwaysOnTop(value: boolean): Promise<void> {
@@ -232,6 +311,7 @@ void init();
 // toolbar
 //
 const toolbar = document.getElementById('toolbar') as HTMLDivElement;
+
 
 let hideTimer: number | undefined;
 
