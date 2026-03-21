@@ -227,3 +227,58 @@ async function init(): Promise<void> {
 
 
 void init();
+
+//
+// toolbar
+//
+const toolbar = document.getElementById('toolbar') as HTMLDivElement;
+
+let hideTimer: number | undefined;
+
+function showToolbar() {
+  toolbar.classList.add('visible');
+
+  if (hideTimer) {
+    clearTimeout(hideTimer);
+  }
+
+  hideTimer = window.setTimeout(() => {
+    if (!toolbar.matches(':hover')) {
+      toolbar.classList.remove('visible');
+    }
+  }, 1500);
+}
+
+function hideToolbarSoon() {
+  if (hideTimer) {
+    clearTimeout(hideTimer);
+  }
+
+  hideTimer = window.setTimeout(() => {
+    if (!toolbar.matches(':hover')) {
+      toolbar.classList.remove('visible');
+    }
+  }, 800);
+}
+
+// 起動時に表示
+showToolbar();
+
+// 上端にカーソルが来たら表示
+window.addEventListener('mousemove', (e) => {
+  if (e.clientY <= 24) {
+    showToolbar();
+  }
+});
+
+// ツールバーに乗っている間は表示維持
+toolbar.addEventListener('mouseenter', () => {
+  if (hideTimer) {
+    clearTimeout(hideTimer);
+  }
+  toolbar.classList.add('visible');
+});
+
+toolbar.addEventListener('mouseleave', () => {
+  hideToolbarSoon();
+});
