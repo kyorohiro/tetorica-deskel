@@ -42,9 +42,9 @@ app.innerHTML = `
           <input id="color" type="color" value="#00ff88" />
         </label>
       </div>
-      <div class="toolbar-row">
+      <!--div class="toolbar-row">
         <button id="changeShortcut">shortcut</button>
-      </div>
+      </div-->
     </div>
 
     <canvas id="canvas"></canvas>
