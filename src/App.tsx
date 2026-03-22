@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { draw, resizeCanvas } from "./deskel"
 import { showToolbar } from "./toolbar"
 import { getCurrentWindow } from "@tauri-apps/api/window"
+import { updateWindowTitle, toggleAlwaysOnTop } from "./window";
+
 import { state } from "./state";
 import "./style.css"
 
@@ -21,6 +23,7 @@ export default function App() {
 
     resizeCanvas({ canvas, ctx })
     showToolbar()
+    updateWindowTitle()
   }, [])
 
   useEffect(() => {
@@ -64,6 +67,10 @@ export default function App() {
   return (
     <div id="app">
       <div id="toolbar" data-tauri-drag-region>
+        <div className="toolbar-row">
+          <button id="toggleClickCursor">cursor: off</button>
+          <button id="togglePin" onClick={toggleAlwaysOnTop}>pin: off</button>
+        </div>
         <label>
           grid
           <input
