@@ -5,13 +5,14 @@ import { getCurrentWindow } from "@tauri-apps/api/window"
 import { updateWindowTitle, toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { setupShortcuts } from "./shortcut";
 
-import { state } from "./state";
+import { saveSettings, state } from "./state";
 import "./style.css"
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [grid, setGrid] = useState(80)
-  const [opacity, setOpacity] = useState(0.7)
+  console.log(">> state", JSON.stringify(state));
+  const [grid, setGrid] = useState(state.grid)
+  const [opacity, setOpacity] = useState(state.opacity)
 
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)
@@ -71,6 +72,22 @@ export default function App() {
         <div className="toolbar-row">
           <button id="toggleClickCursor" onClick={toggleClickCursorThrough}>cursor: off</button>
           <button id="togglePin" onClick={toggleAlwaysOnTop}>pin: off</button>
+        </div>
+        <div className="toolbar-row">
+          <label>
+            color
+            <input id="color" type="color" value="#00ff88" onChange={() => {
+              const color = document.getElementById("color") as HTMLInputElement;
+              state.color = color.value;
+              const canvas = canvasRef.current
+              if (!canvas) return
+
+              const ctx = canvas.getContext("2d")
+              if (!ctx) return
+              draw({ canvas, ctx });
+              saveSettings();
+            }} />
+          </label>
         </div>
         <label>
           grid
