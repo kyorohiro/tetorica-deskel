@@ -3,6 +3,7 @@ import { draw, resizeCanvas } from "./deskel"
 import { showToolbar } from "./toolbar"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { updateWindowTitle, toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
+import { setupShortcuts } from "./shortcut";
 
 import { state } from "./state";
 import "./style.css"
@@ -43,7 +44,7 @@ export default function App() {
     }
 
     setup()
-
+    setupShortcuts();
     return () => {
       disposed = true
       off?.()
