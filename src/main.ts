@@ -4,13 +4,16 @@ import {
   register,
   unregisterAll,
 } from "@tauri-apps/plugin-global-shortcut";
+import { TOGGLE_CLICK_SHORTCUT } from "./shortcut";
+import { showToolbar, hideToolbarSoon, initToolbar } from "./toolbar";
+import { showToast } from "./toast";
+import { state, saveSettings } from "./state";
 
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
   throw new Error("#app not found");
 }
 
-const TOGGLE_CLICK_SHORTCUT = "CommandOrControl+Shift+J";
 
 app.innerHTML = `
   <div id="root">
@@ -67,73 +70,6 @@ if (!ctx) {
   throw new Error("2D context not available");
 }
 
-type Settings = {
-  grid: number;
-  opacity: number;
-  lineWidth: number;
-  color: string;
-};
-
-const DEFAULT_SETTINGS: Settings = {
-  grid: 80,
-  opacity: 0.7,
-  lineWidth: 1,
-  color: "#00ff88",
-};
-
-const SETTINGS_KEY = "tetorica-deskel-settings";
-
-
-const saved = loadSettings();
-console.log("saved ", saved);
-
-const state = {
-  grid: saved.grid,
-  opacity: saved.opacity,
-  lineWidth: saved.lineWidth,
-  color: saved.color,
-  clickThrough: false,
-  alwaysOnTop: false,
-};
-
-function loadSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) {
-      return DEFAULT_SETTINGS;
-    }
-
-    const parsed = JSON.parse(raw) as Partial<Settings>;
-
-    return {
-      grid: typeof parsed.grid === "number" ? parsed.grid : DEFAULT_SETTINGS.grid,
-      opacity: typeof parsed.opacity === "number" ? parsed.opacity : DEFAULT_SETTINGS.opacity,
-      lineWidth:
-        typeof parsed.lineWidth === "number"
-          ? parsed.lineWidth
-          : DEFAULT_SETTINGS.lineWidth,
-      color: typeof parsed.color === "string" ? parsed.color : DEFAULT_SETTINGS.color,
-    };
-  } catch (error) {
-    console.error("failed to load settings", error);
-    return DEFAULT_SETTINGS;
-  }
-}
-
-function saveSettings(): void {
-  const settings: Settings = {
-    grid: state.grid,
-    opacity: state.opacity,
-    lineWidth: state.lineWidth,
-    color: state.color,
-  };
-
-  try {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  } catch (error) {
-    console.error("failed to save settings", error);
-  }
-}
 
 function hexToRgba(hex: string, alpha: number): string {
   const value = hex.replace("#", "");
@@ -299,24 +235,6 @@ async function toggleClickCursorThrough(): Promise<void> {
   await setClickThrough(!state.clickThrough);
 }
 
-function showToast(message: string): void {
-  let toast = document.getElementById("toast");
-
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "toast";
-    document.body.appendChild(toast);
-  }
-
-  toast.textContent = message;
-  toast.classList.add("show");
-
-  window.setTimeout(() => {
-    toast?.classList.remove("show");
-  }, 1500);
-}
-
-
 async function setupShortcuts(): Promise<void> {
   await unregisterAll();
   await register(TOGGLE_CLICK_SHORTCUT, async (event) => {
@@ -335,61 +253,10 @@ async function init(): Promise<void> {
   setupShortcuts();
 }
 
+init();
 
-void init();
-
-//
-// toolbar
-//
-const toolbar = document.getElementById('toolbar') as HTMLDivElement;
-
-
-let hideTimer: number | undefined;
-
-function showToolbar() {
-  toolbar.classList.add('visible');
-
-  if (hideTimer) {
-    clearTimeout(hideTimer);
-  }
-
-  hideTimer = window.setTimeout(() => {
-    if (!toolbar.matches(':hover')) {
-      toolbar.classList.remove('visible');
-    }
-  }, 2500);
-}
-
-function hideToolbarSoon() {
-  if (hideTimer) {
-    clearTimeout(hideTimer);
-  }
-
-  hideTimer = window.setTimeout(() => {
-    if (!toolbar.matches(':hover')) {
-      toolbar.classList.remove('visible');
-    }
-  }, 800);
-}
 
 // 起動時に表示
+initToolbar();
 showToolbar();
 
-// 上端にカーソルが来たら表示
-window.addEventListener('mousemove', (e) => {
-  if (e.clientY <= 24) {
-    showToolbar();
-  }
-});
-
-// ツールバーに乗っている間は表示維持
-toolbar.addEventListener('mouseenter', () => {
-  if (hideTimer) {
-    clearTimeout(hideTimer);
-  }
-  toolbar.classList.add('visible');
-});
-
-toolbar.addEventListener('mouseleave', () => {
-  hideToolbarSoon();
-});
