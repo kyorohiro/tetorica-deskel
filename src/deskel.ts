@@ -1,17 +1,6 @@
 
 import { state } from "./state";
 
-let canvas: HTMLCanvasElement| undefined;
-let ctx: CanvasRenderingContext2D| undefined | null;
-
-function initCanvas () {
-    canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    ctx = canvas.getContext("2d");
-    if (!ctx) {
-    throw new Error("2D context not available");
-    }
-}
-
 function hexToRgba(hex: string, alpha: number): string {
   const value = hex.replace("#", "");
   const n = Number.parseInt(value, 16);
@@ -21,77 +10,77 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function resizeCanvas(): void {
-  if (!ctx) {
+function resizeCanvas(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D}): void {
+  console.log("> resizeCanvas", params);
+  if (!params.ctx) {
     return;
   }
   const dpr = window.devicePixelRatio || 1;
   const w = window.innerWidth;
   const h = window.innerHeight;
 
-  canvas!.width = Math.floor(w * dpr);
-  canvas!.height = Math.floor(h * dpr);
-  canvas!.style.width = `${w}px`;
-  canvas!.style.height = `${h}px`;
+  params.canvas!.width = Math.floor(w * dpr);
+  params.canvas!.height = Math.floor(h * dpr);
+  params.canvas!.style.width = `${w}px`;
+  params.canvas!.style.height = `${h}px`;
 
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  draw();
+  params.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw({canvas: params.canvas, ctx: params.ctx});
 }
 
-function drawGrid(w: number, h: number): void {
-  if (!ctx) {
+function drawGrid(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number}): void {
+  if (!params.ctx) {
     return;
   }
-  ctx.strokeStyle = hexToRgba(state.color, state.opacity);
-  ctx.lineWidth = state.lineWidth;
+  params.ctx.strokeStyle = hexToRgba(state.color, state.opacity);
+  params.ctx.lineWidth = state.lineWidth;
 
-  for (let x = 0; x <= w; x += state.grid) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
+  for (let x = 0; x <= params.w; x += state.grid) {
+    params.ctx.beginPath();
+    params.ctx.moveTo(x, 0);
+    params.ctx.lineTo(x, params.h);
+    params.ctx.stroke();
   }
 
-  for (let y = 0; y <= h; y += state.grid) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
+  for (let y = 0; y <= params.h; y += state.grid) {
+    params.ctx.beginPath();
+    params.ctx.moveTo(0, y);
+    params.ctx.lineTo(params.w, y);
+    params.ctx.stroke();
   }
 }
 
-function drawCross(w: number, h: number): void {
-  if (!ctx) {
+function drawCross(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number}): void {
+  if (!params.ctx) {
     return;
   }
-  ctx.strokeStyle = hexToRgba(state.color, Math.min(1, state.opacity + 0.15));
-  ctx.lineWidth = Math.max(2, state.lineWidth + 1);
+  params.ctx.strokeStyle = hexToRgba(state.color, Math.min(1, state.opacity + 0.15));
+  params.ctx.lineWidth = Math.max(2, state.lineWidth + 1);
 
-  ctx.beginPath();
-  ctx.moveTo(w / 2, 0);
-  ctx.lineTo(w / 2, h);
-  ctx.stroke();
+  params.ctx.beginPath();
+  params.ctx.moveTo(params.w / 2, 0);
+  params.ctx.lineTo(params.w / 2, params.h);
+  params.ctx.stroke();
 
-  ctx.beginPath();
-  ctx.moveTo(0, h / 2);
-  ctx.lineTo(w, h / 2);
-  ctx.stroke();
+  params.ctx.beginPath();
+  params.ctx.moveTo(0, params.h / 2);
+  params.ctx.lineTo(params.w, params.h / 2);
+  params.ctx.stroke();
 }
 
-function draw(): void {
-  if (!ctx) {
+function draw(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D}): void {
+  if (!params.ctx) {
     return;
   }
   const w = window.innerWidth;
   const h = window.innerHeight;
 
-  ctx.clearRect(0, 0, w, h);
-  drawGrid(w, h);
-  drawCross(w, h);
+  params.ctx.clearRect(0, 0, w, h);
+  drawGrid({canvas: params.canvas, ctx: params.ctx, w, h});
+  drawCross({canvas: params.canvas, ctx: params.ctx, w, h});
 }
 
 export {
-    initCanvas,
     resizeCanvas,
     draw,
     drawCross,

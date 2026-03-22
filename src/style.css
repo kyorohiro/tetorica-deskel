@@ -29,8 +29,8 @@ body {
   color: white;
   user-select: none;
   backdrop-filter: blur(6px);
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;
+  pointer-events: auto;
   transition: opacity 0.2s ease;
 }
 
