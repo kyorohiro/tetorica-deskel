@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { draw, resizeCanvas } from "./deskel"
-import { showToolbar, initToolbar} from "./toolbar"
+import { showToolbar, initToolbar } from "./toolbar"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { updateWindowTitle, toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { setupShortcuts } from "./shortcut";
@@ -13,6 +13,7 @@ export default function App() {
   console.log(">> state", JSON.stringify(state));
   const [grid, setGrid] = useState(state.grid)
   const [opacity, setOpacity] = useState(state.opacity)
+  const [rotation, setRotation] = useState(state.rotation)
 
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)
@@ -64,9 +65,11 @@ export default function App() {
 
     state.grid = grid;
     state.opacity = opacity;
+    state.rotation = rotation
+    saveSettings();
     resizeCanvas({ canvas, ctx })
     draw({ canvas, ctx })
-  }, [grid, opacity])
+  }, [grid, opacity, rotation])
 
   return (
     <div id="app">
@@ -87,7 +90,6 @@ export default function App() {
               const ctx = canvas.getContext("2d")
               if (!ctx) return
               draw({ canvas, ctx });
-              saveSettings();
             }} />
           </label>
         </div>
@@ -111,6 +113,17 @@ export default function App() {
             step="0.05"
             value={opacity}
             onChange={(e) => setOpacity(Number(e.target.value))}
+          />
+        </label>
+
+        <label>
+          rotation
+          <input
+            type="range"
+            min="-180"
+            max="180"
+            value={rotation}
+            onChange={(e) => setRotation(Number(e.target.value))}
           />
         </label>
       </div>
