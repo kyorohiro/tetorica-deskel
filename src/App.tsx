@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { draw, resizeCanvas } from "./deskel"
 import { showToolbar } from "./toolbar"
 import { getCurrentWindow } from "@tauri-apps/api/window"
-import { updateWindowTitle, toggleAlwaysOnTop } from "./window";
+import { updateWindowTitle, toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
 
 import { state } from "./state";
 import "./style.css"
@@ -68,7 +68,7 @@ export default function App() {
     <div id="app">
       <div id="toolbar" data-tauri-drag-region>
         <div className="toolbar-row">
-          <button id="toggleClickCursor">cursor: off</button>
+          <button id="toggleClickCursor" onClick={toggleClickCursorThrough}>cursor: off</button>
           <button id="togglePin" onClick={toggleAlwaysOnTop}>pin: off</button>
         </div>
         <label>
