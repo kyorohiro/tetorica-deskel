@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { draw, resizeCanvas } from "./deskel"
-import { showToolbar } from "./toolbar"
+import { showToolbar, initToolbar} from "./toolbar"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { updateWindowTitle, toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { setupShortcuts } from "./shortcut";
@@ -46,6 +46,8 @@ export default function App() {
 
     setup()
     setupShortcuts();
+    initToolbar();
+    showToolbar();
     return () => {
       disposed = true
       off?.()
