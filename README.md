@@ -37,6 +37,7 @@ Prebuilt binaries are available on the GitHub Releases page.
 * Click-through mode (interact with apps behind)
 * Always-on-top toggle (pin)
 * Global shortcut support
+* rotate grid screen
 
 ---
 
@@ -44,8 +45,7 @@ Prebuilt binaries are available on the GitHub Releases page.
 
 | Action                     | Shortcut               |
 | -------------------------- | ---------------------- |
-| Toggle click-through       | `Cmd/Ctrl + Shift + X` |
-| Toggle pin (always on top) | `Cmd/Ctrl + Shift + P` |
+| Toggle click-through       | `Cmd/Ctrl + Shift + J` |
 
 ---
 
