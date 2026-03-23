@@ -7,6 +7,7 @@ import { setupShortcuts } from "./shortcut";
 
 import { saveSettings, state } from "./state";
 import "./style.css"
+import { captureAndCropToDownloads, testMonitorScreenshot } from "./screenCapture";
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -14,7 +15,19 @@ export default function App() {
   const [grid, setGrid] = useState(state.grid)
   const [opacity, setOpacity] = useState(state.opacity)
   const [rotation, setRotation] = useState(state.rotation)
+  const [captureStatus, setCaptureStatus] = useState("")
 
+  const handleColorCheck = async () => {
+    try {
+      setCaptureStatus("capturing...")
+      const path = await testMonitorScreenshot();
+      //const path = await captureAndCropToDownloads()
+      setCaptureStatus(`saved: ${path}`)
+    } catch (e) {
+      console.error(e)
+      setCaptureStatus(`error: ${String(e)}`)
+    }
+  }
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)
 
@@ -77,6 +90,11 @@ export default function App() {
         <div className="toolbar-row">
           <button id="toggleClickCursor" onClick={toggleClickCursorThrough}>cursor: off</button>
           <button id="togglePin" onClick={toggleAlwaysOnTop}>pin: off</button>
+
+        </div>
+        <div>
+          <button onClick={handleColorCheck}>color check</button>
+          <div>{captureStatus}</div>
         </div>
         <div className="toolbar-row">
           <label>

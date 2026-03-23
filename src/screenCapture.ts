@@ -1,7 +1,7 @@
-import { getCurrentWindow, monitorFromPoint } from "@tauri-apps/api/window"
+import { getCurrentWindow, monitorFromPoint, currentMonitor, primaryMonitor } from "@tauri-apps/api/window"
 import { downloadDir, join } from "@tauri-apps/api/path"
 import { readFile, writeFile } from "@tauri-apps/plugin-fs"
-import { getMonitorScreenshot } from "tauri-plugin-screenshots-api"
+import { getMonitorScreenshot, getScreenshotableMonitors, getScreenshotableWindows } from "tauri-plugin-screenshots-api"
 
 function loadImageFromBlob(blob: Blob): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
@@ -35,6 +35,22 @@ async function blobToUint8Array(blob: Blob): Promise<Uint8Array> {
     return new Uint8Array(await blob.arrayBuffer())
 }
 
+export async function testMonitorScreenshot() {
+  const windows = await getScreenshotableWindows();
+  for( let w of windows) {
+    console.log("> window ", w);
+  }
+  const monitors = await getScreenshotableMonitors()
+  console.log("monitors", monitors)
+
+  if (!monitors.length) {
+    throw new Error("no screenshotable monitors")
+  }
+
+  const path = await getMonitorScreenshot(monitors[0].id)
+  console.log("saved:", path)
+  return path
+}
 export async function captureAndCropToDownloads() {
     const appWindow = getCurrentWindow()
 
@@ -45,7 +61,13 @@ export async function captureAndCropToDownloads() {
     const centerX = pos.x + size.width / 2
     const centerY = pos.y + size.height / 2
 
-    const monitor = await monitorFromPoint(centerX, centerY)
+    let monitor = await monitorFromPoint(centerX, centerY)
+    if (!monitor) {
+        monitor = await currentMonitor()
+    }
+    if (!monitor) {
+        monitor = await primaryMonitor()
+    }
     if (!monitor) {
         throw new Error("current monitor not found")
     }
@@ -67,6 +89,8 @@ export async function captureAndCropToDownloads() {
     // ここは plugin の実際の型に合わせて調整
     // monitor.id を受ける実装なら monitor.id
     // monitor index を受ける実装なら 0 / 1 など
+    console.log("monitor =", monitor)
+console.log("monitor.id =", (monitor as any).id)
     const screenshotPath = await getMonitorScreenshot((monitor as any).id)
 
     // plugin が保存した PNG を読む

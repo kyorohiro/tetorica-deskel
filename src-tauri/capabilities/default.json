@@ -8,13 +8,21 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "core:window:allow-set-always-on-top",
-    "core:window:allow-set-ignore-cursor-events",
-    "core:window:allow-start-dragging",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister",
     "global-shortcut:allow-unregister-all",
+    "core:window:allow-set-always-on-top",
+    "core:window:allow-set-ignore-cursor-events",
+    "core:window:allow-start-dragging",
     "core:window:allow-set-title",
-    "fs:default"
+    "core:window:allow-monitor-from-point",
+    "core:window:allow-current-monitor",
+    "core:window:allow-primary-monitor",
+    "core:window:allow-outer-position",
+    "core:window:allow-outer-size",
+    "fs:default",
+    "screenshots:allow-get-screenshotable-monitors",
+    "screenshots:allow-get-monitor-screenshot",
+    "screenshots:allow-get-screenshotable-windows"
   ]
 }
