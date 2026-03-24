@@ -14,6 +14,7 @@ fn capture_and_crop_to_downloads(
     y: i32,
     width: u32,
     height: u32,
+    path: &str,
 ) -> Result<String, String> {
     let monitors = Monitor::all().map_err(|e| e.to_string())?;
 
@@ -37,15 +38,21 @@ fn capture_and_crop_to_downloads(
         .capture_region(local_x, local_y, crop_width, crop_height)
         .map_err(|e| e.to_string())?;
 
-    let path = app
-        .path()
-        .download_dir()
-        .map_err(|e| e.to_string())?
-        .join(format!(
-            "deskel-crop-{}.png",
-            chrono::Local::now().timestamp_millis()
-        ));
+    let mut path = path.to_string();
+    if path == "" {
+        let _path = app
+            .path()
+            .download_dir()
+            .map_err(|e| e.to_string())?
+            .join(format!(
+                "deskel-crop-{}.png",
+                chrono::Local::now().timestamp_millis()
+            ));
+        path = _path.to_string_lossy().to_string();
+        //path = _path.to_string_lossy().to_string().as_str();
+    }
 
+    println!(">> path {}", path);
     image.save(&path).map_err(|e| e.to_string())?;
 
     println!("capture req x={}, y={}, w={}, h={}", x, y, width, height);
@@ -54,12 +61,13 @@ fn capture_and_crop_to_downloads(
         "local_x={}, local_y={}, crop_w={}, crop_h={}",
         local_x, local_y, crop_width, crop_height
     );
-    Ok(path.to_string_lossy().to_string())
+    Ok(path.to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![greet])

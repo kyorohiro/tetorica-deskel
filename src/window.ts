@@ -10,7 +10,11 @@ function updateWindowTitle(): void {
     ? `Back to normal: ${TOGGLE_CLICK_SHORTCUT}`
     : "Tetorica Deskel";
   console.log(title);
-  void win.setTitle(title);
+  win.setTitle(title);
+  const customTitleBar = document.getElementById("custom-title-bar-value")
+  if (customTitleBar != null) {
+    customTitleBar.textContent = title;
+  }
 }
 
 async function setAlwaysOnTop(value: boolean): Promise<void> {
