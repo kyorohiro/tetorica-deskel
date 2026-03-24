@@ -104,7 +104,7 @@ export default function App() {
 
   return (
     <div id="app">
-      <CustomTitlebar/>
+      { /*<CustomTitlebar/> */ }
       <div id="toolbar">
         <div className="toolbar-row">
           <button
