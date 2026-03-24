@@ -8,6 +8,7 @@ import { setupShortcuts } from "./shortcut";
 import { saveSettings, state } from "./state";
 import "./style.css"
 import { captureAndCropToDownloads } from "./screenshot";
+import { useDialog } from "./useDialog";
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -16,9 +17,14 @@ export default function App() {
   const [opacity, setOpacity] = useState(state.opacity)
   const [rotation, setRotation] = useState(state.rotation)
   const [captureStatus, setCaptureStatus] = useState("")
+  const dialog = useDialog();
 
   const handleColorCheck = async () => {
     try {
+      await dialog.showConfirmDialog({
+        title: "Save",
+        body: "download folder"
+      })
       setCaptureStatus("capturing...")
       //const path = await testMonitorScreenshot();
       const path = await captureAndCropToDownloads()
