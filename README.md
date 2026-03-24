@@ -38,6 +38,7 @@ Prebuilt binaries are available on the GitHub Releases page.
 * Always-on-top toggle (pin)
 * Global shortcut support
 * rotate grid screen
+* screenshot with grid
 
 ---
 
