@@ -26,8 +26,7 @@ function initToolbar() {
 }
 
 function showToolbar() {
-    console.log("> showToolbar ", toolbar);
-
+    //console.log("> showToolbar ", toolbar);
     toolbar?.classList.add('visible');
 
     if (hideTimer) {
