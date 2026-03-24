@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core"
 import { getCurrentWindow } from "@tauri-apps/api/window"
+import { platform } from "@tauri-apps/plugin-os"
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -11,7 +12,11 @@ export async function captureAndCropToDownloads(params: { path: string | undefin
   //appWindow.setDecorations(false);
   const pos = await appWindow.innerPosition()
   const size = await appWindow.innerSize()
-  const scale = await appWindow.scaleFactor()
+  let scale = await appWindow.scaleFactor()
+  const isWindows = (await platform()) === "windows"
+  if(isWindows) {
+    scale = 1.0;
+  }
 
   const customTitleBar = document.getElementById("custom-title-bar")
   let titlebarHight = 0;
