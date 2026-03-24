@@ -65,11 +65,11 @@ export async function captureAndCropToDownloads(params: { path: string | undefin
       height: height,
       path: params.path,
     })
+    return path
   } finally {
     if (toolbar) {
       toolbar.style.display = ""
     }
   }
   //appWindow.setDecorations(true);
-  return path
 }
