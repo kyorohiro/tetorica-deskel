@@ -8,7 +8,7 @@ import { setupShortcuts } from "./shortcut";
 import { saveSettings, state } from "./state";
 import "./style.css"
 import { captureAndCropToDownloads } from "./screenshot";
-import { useDialog } from "./useDialog";
+//import { useDialog } from "./useDialog";
 import { save } from "@tauri-apps/plugin-dialog";
 import { CustomTitlebar } from "./CustomTitlebar";
 
