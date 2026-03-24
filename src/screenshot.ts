@@ -14,14 +14,16 @@ export async function captureAndCropToDownloads(params: { path: string | undefin
   const size = await appWindow.innerSize()
   let scale = await appWindow.scaleFactor()
   const isWindows = (await platform()) === "windows"
-  if(isWindows) {
-    scale = 1.0;
-  }
+
 
   const customTitleBar = document.getElementById("custom-title-bar")
   let titlebarHight = 0;
   if (customTitleBar != null) {
     titlebarHight = customTitleBar.getBoundingClientRect().height;
+  }
+  if(isWindows) {
+    titlebarHight = titlebarHight * scale;
+    scale = 1.0;
   }
   console.log({
     pos,
