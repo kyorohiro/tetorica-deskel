@@ -39,6 +39,7 @@ Prebuilt binaries are available on the GitHub Releases page.
 * Global shortcut support
 * rotate grid screen
 * screenshot with grid
+* measure stick
 
 ---
 
