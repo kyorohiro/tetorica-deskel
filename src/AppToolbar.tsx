@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { saveSettings, state } from "./state";
-import { updateWindowTitle, toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
+import { toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
 
