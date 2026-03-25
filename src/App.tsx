@@ -15,7 +15,7 @@ export default function App() {
 
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)
-    deskelRef.current?.redraw();
+    deskelRef.current?.redraw({isResizeCanvas: true});
     showToolbar()
     updateWindowTitle()
   }, [])

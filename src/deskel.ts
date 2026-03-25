@@ -11,7 +11,7 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 function resizeCanvas(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D}): void {
-  console.log("> resizeCanvas", params);
+  //console.log("> resizeCanvas", params);
   if (!params.ctx) {
     return;
   }
