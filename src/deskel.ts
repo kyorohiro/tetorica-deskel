@@ -203,6 +203,7 @@ function drawMeasure(params: {
   const deg = (Math.atan2(dy, dx) * 180) / Math.PI;
   const angle = (deg + 360) % 360;
 
+  // line
   params.ctx.lineWidth = 8
   params.ctx.strokeStyle = `rgba(${shadowRgbaParams.r}, ${shadowRgbaParams.g}, ${shadowRgbaParams.b}, ${shadowRgbaParams.a})`;
   params.ctx.beginPath();
@@ -216,7 +217,7 @@ function drawMeasure(params: {
   params.ctx.arc(params.current.x, params.current.y, 10, 0, Math.PI * 2);
   params.ctx.fill();
   //
-  //
+  // line
   params.ctx.strokeStyle = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, ${rgbaParams.a})`;
   params.ctx.lineWidth = 2
   params.ctx.beginPath();
@@ -229,7 +230,25 @@ function drawMeasure(params: {
   params.ctx.arc(params.start.x, params.start.y, 4, 0, Math.PI * 2);
   params.ctx.arc(params.current.x, params.current.y, 4, 0, Math.PI * 2);
   params.ctx.fill();
+  //
+  // circle
+  // circle: center = start, radius = len
+  {
+    params.ctx.lineWidth = 3
+    params.ctx.strokeStyle = `rgba(${shadowRgbaParams.r}, ${shadowRgbaParams.g}, ${shadowRgbaParams.b}, ${shadowRgbaParams.a})`;
+    params.ctx.beginPath();
+    params.ctx.arc(params.start.x, params.start.y, len, 0, Math.PI * 2);
+    params.ctx.stroke();
 
+    params.ctx.lineWidth = 1
+    params.ctx.strokeStyle = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, ${rgbaParams.a})`;
+    params.ctx.beginPath();
+    params.ctx.arc(params.start.x, params.start.y, len, 0, Math.PI * 2);
+    params.ctx.stroke();
+  }
+
+  //
+  // text
   //const mx = (params.start.x + params.current.x) / 2;
   //const my = (params.start.y + params.current.y) / 2;
   const mx = params.current.x;
