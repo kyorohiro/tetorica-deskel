@@ -1,5 +1,28 @@
 
+import { AppDeskelPoint } from "./AppDeskel";
 import { state } from "./state";
+
+type Rgba = {
+  r: number
+  g: number
+  b: number
+  a: number
+}
+
+type Hsla = {
+  h: number
+  s: number
+  l: number
+  a: number
+}
+function hexToRgbaParams(hex: string, alpha: number): Rgba {
+  const value = hex.replace("#", "");
+  const n = Number.parseInt(value, 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return { r, g, b, a: alpha };
+}
 
 function hexToRgba(hex: string, alpha: number): string {
   const value = hex.replace("#", "");
@@ -10,7 +33,88 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function resizeCanvas(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D}): void {
+function rgbaToHsla({ r, g, b, a }: Rgba): Hsla {
+  const rn = r / 255
+  const gn = g / 255
+  const bn = b / 255
+
+  const max = Math.max(rn, gn, bn)
+  const min = Math.min(rn, gn, bn)
+  const delta = max - min
+
+  let h = 0
+  const l = (max + min) / 2
+
+  let s = 0
+
+  if (delta !== 0) {
+    s = delta / (1 - Math.abs(2 * l - 1))
+
+    switch (max) {
+      case rn:
+        h = 60 * (((gn - bn) / delta) % 6)
+        break
+      case gn:
+        h = 60 * ((bn - rn) / delta + 2)
+        break
+      case bn:
+        h = 60 * ((rn - gn) / delta + 4)
+        break
+    }
+  }
+
+  if (h < 0) h += 360
+
+  return {
+    h,
+    s: s * 100,
+    l: l * 100,
+    a,
+  }
+}
+
+function hslaToRgba({ h, s, l, a }: Hsla): Rgba {
+  const sn = s / 100
+  const ln = l / 100
+
+  const c = (1 - Math.abs(2 * ln - 1)) * sn
+  const hh = h / 60
+  const x = c * (1 - Math.abs((hh % 2) - 1))
+
+  let r1 = 0
+  let g1 = 0
+  let b1 = 0
+
+  if (0 <= hh && hh < 1) {
+    r1 = c
+    g1 = x
+  } else if (1 <= hh && hh < 2) {
+    r1 = x
+    g1 = c
+  } else if (2 <= hh && hh < 3) {
+    g1 = c
+    b1 = x
+  } else if (3 <= hh && hh < 4) {
+    g1 = x
+    b1 = c
+  } else if (4 <= hh && hh < 5) {
+    r1 = x
+    b1 = c
+  } else if (5 <= hh && hh < 6) {
+    r1 = c
+    b1 = x
+  }
+
+  const m = ln - c / 2
+
+  return {
+    r: Math.round((r1 + m) * 255),
+    g: Math.round((g1 + m) * 255),
+    b: Math.round((b1 + m) * 255),
+    a,
+  }
+}
+function resizeCanvas(params: { canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D }): void {
   //console.log("> resizeCanvas", params);
   if (!params.ctx) {
     return;
@@ -25,10 +129,10 @@ function resizeCanvas(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingCo
   params.canvas!.style.height = `${h}px`;
 
   params.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  draw({canvas: params.canvas, ctx: params.ctx});
+  draw({ canvas: params.canvas, ctx: params.ctx });
 }
 
-function drawGrid(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number}): void {
+function drawGrid(params: { canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number }): void {
   if (!params.ctx) {
     return;
   }
@@ -50,7 +154,7 @@ function drawGrid(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContex
   }
 }
 
-function drawCross(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number}): void {
+function drawCross(params: { canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number }): void {
   if (!params.ctx) {
     return;
   }
@@ -68,7 +172,103 @@ function drawCross(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
   params.ctx.stroke();
 }
 
-function draw(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D}): void {
+function makeShadowColorFromGrid(h: number, s: number, l: number, a: number) {
+  const shadowH = (h + 180) % 360
+  const shadowS = s * 0.55
+  const shadowL = Math.max(l, 70) // HSLのLを0-100で扱う想定
+  return { h: shadowH, s: shadowS, l: shadowL, a }
+}
+
+function drawMeasure(params: {
+  canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, start?: AppDeskelPoint | null, current?: AppDeskelPoint | null, dragging?: boolean
+}): void {
+  if (!params.ctx) {
+    return;
+  }
+
+
+  if (!params.start || !params.current || !params.dragging) return;
+  const rgbaParams = hexToRgbaParams(state.color, 0.8);
+  const hslaParams = rgbaToHsla(rgbaParams);
+  const shadowHslaParams = makeShadowColorFromGrid(
+    hslaParams.h,
+    hslaParams.s,
+    hslaParams.l,
+    hslaParams.a,
+  );
+  const shadowRgbaParams = hslaToRgba(shadowHslaParams);
+  const dx = params.current.x - params.start.x;
+  const dy = params.current.y - params.start.y;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  const deg = (Math.atan2(dy, dx) * 180) / Math.PI;
+  const angle = (deg + 360) % 360;
+
+  params.ctx.lineWidth = 8
+  params.ctx.strokeStyle = `rgba(${shadowRgbaParams.r}, ${shadowRgbaParams.g}, ${shadowRgbaParams.b}, ${shadowRgbaParams.a})`;
+  params.ctx.beginPath();
+  params.ctx.moveTo(params.start.x, params.start.y);
+  params.ctx.lineTo(params.current.x, params.current.y);
+  params.ctx.stroke();
+  //
+  params.ctx.fillStyle = `rgba(${shadowRgbaParams.r}, ${shadowRgbaParams.g}, ${shadowRgbaParams.b}, ${shadowRgbaParams.a})`;
+  params.ctx.beginPath();
+  params.ctx.arc(params.start.x, params.start.y, 10, 0, Math.PI * 2);
+  params.ctx.arc(params.current.x, params.current.y, 10, 0, Math.PI * 2);
+  params.ctx.fill();
+  //
+  //
+  params.ctx.strokeStyle = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, ${rgbaParams.a})`;
+  params.ctx.lineWidth = 2
+  params.ctx.beginPath();
+  params.ctx.moveTo(params.start.x, params.start.y);
+  params.ctx.lineTo(params.current.x, params.current.y);
+  params.ctx.stroke();
+
+  params.ctx.fillStyle = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, ${rgbaParams.a})`;
+  params.ctx.beginPath();
+  params.ctx.arc(params.start.x, params.start.y, 4, 0, Math.PI * 2);
+  params.ctx.arc(params.current.x, params.current.y, 4, 0, Math.PI * 2);
+  params.ctx.fill();
+
+  //const mx = (params.start.x + params.current.x) / 2;
+  //const my = (params.start.y + params.current.y) / 2;
+  const mx = params.current.x;
+  const my = params.current.y;
+  {
+    const ctx = params.ctx
+
+    const text1 = `len: ${len.toFixed(1)}`
+    const text2 = `deg: ${angle.toFixed(1)}°`
+
+    const x = mx + 8
+    const y1 = my - 8
+    const y2 = my + 10
+
+    ctx.font = "12px sans-serif"
+
+    const m1 = ctx.measureText(text1)
+    const m2 = ctx.measureText(text2)
+
+    const padX = 4
+    const padY = 4
+    const lineHeight = 22
+
+    const w = Math.max(m1.width, m2.width) + padX * 2
+    const top = y1 - lineHeight + 2
+
+    ctx.fillStyle = `rgba(${shadowRgbaParams.r}, ${shadowRgbaParams.g}, ${shadowRgbaParams.b}, ${shadowRgbaParams.a})`;
+    params.ctx.beginPath();
+    ctx.fillRect(x - padX, top - padY, w, lineHeight * 2 + padY * 2)
+
+    ctx.fillStyle = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, ${rgbaParams.a})`;
+    ctx.fillText(text1, x, y1)
+    ctx.fillText(text2, x, y2)
+  }
+
+  //params.ctx.fillText(`len: ${len.toFixed(1)}`, mx + 8, my - 8);
+  //params.ctx.fillText(`deg: ${angle.toFixed(1)}°`, mx + 8, my + 10);
+}
+function draw(params: { canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D }): void {
   if (!params.ctx) {
     return;
   }
@@ -85,14 +285,15 @@ function draw(params: {canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D}
   params.ctx.rotate(rad)
   params.ctx.translate(-cx, -cy)
 
-  drawGrid({canvas: params.canvas, ctx: params.ctx, w, h});
-  drawCross({canvas: params.canvas, ctx: params.ctx, w, h});
+  drawGrid({ canvas: params.canvas, ctx: params.ctx, w, h });
+  drawCross({ canvas: params.canvas, ctx: params.ctx, w, h });
   params.ctx.restore()
 }
 
 export {
-    resizeCanvas,
-    draw,
-    drawCross,
-    drawGrid
+  resizeCanvas,
+  draw,
+  drawCross,
+  drawGrid,
+  drawMeasure
 }

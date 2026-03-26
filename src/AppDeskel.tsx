@@ -4,19 +4,19 @@ import {
   useImperativeHandle,
   useCallback,
 } from "react";
-import { draw, resizeCanvas } from "./deskel";
+import { draw, drawMeasure, resizeCanvas } from "./deskel";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
 };
 
-type Point = { x: number; y: number };
+type AppDeskelPoint = { x: number; y: number };
 
 const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const startRef = useRef<Point | null>(null);
-  const currentRef = useRef<Point | null>(null);
+  const startRef = useRef<AppDeskelPoint | null>(null);
+  const currentRef = useRef<AppDeskelPoint | null>(null);
   const draggingRef = useRef(false);
 
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -37,30 +37,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
     const start = startRef.current;
     const current = currentRef.current;
     const dragging = draggingRef.current;
-
-    if (!start || !current || !dragging) return;
-
-    const dx = current.x - start.x;
-    const dy = current.y - start.y;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const deg = (Math.atan2(dy, dx) * 180) / Math.PI;
-    const angle = (deg + 360) % 360;
-
-    ctx.beginPath();
-    ctx.moveTo(start.x, start.y);
-    ctx.lineTo(current.x, current.y);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(start.x, start.y, 4, 0, Math.PI * 2);
-    ctx.arc(current.x, current.y, 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    const mx = (start.x + current.x) / 2;
-    const my = (start.y + current.y) / 2;
-
-    ctx.fillText(`len: ${len.toFixed(1)}`, mx + 8, my - 8);
-    ctx.fillText(`deg: ${angle.toFixed(1)}°`, mx + 8, my + 10);
+    drawMeasure({ canvas, ctx, start, current, dragging });
   }, []);
 
   const setCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
@@ -134,4 +111,4 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
 });
 
 export { AppDeslel };
-export type { AppDeskelHandle };
+export type { AppDeskelHandle, AppDeskelPoint };
