@@ -27,4 +27,5 @@ xcap = "0.9.3"
 chrono = "0.4.44"
 tauri-plugin-dialog = "2"
 tauri-plugin-os = "2"
+tokio = "1.50.0"
 
