@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { saveSettings, state } from "./state";
 import { toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
-import { captureAndCropToDownloads } from "./screenshot";
+import { captureAndCropToAnaluze, captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
+import { useDialog } from "./useDialog";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
@@ -11,8 +12,9 @@ export function AppToolbar(props: {
     const [opacity, setOpacity] = useState(state.opacity)
     const [rotation, setRotation] = useState(state.rotation)
     const [captureStatus, setCaptureStatus] = useState("")
+    const dialog = useDialog();
 
-    const handleColorCheck = async () => {
+    const handleSnapshot = async () => {
         try {
             //await dialog.showConfirmDialog({
             //  title: "Save",
@@ -38,6 +40,22 @@ export function AppToolbar(props: {
         }
     }
 
+    const handleColorCheck = async () => {
+        try {
+            await dialog.showConfirmDialog({
+              title: "....",
+              body: "now developping"
+            })
+            setCaptureStatus("capturing...")
+            //const path = await testMonitorScreenshot();
+            const r = await captureAndCropToAnaluze({})
+            console.log(r);
+            setCaptureStatus(`captured:`)
+        } catch (e) {
+            console.error(e)
+            setCaptureStatus(`error: ${String(e)}`)
+        }
+    }
     useEffect(() => {
         console.log(">> useEffect [grid, opacity]", [grid, opacity])
         state.grid = grid;
@@ -65,11 +83,17 @@ export function AppToolbar(props: {
             </div>
             <div>
                 <button
-                    onClick={handleColorCheck}
+                    onClick={handleSnapshot}
                     className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
                 >capture</button>
-                <div>{captureStatus}</div>
             </div>
+            <div>
+                <button
+                    onClick={handleColorCheck}
+                    className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
+                >color check</button>
+            </div>
+            <div><div>{captureStatus}</div></div>
             <div className="toolbar-row">
                 <label>
                     color

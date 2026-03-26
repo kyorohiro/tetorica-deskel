@@ -20,8 +20,9 @@ type ColorAnalysisResult = {
 };
 
 
-export async function captureAndCropToDownloads(params: { path: string | undefined | null }) {
-  console.log("> captureAndCropToDownloads", params);
+
+export async function captureAndCropToAnaluze(params: {}) {
+  console.log("> captureAndCropToAnaluze", params);
   const appWindow = getCurrentWindow()
 
 
@@ -89,9 +90,7 @@ export async function captureAndCropToDownloads(params: { path: string | undefin
   //appWindow.setDecorations(true);
 }
 
-
-
-export async function captureAndCropToAnaluze(params: { path: string | undefined | null }) {
+export async function captureAndCropToDownloads(params: { path: string | undefined | null }) {
   console.log("> captureAndCropToDownloads", params);
   const appWindow = getCurrentWindow()
 
@@ -150,7 +149,6 @@ export async function captureAndCropToAnaluze(params: { path: string | undefined
       y: y,
       width: width,
       height: height,
-      path: params.path,
     })
     return path
   } finally {

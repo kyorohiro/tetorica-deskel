@@ -73,9 +73,11 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![capture_and_crop_to_downloads])
-        .invoke_handler(tauri::generate_handler![analyze_region_colors])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            capture_and_crop_to_downloads,
+            analyze_region_colors
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
