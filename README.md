@@ -4,6 +4,7 @@ Lightweight drawing overlay tool (デスケルアプリ)
 
 ![image](doc/image.png)
 
+![image](doc/image2.png)
 ---
 
 ## ✨ What is this?
