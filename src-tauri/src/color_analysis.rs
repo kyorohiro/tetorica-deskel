@@ -1,9 +1,5 @@
 use serde::Serialize;
 use std::collections::HashMap;
-use xcap::Monitor;
-
-
-// color analysis
 
 fn rgb_to_hsl_hsv(r: u8, g: u8, b: u8) -> (f32, f32, f32, f32, f32) {
     let r = r as f32 / 255.0;

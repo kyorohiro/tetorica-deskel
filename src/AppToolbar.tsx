@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react"
 import { saveSettings, state } from "./state";
 import { toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
-import { captureAndCropToAnaluze, captureAndCropToDownloads } from "./screenshot";
+import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
 import { useDialog } from "./useDialog";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
+    onClickColorCheck?: (params:{colors: ColorCount[]}) => void
 }) {
     const [grid, setGrid] = useState(state.grid)
     const [opacity, setOpacity] = useState(state.opacity)
@@ -43,26 +44,33 @@ export function AppToolbar(props: {
     const handleColorCheck = async () => {
         try {
             await dialog.showConfirmDialog({
-              title: "....",
-              body: "now developping"
+                title: "....",
+                body: "now developping"
             })
             setCaptureStatus("capturing...")
             //const path = await testMonitorScreenshot();
-            const r = await captureAndCropToAnaluze({})
-            console.log(r);
-            setCaptureStatus(`captured:`)
+            const r = await captureAndCropToAnalysis({})
+            //console.log(r);
+
+            setCaptureStatus(`color checked:`)
+            if (props.onClickColorCheck) {
+                props.onClickColorCheck({
+                  colors: r.colors
+                });
+            }
         } catch (e) {
             console.error(e)
             setCaptureStatus(`error: ${String(e)}`)
         }
     }
+
     useEffect(() => {
         console.log(">> useEffect [grid, opacity]", [grid, opacity])
         state.grid = grid;
         state.opacity = opacity;
         state.rotation = rotation
         saveSettings();
-        if(props.onChangeState) {
+        if (props.onChangeState) {
             props.onChangeState();
         }
     }, [grid, opacity, rotation])

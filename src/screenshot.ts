@@ -3,7 +3,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window"
 import { platform } from "@tauri-apps/plugin-os"
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
-type ColorCount = {
+export type ColorCount = {
   r: number;
   g: number;
   b: number;
@@ -27,7 +27,7 @@ type ColorAnalysisResult = {
 
 
 
-export async function captureAndCropToAnaluze(params: {}) {
+export async function captureAndCropToAnalysis(params: {}) {
   console.log("> captureAndCropToAnaluze", params);
   const appWindow = getCurrentWindow()
 

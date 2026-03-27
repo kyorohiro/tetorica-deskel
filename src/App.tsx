@@ -8,6 +8,8 @@ import "./style.css"
 import { AppToolbar } from "./AppToolbar";
 import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
+import { AppColorAnalysis } from "./AppColorAnalysis";
+import { ColorCount } from "./screenshot";
 
 export default function App() {
   //const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -49,12 +51,15 @@ export default function App() {
   const onChangeStateForToolbar = useCallback(()=>{
     deskelRef.current?.redraw();
   },[]);
-
+  const onClickColorCheck  = useCallback((params:{colors: ColorCount[]})=>{
+    console.log(">> onClickColorCheck ",params);
+  },[]);
   return (
     <div id="app">
       { /*<CustomTitlebar/> */ }
-      <AppToolbar onChangeState={onChangeStateForToolbar}/>
+      <AppToolbar onChangeState={onChangeStateForToolbar} onClickColorCheck={onClickColorCheck}/>
       <AppDeslel ref={deskelRef}/>
+      <AppColorAnalysis />
     </div>
   )
 }
