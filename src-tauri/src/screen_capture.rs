@@ -1,12 +1,12 @@
 use tauri::Manager;
-use xcap::{Monitor, image::{RgbaImage}};
+use xcap::{image::RgbaImage, Monitor};
 
-pub fn capture_and_crop(
-    x: i32,
-    y: i32,
-    width: u32,
-    height: u32,
-) -> Result<RgbaImage, String> {
+pub struct CaptureResult {
+    pub image: RgbaImage,
+    pub crop_width: u32,
+    pub crop_height: u32,
+}
+pub fn capture_and_crop(x: i32, y: i32, width: u32, height: u32) -> Result<CaptureResult, String> {
     let monitors = Monitor::all().map_err(|e| e.to_string())?;
 
     let monitor = monitors
@@ -40,7 +40,11 @@ pub fn capture_and_crop(
         "local_x={}, local_y={}, crop_w={}, crop_h={}",
         local_x, local_y, crop_width, crop_height
     );
-    Ok(image)
+    return Ok(CaptureResult {
+        image,
+        crop_width,
+        crop_height,
+    })
 }
 
 pub fn capture_and_crop_to_downloads(
@@ -51,8 +55,7 @@ pub fn capture_and_crop_to_downloads(
     height: u32,
     path: &str,
 ) -> Result<String, String> {
-
-    let image = capture_and_crop(x, y, width, height)?;
+    let capture_result = capture_and_crop(x, y, width, height)?;
 
     let mut path = path.to_string();
     if path == "" {
@@ -69,6 +72,6 @@ pub fn capture_and_crop_to_downloads(
     }
 
     println!(">> path {}", path);
-    image.save(&path).map_err(|e| e.to_string())?;
+    capture_result.image.save(&path).map_err(|e| e.to_string())?;
     Ok(path.to_string())
 }

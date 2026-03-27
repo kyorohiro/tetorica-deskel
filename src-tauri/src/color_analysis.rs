@@ -39,32 +39,8 @@ fn analyze_region_colors_sync(
     top_n: usize,
 ) -> Result<ColorAnalysisResult, String> {
 
-    let monitors = Monitor::all().map_err(|e| e.to_string())?;
-
-    let monitor = monitors
-        .into_iter()
-        .find(|m| m.is_primary().unwrap_or(false))
-        .ok_or("No primary monitor found".to_string())?;
-
-    let monitor_width = monitor.width().map_err(|e| e.to_string())?;
-    let monitor_height = monitor.height().map_err(|e| e.to_string())?;
-
-    let local_x = if x < 0 { 0 } else { x as u32 };
-    let local_y = if y < 0 { 0 } else { y as u32 };
-
-    let crop_width = width.min(monitor_width.saturating_sub(local_x));
-    let crop_height = height.min(monitor_height.saturating_sub(local_y));
-
-    if crop_width == 0 || crop_height == 0 {
-        return Err("Capture region is empty".to_string());
-    }
-
-    let image = monitor
-        .capture_region(local_x, local_y, crop_width, crop_height)
-        .map_err(|e| e.to_string())?;
-
-    // let rgba = image.to_rgba8();
-
+    let capture_result = crate::screen_capture::capture_and_crop(x, y, width, height)?;
+    let image = capture_result.image;
     let step = quantize_step; //.unwrap_or(32).max(1);
     let mut counts: HashMap<(u8, u8, u8), u32> = HashMap::new();
     for pixel in image.pixels() {
@@ -118,8 +94,8 @@ fn analyze_region_colors_sync(
     colors.truncate(top_n);
 
     Ok(ColorAnalysisResult {
-        width: crop_width,
-        height: crop_height,
+        width: capture_result.crop_width,
+        height: capture_result.crop_height,
         total_pixels,
         colors,
     })
