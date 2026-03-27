@@ -39,13 +39,13 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
     // 背景
 
-    //ctx.fillStyle = "rgba(20,20,20,0.35)";
-    //ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = "rgba(220,220,220,0.35)";
+    ctx.fillRect(0, 0, width, height);
 
 
     // ガイド円
     ctx.strokeStyle = "rgba(20,20,20, 0.36)";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
 
     for (const ratio of [0.25, 0.5, 0.75, 1.0]) {
       ctx.beginPath();
@@ -115,18 +115,21 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
       // ratio で点サイズ調整
       // [01]
-      // const heatRadius = Math.max(10, Math.min(40, 10 + t * 30));
+      //const t = color.ratio;
+      //const dotRadius = Math.max(1, Math.min(12, 1 + t * 30));
 
       // [02]
       //const t = Math.sqrt(color.ratio);
       //const dotRadius = Math.max(1, Math.min(12, 1 + t*30));
+      
       const minR = 1;
       const maxR = 12;
-      const ratioScale = 20;
+      const ratioScale = 40;
 
       const t0 = Math.min(1, Math.max(0, color.ratio * ratioScale));
       const t = t0 * t0 * (3 - 2 * t0);
       const dotRadius = minR + (maxR - minR) * t;
+    
 
       ctx.beginPath();
       ctx.arc(x, y, dotRadius, 0, Math.PI * 2);

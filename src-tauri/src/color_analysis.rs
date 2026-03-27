@@ -79,76 +79,89 @@ fn analyze_region_colors_sync(
     quantize_step: u8,
     top_n: usize,
 ) -> Result<ColorAnalysisResult, String> {
-
     println!("> analyze_region_colors_sync");
+
     let capture_result = crate::screen_capture::capture_and_crop(x, y, width, height)?;
     let image = capture_result.image;
-    let step = quantize_step; //.unwrap_or(32).max(1);
-    let mut counts: HashMap<(u8, u8, u8), u32> = HashMap::new();
+
+    let step = quantize_step.max(1);
+
+    // 量子化後のグループ -> その中に含まれる元色の出現回数
+    let mut groups: HashMap<(u8, u8, u8), HashMap<(u8, u8, u8), u32>> = HashMap::new();
+
     for pixel in image.pixels() {
-        let [r, g, b, _a] = pixel.0;
-        let r = quantize(r, quantize_step);
-        let g = quantize(g, quantize_step);
-        let b = quantize(b, quantize_step);
-
-        *counts.entry((r, g, b)).or_insert(0) += 1;
-
-        if _a == 0 {
-            continue;
-        }
-
-        let r = quantize(r, step);
-        let g = quantize(g, step);
-        let b = quantize(b, step);
-
         let [r, g, b, a] = pixel.0;
 
         if a == 0 {
             continue;
         }
 
-        let r = quantize(r, quantize_step);
-        let g = quantize(g, quantize_step);
-        let b = quantize(b, quantize_step);
+        let q = (
+            quantize(r, step),
+            quantize(g, step),
+            quantize(b, step),
+        );
 
-        *counts.entry((r, g, b)).or_insert(0) += 1;
+        let original = (r, g, b);
+
+        let entry = groups.entry(q).or_insert_with(HashMap::new);
+        *entry.entry(original).or_insert(0) += 1;
     }
 
-    // println!(">> counts {:?}" , counts);
-    let total_pixels: u32 = counts.values().copied().sum();
+    // 各グループから代表色を1つ選ぶ
+    let mut palette_items: Vec<((u8, u8, u8), u32)> = Vec::new();
 
-    let mut colors: Vec<ColorCount> = counts
-    .into_iter()
-    .map(|((r, g, b), count)| {
-        let (hue, hsl_saturation, lightness, hsv_saturation, value) =
-            rgb_to_hsl_hsv(r, g, b);
+    for (_quantized_key, original_counts) in groups {
+        let mut total_count = 0u32;
+        let mut representative_color = (0u8, 0u8, 0u8);
+        let mut representative_count = 0u32;
 
-        ColorCount {
-            r,
-            g,
-            b,
-            hex: format!("#{r:02x}{g:02x}{b:02x}"),
-            count,
-            ratio: if total_pixels == 0 {
-                0.0
-            } else {
-                count as f32 / total_pixels as f32
-            },
+        for (original_color, count) in original_counts {
+            total_count += count;
 
-            hue,
-            hue_angle: hue,
-            hsl_saturation,
-            lightness,
-            hsv_saturation,
-            value,
+            // 最頻出の元色を代表色にする
+            if count > representative_count {
+                representative_color = original_color;
+                representative_count = count;
+            }
         }
-    })
-    .collect();
 
-    colors.sort_by(|a, b| b.count.cmp(&a.count));
-    colors.truncate(top_n);
+        palette_items.push((representative_color, total_count));
+    }
 
-    // println!(">> color {:?}" , colors);
+    // グループ全体の出現数で多い順に並べる
+    palette_items.sort_by(|a, b| b.1.cmp(&a.1));
+    palette_items.truncate(top_n);
+
+    let total_pixels: u32 = palette_items.iter().map(|(_, count)| *count).sum();
+
+    let colors: Vec<ColorCount> = palette_items
+        .into_iter()
+        .map(|((r, g, b), count)| {
+            let (hue, hsl_saturation, lightness, hsv_saturation, value) =
+                rgb_to_hsl_hsv(r, g, b);
+
+            ColorCount {
+                r,
+                g,
+                b,
+                hex: format!("#{r:02x}{g:02x}{b:02x}"),
+                count,
+                ratio: if total_pixels == 0 {
+                    0.0
+                } else {
+                    count as f32 / total_pixels as f32
+                },
+                hue,
+                hue_angle: hue,
+                hsl_saturation,
+                lightness,
+                hsv_saturation,
+                value,
+            }
+        })
+        .collect();
+
     Ok(ColorAnalysisResult {
         width: capture_result.crop_width,
         height: capture_result.crop_height,

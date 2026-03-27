@@ -87,7 +87,7 @@ export async function captureAndCropToAnalysis(params: {}) {
       y: y,
       width: width,
       height: height,
-      quantizeStep: 22,
+      quantizeStep: 32,
       topN: 1000,
     });
     console.log(">> result", result);
