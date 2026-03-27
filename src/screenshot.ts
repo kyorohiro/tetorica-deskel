@@ -149,6 +149,7 @@ export async function captureAndCropToDownloads(params: { path: string | undefin
       y: y,
       width: width,
       height: height,
+      path: params.path,
     })
     return path
   } finally {
