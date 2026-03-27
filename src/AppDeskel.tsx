@@ -8,11 +8,14 @@ import { draw, drawMeasure, resizeCanvas } from "./deskel";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
+  setVisible: (visible: boolean) => void;
+  getCanvas: () => HTMLCanvasElement | null;
 };
 
 type AppDeskelPoint = { x: number; y: number };
 
 const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const startRef = useRef<AppDeskelPoint | null>(null);
@@ -99,12 +102,17 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
     ref,
     () => ({
       redraw,
+      setVisible: (visible: boolean) => {
+        if (!rootRef.current) return;
+        rootRef.current.style.display = visible ? "block" : "none";
+      },
+      getCanvas: () => canvasRef.current,
     }),
     [redraw]
   );
 
   return (
-    <div>
+    <div ref={rootRef}>
       <canvas key="deskel-default" id="deskel" ref={setCanvasRef} />
     </div>
   );

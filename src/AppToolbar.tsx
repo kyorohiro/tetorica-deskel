@@ -8,6 +8,7 @@ import { useDialog } from "./useDialog";
 export function AppToolbar(props: {
     onChangeState?: () => void
     onClickColorCheck?: (params:{colors: ColorCount[]}) => void
+    onClickClearColorCheck?: () => void
 }) {
     const [grid, setGrid] = useState(state.grid)
     const [opacity, setOpacity] = useState(state.opacity)
@@ -43,10 +44,10 @@ export function AppToolbar(props: {
 
     const handleColorCheck = async () => {
         try {
-            await dialog.showConfirmDialog({
-                title: "....",
-                body: "now developping"
-            })
+            //await dialog.showConfirmDialog({
+            //    title: "....",
+            //    body: "now developping"
+            //})
             setCaptureStatus("capturing...")
             //const path = await testMonitorScreenshot();
             const r = await captureAndCropToAnalysis({})
@@ -100,6 +101,11 @@ export function AppToolbar(props: {
                     onClick={handleColorCheck}
                     className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
                 >color check</button>
+                <button
+                    onClick={props.onClickClearColorCheck}
+                    className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
+                >clear color check</button>
+                
             </div>
             <div><div>{captureStatus}</div></div>
             <div className="toolbar-row">

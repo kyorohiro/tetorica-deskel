@@ -10,15 +10,16 @@ import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { ColorCount } from "./screenshot";
+import { sleep } from "./utils";
 
 export default function App() {
   //const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const deskelRef = useRef< AppDeskelHandle|null>(null);
-  const colorAnalysisRef = useRef< AppColorAnalysisHandle|null>(null);
+  const deskelRef = useRef<AppDeskelHandle | null>(null);
+  const colorAnalysisRef = useRef<AppColorAnalysisHandle | null>(null);
 
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)
-    deskelRef.current?.redraw({isResizeCanvas: true});
+    deskelRef.current?.redraw({ isResizeCanvas: true });
     showToolbar()
     updateWindowTitle()
   }, [])
@@ -49,19 +50,44 @@ export default function App() {
     }
   }, [handleResize])
 
-  const onChangeStateForToolbar = useCallback(()=>{
+  const onChangeStateForToolbar = useCallback(() => {
     deskelRef.current?.redraw();
-  },[]);
-  const onClickColorCheck  = useCallback((params:{colors: ColorCount[]})=>{
-    console.log(">> onClickColorCheck ",params);
-    colorAnalysisRef.current?.redraw(params);
-  },[]);
+  }, []);
+  const onClickColorCheck = useCallback(async (params: { colors: ColorCount[] }) => {
+    console.log(">> onClickColorCheck ", params);
+    if (deskelRef.current && colorAnalysisRef.current) {
+      console.log(">> >> visible ", false);
+      const deskel = deskelRef.current;
+      const colorAnalysis = colorAnalysisRef.current;
+      try {
+
+        deskel.setVisible(false);
+        colorAnalysis.setVisible(false);
+
+        await sleep(300);
+        colorAnalysisRef.current?.redraw(params);
+      } finally {
+        const deskel = deskelRef.current;
+        deskel.setVisible(true);
+        colorAnalysis.setVisible(true);
+        console.log(">> >> visible ", true);
+      }
+    }
+  }, []);
+  const onClickClearColorCheck = useCallback( async () => {
+    console.log(">> onClickClearColorCheck  ");
+    if (deskelRef.current && colorAnalysisRef.current) {
+      console.log(">> >> visible ", false);
+      const colorAnalysis = colorAnalysisRef.current;
+      colorAnalysis.setVisible(false);
+    }
+  }, []);
   return (
     <div id="app">
-      { /*<CustomTitlebar/> */ }
-      <AppToolbar onChangeState={onChangeStateForToolbar} onClickColorCheck={onClickColorCheck}/>
-      <AppDeslel ref={deskelRef}/>
-      <AppColorAnalysis ref={colorAnalysisRef}/>
+      { /*<CustomTitlebar/> */}
+      <AppToolbar onChangeState={onChangeStateForToolbar} onClickColorCheck={onClickColorCheck} onClickClearColorCheck={onClickClearColorCheck}/>
+      <AppDeslel ref={deskelRef} />
+      <AppColorAnalysis ref={colorAnalysisRef} />
     </div>
   )
 }

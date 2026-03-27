@@ -9,9 +9,12 @@ import { ColorCount } from "./screenshot";
 
 type AppColorAnalysisHandle = {
   redraw: (props?: { colors: ColorCount[] }) => void;
+  setVisible: (visible: boolean) => void;
+  getCanvas: () => HTMLCanvasElement | null;
 };
 
 const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const redraw = useCallback((props?: { colors: ColorCount[] }) => {
@@ -114,6 +117,8 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   }, []);
 
   useEffect(() => {
+    if (!rootRef.current) return;
+    rootRef.current.style.display = "none";
     redraw({ colors: [] });
   }, [redraw]);
 
@@ -121,12 +126,18 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     ref,
     () => ({
       redraw,
+      setVisible: (visible: boolean) => {
+        if (!rootRef.current) return;
+        rootRef.current.style.display = visible ? "block" : "none";
+      },
+      getCanvas: () => canvasRef.current,
     }),
     [redraw]
   );
 
   return (
     <div
+      ref={rootRef}
       style={{
         position: "absolute",
         top: "42px",
