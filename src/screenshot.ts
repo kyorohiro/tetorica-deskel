@@ -10,6 +10,12 @@ type ColorCount = {
   hex: string;
   count: number;
   ratio: number;
+  hue: number;  // 0..360
+  hue_angle: number;      // 色相環用
+  hsl_saturation: number; // 0..1
+  lightness: number;      // 0..1
+  hsv_saturation: number; // 0..1
+  value: number;         // 0..1
 };
 
 type ColorAnalysisResult = {
@@ -75,13 +81,18 @@ export async function captureAndCropToAnaluze(params: {}) {
     const y = Math.round(pos.y / scale + titlebarHight);
     const width = Math.round(size.width / scale);
     const height = Math.round(size.height / scale - titlebarHight);
+    console.log(">> invoke");
     const result = await invoke<ColorAnalysisResult>("analyze_region_colors", {
       x: x,
       y: y,
       width: width,
       height: height,
     });
+    console.log(">> result", result);
     return result;
+  } catch (e) {
+    console.log(">> error", e);
+    throw e;
   } finally {
     if (toolbar) {
       toolbar.style.display = ""

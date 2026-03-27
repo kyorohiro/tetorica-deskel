@@ -5,6 +5,45 @@ use xcap::Monitor;
 
 // color analysis
 
+fn rgb_to_hsl_hsv(r: u8, g: u8, b: u8) -> (f32, f32, f32, f32, f32) {
+    let r = r as f32 / 255.0;
+    let g = g as f32 / 255.0;
+    let b = b as f32 / 255.0;
+
+    let max = r.max(g).max(b);
+    let min = r.min(g).min(b);
+    let delta = max - min;
+
+    let lightness = (max + min) / 2.0;
+    let value = max;
+
+    let hue = if delta == 0.0 {
+        0.0
+    } else if max == r {
+        60.0 * (((g - b) / delta).rem_euclid(6.0))
+    } else if max == g {
+        60.0 * (((b - r) / delta) + 2.0)
+    } else {
+        60.0 * (((r - g) / delta) + 4.0)
+    };
+
+    let hsl_saturation = if delta == 0.0 {
+        0.0
+    } else {
+        delta / (1.0 - (2.0 * lightness - 1.0).abs())
+    };
+
+    let hsv_saturation = if max == 0.0 {
+        0.0
+    } else {
+        delta / max
+    };
+
+    let hue_angle = hue;
+
+    (hue, hsl_saturation, lightness, hsv_saturation, value)
+}
+
 #[derive(Debug, Serialize)]
 struct ColorCount {
     r: u8,
@@ -13,6 +52,12 @@ struct ColorCount {
     hex: String,
     count: u32,
     ratio: f32,
+    hue: f32,            // 0..360
+    hue_angle: f32,      // 色相環用
+    hsl_saturation: f32, // 0..1
+    lightness: f32,      // 0..1
+    hsv_saturation: f32, // 0..1
+    value: f32,          // 0..1
 }
 
 #[derive(Debug, Serialize)]
@@ -39,6 +84,7 @@ fn analyze_region_colors_sync(
     top_n: usize,
 ) -> Result<ColorAnalysisResult, String> {
 
+    println!("> analyze_region_colors_sync");
     let capture_result = crate::screen_capture::capture_and_crop(x, y, width, height)?;
     let image = capture_result.image;
     let step = quantize_step; //.unwrap_or(32).max(1);
@@ -72,11 +118,16 @@ fn analyze_region_colors_sync(
         *counts.entry((r, g, b)).or_insert(0) += 1;
     }
 
+    // println!(">> counts {:?}" , counts);
     let total_pixels: u32 = counts.values().copied().sum();
 
     let mut colors: Vec<ColorCount> = counts
-        .into_iter()
-        .map(|((r, g, b), count)| ColorCount {
+    .into_iter()
+    .map(|((r, g, b), count)| {
+        let (hue, hsl_saturation, lightness, hsv_saturation, value) =
+            rgb_to_hsl_hsv(r, g, b);
+
+        ColorCount {
             r,
             g,
             b,
@@ -87,12 +138,21 @@ fn analyze_region_colors_sync(
             } else {
                 count as f32 / total_pixels as f32
             },
-        })
-        .collect();
+
+            hue,
+            hue_angle: hue,
+            hsl_saturation,
+            lightness,
+            hsv_saturation,
+            value,
+        }
+    })
+    .collect();
 
     colors.sort_by(|a, b| b.count.cmp(&a.count));
     colors.truncate(top_n);
 
+    // println!(">> color {:?}" , colors);
     Ok(ColorAnalysisResult {
         width: capture_result.crop_width,
         height: capture_result.crop_height,
