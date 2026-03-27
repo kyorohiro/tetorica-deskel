@@ -62,6 +62,26 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     ctx.arc(centerX, centerY, maxRadius, 0, Math.PI * 2);
     ctx.stroke();
 
+    // heatmap
+    for (const color of colors) {
+      const angleDeg = color.hue_angle - 90;
+      const angleRad = (angleDeg * Math.PI) / 180;
+
+      const radius = Math.max(0, Math.min(1, color.hsv_saturation)) * maxRadius;
+      const x = centerX + Math.cos(angleRad) * radius;
+      const y = centerY + Math.sin(angleRad) * radius;
+
+      const heatRadius = Math.max(10, Math.min(40, 10 + color.ratio * 200));
+      const alpha = Math.max(0.08, Math.min(0.35, color.ratio * 3.0));
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(x, y, heatRadius, 0, Math.PI * 2);
+      ctx.fillStyle = color.hex;
+      ctx.fill();
+      ctx.restore();
+    }
     // 色点を描く
     for (const color of colors) {
       const angleDeg = color.hue_angle - 90; // 0°を上にしたい
