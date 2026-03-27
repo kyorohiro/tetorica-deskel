@@ -32,10 +32,13 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     const centerY = height / 2;
     const maxRadius = 145;
 
-    canvas.width = width;
-    canvas.height = height;
+    const canvasWidth = width + 44;
+    const canvasHeight = height;
 
-    ctx.clearRect(0, 0, width, height);
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     // 背景
 
@@ -121,7 +124,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       // [02]
       //const t = Math.sqrt(color.ratio);
       //const dotRadius = Math.max(1, Math.min(12, 1 + t*30));
-      
+
       const minR = 1;
       const maxR = 12;
       const ratioScale = 40;
@@ -129,7 +132,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       const t0 = Math.min(1, Math.max(0, color.ratio * ratioScale));
       const t = t0 * t0 * (3 - 2 * t0);
       const dotRadius = minR + (maxR - minR) * t;
-    
+
 
       ctx.beginPath();
       ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
@@ -147,6 +150,52 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     ctx.arc(centerX, centerY, 2, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(255,255,255,1.0)";
     ctx.fill();
+    //
+    {
+      // 左下に上位10色の一覧を描く
+      const legendColors = colors.slice(0, 20);
+
+      const legendX = width;
+      const legendItemHeight = 26;
+      const legendBoxSize = 14;
+      const legendPaddingY = 10;
+      const legendWidth = 150;
+      const legendHeight = legendColors.length/2 * legendItemHeight + legendPaddingY * 2;
+      const legendY = height - legendHeight - 12;
+
+      // 背景
+      //ctx.fillStyle = "rgba(0,0,0,0.45)";
+      //ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+
+      // 枠
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(legendX, legendY, legendWidth, legendHeight);
+
+      ctx.font = "12px sans-serif";
+      ctx.textBaseline = "middle";
+
+      legendColors.forEach((color, index) => {
+        const itemY = legendY + legendPaddingY + (index % 10) * legendItemHeight;
+
+        // 色チップ
+        ctx.fillStyle = color.hex;
+        ctx.fillRect(legendX + 8 + (index > 10?22:0), itemY + 2, legendBoxSize, legendBoxSize);
+
+        ctx.strokeStyle = "rgba(255,255,255,0.8)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(legendX + 8 + (index > 10?22:0), itemY + 2, legendBoxSize, legendBoxSize);
+
+        // テキスト
+        //ctx.fillStyle = "rgba(255,255,255,0.92)";
+        //const percent = (color.ratio * 100).toFixed(1);
+        //ctx.fillText(
+        //  `${index + 1}. ${color.hex} ${percent}%`,
+        //  legendX + 30,
+        //  itemY + 9
+        //);
+      });
+    }
   }, []);
 
   useEffect(() => {
