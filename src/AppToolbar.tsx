@@ -3,7 +3,7 @@ import { saveSettings, state } from "./state";
 import { toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
-import { useDialog } from "./useDialog";
+//import { useDialog } from "./useDialog";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
@@ -14,7 +14,7 @@ export function AppToolbar(props: {
     const [opacity, setOpacity] = useState(state.opacity)
     const [rotation, setRotation] = useState(state.rotation)
     const [captureStatus, setCaptureStatus] = useState("")
-    const dialog = useDialog();
+    //const dialog = useDialog();
 
     const handleSnapshot = async () => {
         try {
