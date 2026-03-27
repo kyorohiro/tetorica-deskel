@@ -38,6 +38,7 @@ fn analyze_region_colors_sync(
     quantize_step: u8,
     top_n: usize,
 ) -> Result<ColorAnalysisResult, String> {
+
     let monitors = Monitor::all().map_err(|e| e.to_string())?;
 
     let monitor = monitors
