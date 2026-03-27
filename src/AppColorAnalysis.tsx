@@ -26,11 +26,11 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
     const colors = props?.colors ?? [];
 
-    const width = 220;
-    const height = 220;
+    const width = 320;
+    const height = 320;
     const centerX = width / 2;
     const centerY = height / 2;
-    const maxRadius = 80;
+    const maxRadius = 145;
 
     canvas.width = width;
     canvas.height = height;
@@ -38,10 +38,21 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     ctx.clearRect(0, 0, width, height);
 
     // 背景
-    ctx.fillStyle = "rgba(20,20,20,0.35)";
-    ctx.fillRect(0, 0, width, height);
+
+    //ctx.fillStyle = "rgba(20,20,20,0.35)";
+    //ctx.fillRect(0, 0, width, height);
+
 
     // ガイド円
+    ctx.strokeStyle = "rgba(20,20,20, 0.36)";
+    ctx.lineWidth = 2;
+
+    for (const ratio of [0.25, 0.5, 0.75, 1.0]) {
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, maxRadius * ratio, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
     ctx.strokeStyle = "rgba(255,255,255,0.18)";
     ctx.lineWidth = 1;
 
@@ -50,14 +61,15 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       ctx.arc(centerX, centerY, maxRadius * ratio, 0, Math.PI * 2);
       ctx.stroke();
     }
-
     // 十字ガイド
+    /*
     ctx.beginPath();
     ctx.moveTo(centerX, centerY - maxRadius);
     ctx.lineTo(centerX, centerY + maxRadius);
     ctx.moveTo(centerX - maxRadius, centerY);
     ctx.lineTo(centerX + maxRadius, centerY);
     ctx.stroke();
+    */
 
     // 外周リング
     ctx.strokeStyle = "rgba(255,255,255,0.28)";
@@ -65,7 +77,9 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     ctx.arc(centerX, centerY, maxRadius, 0, Math.PI * 2);
     ctx.stroke();
 
+
     // heatmap
+    /*
     for (const color of colors) {
       const angleDeg = color.hue_angle - 90;
       const angleRad = (angleDeg * Math.PI) / 180;
@@ -74,7 +88,9 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       const x = centerX + Math.cos(angleRad) * radius;
       const y = centerY + Math.sin(angleRad) * radius;
 
-      const heatRadius = Math.max(10, Math.min(40, 10 + color.ratio * 200));
+      //const heatRadius = Math.max(10, Math.min(40, 10 + color.ratio * 200));
+      const t = Math.sqrt(color.ratio);
+      const heatRadius = Math.max(10, Math.min(40, 10 + t * 30));
       const alpha = Math.max(0.08, Math.min(0.35, color.ratio * 3.0));
 
       ctx.save();
@@ -85,6 +101,8 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       ctx.fill();
       ctx.restore();
     }
+    */
+
     // 色点を描く
     for (const color of colors) {
       const angleDeg = color.hue_angle - 90; // 0°を上にしたい
@@ -96,7 +114,19 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       const y = centerY + Math.sin(angleRad) * radius;
 
       // ratio で点サイズ調整
-      const dotRadius = Math.max(4, Math.min(18, 4 + color.ratio * 80));
+      // [01]
+      // const heatRadius = Math.max(10, Math.min(40, 10 + t * 30));
+
+      // [02]
+      //const t = Math.sqrt(color.ratio);
+      //const dotRadius = Math.max(1, Math.min(12, 1 + t*30));
+      const minR = 1;
+      const maxR = 12;
+      const ratioScale = 20;
+
+      const t0 = Math.min(1, Math.max(0, color.ratio * ratioScale));
+      const t = t0 * t0 * (3 - 2 * t0);
+      const dotRadius = minR + (maxR - minR) * t;
 
       ctx.beginPath();
       ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
@@ -104,15 +134,15 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       ctx.fill();
 
       // 白っぽい色や黒っぽい色でも見えるように枠線
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(255,255,255,0.65)";
-      ctx.stroke();
+      //ctx.lineWidth = 1;
+      //ctx.strokeStyle = "rgba(255,255,255,0.65)";
+      //ctx.stroke();
     }
 
     // 中心点
     ctx.beginPath();
     ctx.arc(centerX, centerY, 2, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
+    ctx.fillStyle = "rgba(255,255,255,1.0)";
     ctx.fill();
   }, []);
 
@@ -140,8 +170,9 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       ref={rootRef}
       style={{
         position: "absolute",
-        top: "42px",
-        left: "12px",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
         zIndex: 8,
         pointerEvents: "none",
       }}

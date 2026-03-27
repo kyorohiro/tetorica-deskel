@@ -165,6 +165,7 @@ pub async fn analyze_region_colors(
     quantize_step: Option<u8>,
     top_n: Option<usize>,
 ) -> Result<ColorAnalysisResult, String> {
+    println!("> analyze_region_colors {} {} {} {} {:?} {:?}", x, y, width, height, quantize_step, top_n);
     let quantize_step = quantize_step.unwrap_or(32);
     let top_n = top_n.unwrap_or(16);
 

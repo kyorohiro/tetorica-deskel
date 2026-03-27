@@ -87,6 +87,8 @@ export async function captureAndCropToAnalysis(params: {}) {
       y: y,
       width: width,
       height: height,
+      quantizeStep: 22,
+      topN: 1000,
     });
     console.log(">> result", result);
     return result;
@@ -160,7 +162,7 @@ export async function captureAndCropToDownloads(params: { path: string | undefin
       y: y,
       width: width,
       height: height,
-      path: params.path,
+      path: params.path
     })
     return path
   } finally {

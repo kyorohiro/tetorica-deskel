@@ -7,7 +7,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
-    onClickColorCheck?: (params:{colors: ColorCount[]}) => void
+    onClickColorCheck?: () => void
     onClickClearColorCheck?: () => void
 }) {
     const [grid, setGrid] = useState(state.grid)
@@ -50,14 +50,12 @@ export function AppToolbar(props: {
             //})
             setCaptureStatus("capturing...")
             //const path = await testMonitorScreenshot();
-            const r = await captureAndCropToAnalysis({})
+            
             //console.log(r);
 
             setCaptureStatus(`color checked:`)
             if (props.onClickColorCheck) {
-                props.onClickColorCheck({
-                  colors: r.colors
-                });
+                props.onClickColorCheck();
             }
         } catch (e) {
             console.error(e)

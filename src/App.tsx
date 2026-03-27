@@ -9,7 +9,7 @@ import { AppToolbar } from "./AppToolbar";
 import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
-import { ColorCount } from "./screenshot";
+import { captureAndCropToAnalysis, ColorCount } from "./screenshot";
 import { sleep } from "./utils";
 
 export default function App() {
@@ -53,8 +53,8 @@ export default function App() {
   const onChangeStateForToolbar = useCallback(() => {
     deskelRef.current?.redraw();
   }, []);
-  const onClickColorCheck = useCallback(async (params: { colors: ColorCount[] }) => {
-    console.log(">> onClickColorCheck ", params);
+  const onClickColorCheck = useCallback(async () => {
+    console.log(">> onClickColorCheck ");
     if (deskelRef.current && colorAnalysisRef.current) {
       console.log(">> >> visible ", false);
       const deskel = deskelRef.current;
@@ -63,8 +63,10 @@ export default function App() {
 
         deskel.setVisible(false);
         colorAnalysis.setVisible(false);
-
-        await sleep(300);
+        console.log("> false");
+        await sleep(1000);
+        console.log("> redraw");
+        const params = await captureAndCropToAnalysis({})
         colorAnalysisRef.current?.redraw(params);
       } finally {
         const deskel = deskelRef.current;
