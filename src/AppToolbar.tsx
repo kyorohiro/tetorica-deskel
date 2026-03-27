@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { saveSettings, state } from "./state";
 import { toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
-import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
+import { captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
 //import { useDialog } from "./useDialog";
 

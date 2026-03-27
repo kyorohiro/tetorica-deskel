@@ -9,7 +9,7 @@ import { AppToolbar } from "./AppToolbar";
 import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
-import { captureAndCropToAnalysis, ColorCount } from "./screenshot";
+import { captureAndCropToAnalysis } from "./screenshot";
 import { sleep } from "./utils";
 
 export default function App() {
