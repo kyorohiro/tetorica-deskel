@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { platform } from "@tauri-apps/plugin-os"
+import { waitNextFrame } from "./utils";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 export type ColorCount = {
@@ -83,6 +84,23 @@ export async function captureAndCropToAnalysis(params: {}) {
     const width = Math.round(size.width / scale);
     const height = Math.round(size.height / scale - titlebarHight);
     console.log(">> invoke");
+    // 
+    // mac だと 透明にしてゴーストが残ることがあるので Window を非表示にする
+    //
+
+    await appWindow.hide()
+
+    // visibleがfalseになるまで待つ
+    for (let i = 0; i < 10; i++) {
+      const visible = await appWindow.isVisible()
+      if (!visible) break
+      await new Promise(r => setTimeout(r, 16))
+    }
+
+    // 念のため1フレーム
+    //await waitNextFrame(1)
+    await sleep(25);
+
     const result = await invoke<ColorAnalysisResult>("analyze_region_colors", {
       x: x,
       y: y,
@@ -100,6 +118,7 @@ export async function captureAndCropToAnalysis(params: {}) {
     if (toolbar) {
       toolbar.style.display = ""
     }
+    await appWindow.show()
   }
   //appWindow.setDecorations(true);
 }
