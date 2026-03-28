@@ -8,7 +8,7 @@ import {
 import { ColorCount } from "./screenshot";
 
 type AppColorAnalysisHandle = {
-  redraw: (props?: { colors: ColorCount[] }) => void;
+  redraw: (props?: { colors: ColorCount[], colors01: ColorCount[] }) => void;
   setVisible: (visible: boolean) => void;
   getCanvas: () => HTMLCanvasElement | null;
 };
@@ -17,7 +17,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const redraw = useCallback((props?: { colors: ColorCount[] }) => {
+  const redraw = useCallback((props?: { colors: ColorCount[], colors01: ColorCount[] }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -32,7 +32,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     const centerY = height / 2;
     const maxRadius = 145;
 
-    const canvasWidth = width + 44;
+    const canvasWidth = width + 22*3;
     const canvasHeight = height;
 
     canvas.width = canvasWidth;
@@ -161,7 +161,52 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       const legendPaddingY = 10;
       const legendWidth = 150;
       const legendHeight = legendColors.length/2 * legendItemHeight + legendPaddingY * 2;
-      const legendY = height - legendHeight - 12;
+      const legendY = 12;//height - legendHeight - 12;
+
+      // 背景
+      //ctx.fillStyle = "rgba(0,0,0,0.45)";
+      //ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+
+      // 枠
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(legendX, legendY, legendWidth, legendHeight);
+
+      ctx.font = "12px sans-serif";
+      ctx.textBaseline = "middle";
+
+      legendColors.forEach((color, index) => {
+        const itemY = legendY + legendPaddingY + (index % 10) * legendItemHeight;
+
+        // 色チップ
+        ctx.fillStyle = color.hex;
+        ctx.fillRect(legendX + 8 + (index >= 10?22:0), itemY + 2, legendBoxSize, legendBoxSize);
+
+        ctx.strokeStyle = "rgba(255,255,255,0.8)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(legendX + 8 + (index > 10?22:0), itemY + 2, legendBoxSize, legendBoxSize);
+
+        // テキスト
+        //ctx.fillStyle = "rgba(255,255,255,0.92)";
+        //const percent = (color.ratio * 100).toFixed(1);
+        //ctx.fillText(
+        //  `${index + 1}. ${color.hex} ${percent}%`,
+        //  legendX + 30,
+        //  itemY + 9
+        //);
+      });
+    }
+    if(props?.colors01){
+      // 左下に上位10色の一覧を描く
+      const legendColors = props?.colors01.slice(0, 10);
+
+      const legendX = width + 22*2;
+      const legendItemHeight = 26;
+      const legendBoxSize = 14;
+      const legendPaddingY = 10;
+      const legendWidth = 150;
+      const legendHeight = legendColors.length/2 * legendItemHeight + legendPaddingY * 2;
+      const legendY = 12;
 
       // 背景
       //ctx.fillStyle = "rgba(0,0,0,0.45)";
@@ -201,7 +246,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   useEffect(() => {
     if (!rootRef.current) return;
     rootRef.current.style.display = "none";
-    redraw({ colors: [] });
+    redraw({ colors: [], colors01: [] });
   }, [redraw]);
 
   useImperativeHandle(

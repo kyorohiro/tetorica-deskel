@@ -23,6 +23,7 @@ type ColorAnalysisResult = {
   height: number;
   total_pixels: number;
   colors: ColorCount[];
+  colors01: ColorCount[]; // 候補
 };
 
 

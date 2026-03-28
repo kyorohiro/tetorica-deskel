@@ -1,7 +1,9 @@
 use serde::Serialize;
 use std::collections::HashMap;
 
-fn rgb_to_hsl_hsv(r: u8, g: u8, b: u8) -> (f32, f32, f32, f32, f32) {
+use crate::color_pallet::build_palette_from_capture;
+
+pub fn rgb_to_hsl_hsv(r: u8, g: u8, b: u8) -> (f32, f32, f32, f32, f32) {
     let r = r as f32 / 255.0;
     let g = g as f32 / 255.0;
     let b = b as f32 / 255.0;
@@ -29,11 +31,7 @@ fn rgb_to_hsl_hsv(r: u8, g: u8, b: u8) -> (f32, f32, f32, f32, f32) {
         delta / (1.0 - (2.0 * lightness - 1.0).abs())
     };
 
-    let hsv_saturation = if max == 0.0 {
-        0.0
-    } else {
-        delta / max
-    };
+    let hsv_saturation = if max == 0.0 { 0.0 } else { delta / max };
 
     let hue_angle = hue;
 
@@ -41,19 +39,19 @@ fn rgb_to_hsl_hsv(r: u8, g: u8, b: u8) -> (f32, f32, f32, f32, f32) {
 }
 
 #[derive(Debug, Serialize)]
-struct ColorCount {
-    r: u8,
-    g: u8,
-    b: u8,
-    hex: String,
-    count: u32,
-    ratio: f32,
-    hue: f32,            // 0..360
-    hue_angle: f32,      // 色相環用
-    hsl_saturation: f32, // 0..1
-    lightness: f32,      // 0..1
-    hsv_saturation: f32, // 0..1
-    value: f32,          // 0..1
+pub struct ColorCount {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub hex: String,
+    pub count: u32,
+    pub ratio: f32,
+    pub hue: f32,            // 0..360
+    pub hue_angle: f32,      // 色相環用
+    pub hsl_saturation: f32, // 0..1
+    pub lightness: f32,      // 0..1
+    pub hsv_saturation: f32, // 0..1
+    pub value: f32,          // 0..1
 }
 
 #[derive(Debug, Serialize)]
@@ -62,9 +60,10 @@ pub struct ColorAnalysisResult {
     height: u32,
     total_pixels: u32,
     colors: Vec<ColorCount>,
+    colors01: Vec<ColorCount>,
 }
 
-fn quantize(v: u8, step: u8) -> u8 {
+pub fn quantize(v: u8, step: u8) -> u8 {
     if step <= 1 {
         return v;
     }
@@ -82,7 +81,7 @@ fn analyze_region_colors_sync(
     println!("> analyze_region_colors_sync");
 
     let capture_result = crate::screen_capture::capture_and_crop(x, y, width, height)?;
-    let image = capture_result.image;
+    let image = &capture_result.image;
 
     let step = quantize_step.max(1);
 
@@ -96,11 +95,7 @@ fn analyze_region_colors_sync(
             continue;
         }
 
-        let q = (
-            quantize(r, step),
-            quantize(g, step),
-            quantize(b, step),
-        );
+        let q = (quantize(r, step), quantize(g, step), quantize(b, step));
 
         let original = (r, g, b);
 
@@ -138,8 +133,7 @@ fn analyze_region_colors_sync(
     let colors: Vec<ColorCount> = palette_items
         .into_iter()
         .map(|((r, g, b), count)| {
-            let (hue, hsl_saturation, lightness, hsv_saturation, value) =
-                rgb_to_hsl_hsv(r, g, b);
+            let (hue, hsl_saturation, lightness, hsv_saturation, value) = rgb_to_hsl_hsv(r, g, b);
 
             ColorCount {
                 r,
@@ -161,12 +155,21 @@ fn analyze_region_colors_sync(
             }
         })
         .collect();
+    //
+    let palette = build_palette_from_capture(
+        &capture_result,
+        16,   // quantize_step
+        3,    // 各セル上位3色
+        10,   // 最終パレット10色
+        28.0, // RGB距離のマージ閾値
+    )?;
 
     Ok(ColorAnalysisResult {
         width: capture_result.crop_width,
         height: capture_result.crop_height,
         total_pixels,
         colors,
+        colors01: palette,
     })
 }
 
@@ -178,7 +181,10 @@ pub async fn analyze_region_colors(
     quantize_step: Option<u8>,
     top_n: Option<usize>,
 ) -> Result<ColorAnalysisResult, String> {
-    println!("> analyze_region_colors {} {} {} {} {:?} {:?}", x, y, width, height, quantize_step, top_n);
+    println!(
+        "> analyze_region_colors {} {} {} {} {:?} {:?}",
+        x, y, width, height, quantize_step, top_n
+    );
     let quantize_step = quantize_step.unwrap_or(32);
     let top_n = top_n.unwrap_or(16);
 
