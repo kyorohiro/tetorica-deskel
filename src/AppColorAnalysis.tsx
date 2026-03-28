@@ -32,8 +32,8 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     const centerY = height / 2;
     const maxRadius = 145;
 
-    const canvasWidth = width + 22*3;
-    const canvasHeight = height;
+    const canvasWidth = width + 22 * 2 + 10;
+    const canvasHeight = height + 22 * 2 + 10;
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
@@ -160,7 +160,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       const legendBoxSize = 14;
       const legendPaddingY = 10;
       const legendWidth = 150;
-      const legendHeight = legendColors.length/2 * legendItemHeight + legendPaddingY * 2;
+      const legendHeight = legendColors.length / 2 * legendItemHeight + legendPaddingY * 2;
       const legendY = 12;//height - legendHeight - 12;
 
       // 背景
@@ -180,11 +180,11 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
         // 色チップ
         ctx.fillStyle = color.hex;
-        ctx.fillRect(legendX + 8 + (index >= 10?22:0), itemY + 2, legendBoxSize, legendBoxSize);
+        ctx.fillRect(legendX + 8 + (index >= 10 ? 22 : 0), itemY + 2, legendBoxSize, legendBoxSize);
 
         ctx.strokeStyle = "rgba(255,255,255,0.8)";
         ctx.lineWidth = 1;
-        ctx.strokeRect(legendX + 8 + (index > 10?22:0), itemY + 2, legendBoxSize, legendBoxSize);
+        ctx.strokeRect(legendX + 8 + (index >= 10 ? 22 : 0), itemY + 2, legendBoxSize, legendBoxSize);
 
         // テキスト
         //ctx.fillStyle = "rgba(255,255,255,0.92)";
@@ -196,49 +196,50 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
         //);
       });
     }
-    if(props?.colors01){
-      // 左下に上位10色の一覧を描く
-      const legendColors = props?.colors01.slice(0, 10);
+    if (props?.colors01) {
+      const legendColors = props.colors01.slice(0, 20);
 
-      const legendX = width + 22*2;
-      const legendItemHeight = 26;
       const legendBoxSize = 14;
+      const legendGapX = 8;
+      const legendGapY = 8;
+      const legendPaddingX = 10;
       const legendPaddingY = 10;
-      const legendWidth = 150;
-      const legendHeight = legendColors.length/2 * legendItemHeight + legendPaddingY * 2;
-      const legendY = 12;
+      const legendCols = 10; // 1行に並べる数
+      const legendRows = Math.ceil(legendColors.length / legendCols);
 
-      // 背景
-      //ctx.fillStyle = "rgba(0,0,0,0.45)";
-      //ctx.fillRect(legendX, legendY, legendWidth, legendHeight);
+      const legendWidth =
+        legendPaddingX * 2 +
+        legendCols * legendBoxSize +
+        (legendCols - 1) * legendGapX;
+
+      const legendHeight =
+        legendPaddingY * 2 +
+        legendRows * legendBoxSize +
+        (legendRows - 1) * legendGapY;
+
+      const legendX = 12;
+      const legendY = height; //- legendHeight - 12;
 
       // 枠
       ctx.strokeStyle = "rgba(255,255,255,0.18)";
       ctx.lineWidth = 1;
       ctx.strokeRect(legendX, legendY, legendWidth, legendHeight);
 
-      ctx.font = "12px sans-serif";
-      ctx.textBaseline = "middle";
-
       legendColors.forEach((color, index) => {
-        const itemY = legendY + legendPaddingY + (index % 10) * legendItemHeight;
+        const col = index % legendCols;
+        const row = Math.floor(index / legendCols);
 
-        // 色チップ
+        const chipX =
+          legendX + legendPaddingX + col * (legendBoxSize + legendGapX);
+        const chipY =
+          legendY + legendPaddingY + row * (legendBoxSize + legendGapY);
+
         ctx.fillStyle = color.hex;
-        ctx.fillRect(legendX + 8 + (index > 10?22:0), itemY + 2, legendBoxSize, legendBoxSize);
+        ctx.fillRect(chipX, chipY, legendBoxSize, legendBoxSize);
 
         ctx.strokeStyle = "rgba(255,255,255,0.8)";
         ctx.lineWidth = 1;
-        ctx.strokeRect(legendX + 8 + (index > 10?22:0), itemY + 2, legendBoxSize, legendBoxSize);
-
-        // テキスト
-        //ctx.fillStyle = "rgba(255,255,255,0.92)";
-        //const percent = (color.ratio * 100).toFixed(1);
-        //ctx.fillText(
-        //  `${index + 1}. ${color.hex} ${percent}%`,
-        //  legendX + 30,
-        //  itemY + 9
-        //);
+        ctx.strokeRect(chipX, chipY, legendBoxSize, legendBoxSize);
       });
     }
   }, []);

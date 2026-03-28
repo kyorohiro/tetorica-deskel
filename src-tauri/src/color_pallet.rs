@@ -32,6 +32,7 @@ pub fn build_palette_from_capture(
     top_k_per_cell: usize,
     final_top_n: usize,
     merge_distance_threshold: f32,
+    grid_size: usize,
 ) -> Result<Vec<ColorCount>, String> {
     let image = &capture.image;
     let width = capture.crop_width;
@@ -41,13 +42,13 @@ pub fn build_palette_from_capture(
         return Ok(vec![]);
     }
 
-    let grid_cols = 4usize;
-    let grid_rows = 4usize;
+    let grid_size = grid_size.max(1);
+    let grid_cols = grid_size;
+    let grid_rows = grid_size;
     let step = quantize_step.max(1);
 
     let mut candidates: Vec<LocalColorCandidate> = Vec::new();
 
-    // 1. 4x4 の各セルごとに上位色を抽出
     for gy in 0..grid_rows {
         for gx in 0..grid_cols {
             let x0 = (width as usize * gx) / grid_cols;
@@ -75,10 +76,7 @@ pub fn build_palette_from_capture(
         return Ok(vec![]);
     }
 
-    // 2. 候補色を近い色ごとにマージ
     let clusters = merge_local_candidates(&candidates, merge_distance_threshold);
-
-    // 3. クラスタをスコア順に並べて最終パレット化
     let total_weight: f32 = clusters.iter().map(cluster_score).sum();
 
     let mut colors: Vec<ColorCount> = clusters

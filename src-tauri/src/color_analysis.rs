@@ -160,8 +160,9 @@ fn analyze_region_colors_sync(
         &capture_result,
         16,   // quantize_step
         3,    // 各セル上位3色
-        10,   // 最終パレット10色
-        28.0, // RGB距離のマージ閾値
+        20,   // 最終パレット10色
+        22.0, // RGB距離のマージ閾値
+        8
     )?;
 
     Ok(ColorAnalysisResult {
