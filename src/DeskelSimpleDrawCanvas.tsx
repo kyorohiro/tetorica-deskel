@@ -256,7 +256,7 @@ function DeskelSimpleDrawCanvas() {
                                 />
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-2 ">
+                            <div className="flex flex-wrap items-center gap-2 justify-end">
                                 <button
                                     className="rounded-2xl border border-slate-700 px-4 py-2 text-sm bg-slate-900 hover:bg-slate-800"
                                     onClick={() => setTool("pen")}

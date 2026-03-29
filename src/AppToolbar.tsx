@@ -73,18 +73,19 @@ export function AppToolbar(props: {
     }, [appState.getState()])
     return (
         <>
-            <div className="absolute left-3 top-3 z-20 flex items-center gap-2"  style={{zIndex: 99999}}>
+            <div className="absolute left-3 top-1 z-20 flex items-center gap-2"  style={{zIndex: 99999}}>
                 <button
                     onClick={() => setVisible(v => !v)}
                     className={`
                     rounded-lg bg-black/60 px-3 py-2 text-sm text-white
                     transition-opacity duration-200
-                    ${!visible ? "opacity-100" : "opacity-0"}
+                    opacity-80"
                     `}
                 >
                     menu
                 </button>
                 {
+                    // ${!visible ? "opacity-100" : "opacity-0"}
                     //menu shortcut
                 }
                 <div

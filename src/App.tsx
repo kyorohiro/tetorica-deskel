@@ -9,14 +9,16 @@ import { AppToolbar } from "./AppToolbar";
 import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
-import { DeskelSimpleDrawCanvas } from "./DeskelSimpleDrawCanvas"; 
+import { DeskelSimpleDrawCanvas } from "./DeskelSimpleDrawCanvas";
 import { captureAndCropToAnalysis } from "./screenshot";
 import { sleep } from "./utils";
+import { useAppState } from "./state";
 
 export default function App() {
   //const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const deskelRef = useRef<AppDeskelHandle | null>(null);
   const colorAnalysisRef = useRef<AppColorAnalysisHandle | null>(null);
+  const state = useAppState();
 
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)
@@ -77,7 +79,7 @@ export default function App() {
       }
     }
   }, []);
-  const onClickClearColorCheck = useCallback( async () => {
+  const onClickClearColorCheck = useCallback(async () => {
     console.log(">> onClickClearColorCheck  ");
     if (deskelRef.current && colorAnalysisRef.current) {
       console.log(">> >> visible ", false);
@@ -87,12 +89,16 @@ export default function App() {
   }, []);
   return (
     <div id="app">
-      { /*<CustomTitlebar/> */} 
-      <AppToolbar onChangeState={onChangeStateForToolbar} onClickColorCheck={onClickColorCheck} onClickClearColorCheck={onClickClearColorCheck}/>
+      <AppToolbar
+        onChangeState={onChangeStateForToolbar}
+        onClickColorCheck={onClickColorCheck}
+        onClickClearColorCheck={onClickClearColorCheck}
+      />
+
       <AppDeslel ref={deskelRef} />
       <AppColorAnalysis ref={colorAnalysisRef} />
-      <DeskelSimpleDrawCanvas />
 
+      {state.tool === "draw" && <DeskelSimpleDrawCanvas />}
     </div>
   )
 }
