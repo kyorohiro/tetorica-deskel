@@ -1,6 +1,6 @@
 
 import { AppDeskelPoint } from "./AppDeskel";
-import { state } from "./state";
+import { appState } from "./state";
 
 type Rgba = {
   r: number
@@ -136,17 +136,17 @@ function drawGrid(params: { canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
   if (!params.ctx) {
     return;
   }
-  params.ctx.strokeStyle = hexToRgba(state.color, state.opacity);
-  params.ctx.lineWidth = state.lineWidth;
+  params.ctx.strokeStyle = hexToRgba(appState.getState().color, appState.getState().opacity);
+  params.ctx.lineWidth = appState.getState().lineWidth;
 
-  for (let x = 0; x <= params.w; x += state.grid) {
+  for (let x = 0; x <= params.w; x += appState.getState().grid) {
     params.ctx.beginPath();
     params.ctx.moveTo(x, 0);
     params.ctx.lineTo(x, params.h);
     params.ctx.stroke();
   }
 
-  for (let y = 0; y <= params.h; y += state.grid) {
+  for (let y = 0; y <= params.h; y += appState.getState().grid) {
     params.ctx.beginPath();
     params.ctx.moveTo(0, y);
     params.ctx.lineTo(params.w, y);
@@ -158,8 +158,8 @@ function drawCross(params: { canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
   if (!params.ctx) {
     return;
   }
-  params.ctx.strokeStyle = hexToRgba(state.color, Math.min(1, state.opacity + 0.15));
-  params.ctx.lineWidth = Math.max(2, state.lineWidth + 1);
+  params.ctx.strokeStyle = hexToRgba(appState.getState().color, Math.min(1, appState.getState().opacity + 0.15));
+  params.ctx.lineWidth = Math.max(2, appState.getState().lineWidth + 1);
 
   params.ctx.beginPath();
   params.ctx.moveTo(params.w / 2, 0);
@@ -289,7 +289,7 @@ function drawMeasure(params: {
 
 
   if (!params.start || !params.current || !params.dragging) return;
-  const rgbaParams = hexToRgbaParams(state.color, 0.8);
+  const rgbaParams = hexToRgbaParams(appState.getState().color, 0.8);
   const hslaParams = rgbaToHsla(rgbaParams);
   const shadowHslaParams = makeShadowColorFromGrid(
     hslaParams.h,
@@ -413,7 +413,7 @@ function draw(params: { canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D
   params.ctx.save();
   const cx = w / 2
   const cy = h / 2
-  const rad = (state.rotation * Math.PI) / 180
+  const rad = (appState.getState().rotation * Math.PI) / 180
   params.ctx.translate(cx, cy)
   params.ctx.rotate(rad)
   params.ctx.translate(-cx, -cy)

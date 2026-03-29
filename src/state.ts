@@ -1,81 +1,176 @@
-
 type Settings = {
-    grid: number;
-    opacity: number;
-    lineWidth: number;
-    color: string;
-    rotation: number,
-};
-
-const DEFAULT_SETTINGS: Settings = {
-    grid: 80,
-    opacity: 0.7,
-    lineWidth: 1,
-    color: "#00ff88",
-    rotation: 0,
-};
-
-const SETTINGS_KEY = "tetorica-deskel-settings";
-
-
-const saved = loadSettings();
-console.log("saved ", saved);
-
-const state = {
-    grid: saved.grid,
-    opacity: saved.opacity,
-    lineWidth: saved.lineWidth,
-    color: saved.color,
-    clickThrough: false,
-    alwaysOnTop: false,
-    rotation: saved.rotation,
-};
-
-function loadSettings(): Settings {
-    console.log("> loadSettings");
-    try {
-        const raw = localStorage.getItem(SETTINGS_KEY);
-        if (!raw) {
-            return DEFAULT_SETTINGS;
-        }
-
-        const parsed = JSON.parse(raw) as Partial<Settings>;
-        console.log(">> ", parsed)
-
-        return {
-            grid: typeof parsed.grid === "number" ? parsed.grid : DEFAULT_SETTINGS.grid,
-            opacity: typeof parsed.opacity === "number" ? parsed.opacity : DEFAULT_SETTINGS.opacity,
-            lineWidth:
-                typeof parsed.lineWidth === "number"
-                    ? parsed.lineWidth
-                    : DEFAULT_SETTINGS.lineWidth,
-            color: typeof parsed.color === "string" ? parsed.color : DEFAULT_SETTINGS.color,
-            rotation: typeof parsed.rotation === "number" ? parsed.rotation : DEFAULT_SETTINGS.rotation,
-        };
-    } catch (error) {
-        console.error("failed to load settings", error);
-        return DEFAULT_SETTINGS;
-    }
+  grid: number
+  opacity: number
+  lineWidth: number
+  color: string
+  rotation: number
 }
 
-function saveSettings(): void {
-    console.log("> saveSettings");
-    const settings: Settings = {
-        grid: state.grid,
-        opacity: state.opacity,
-        lineWidth: state.lineWidth,
-        color: state.color,
-        rotation: state.rotation,
-    };
-    try {
-        console.log(">> ", settings);
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    } catch (error) {
-        console.error("failed to save settings", error);
+type AppState = Settings & {
+  clickThrough: boolean
+  alwaysOnTop: boolean
+}
+
+type Listener = () => void
+
+const DEFAULT_SETTINGS: Settings = {
+  grid: 80,
+  opacity: 0.7,
+  lineWidth: 1,
+  color: "#00ff88",
+  rotation: 0,
+}
+
+const SETTINGS_KEY = "tetorica-deskel-settings"
+
+function loadSettings(): Settings {
+  console.log("> loadSettings")
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY)
+    if (!raw) {
+      return DEFAULT_SETTINGS
     }
+
+    const parsed = JSON.parse(raw) as Partial<Settings>
+    console.log(">> ", parsed)
+
+    return {
+      grid: typeof parsed.grid === "number" ? parsed.grid : DEFAULT_SETTINGS.grid,
+      opacity: typeof parsed.opacity === "number" ? parsed.opacity : DEFAULT_SETTINGS.opacity,
+      lineWidth:
+        typeof parsed.lineWidth === "number"
+          ? parsed.lineWidth
+          : DEFAULT_SETTINGS.lineWidth,
+      color: typeof parsed.color === "string" ? parsed.color : DEFAULT_SETTINGS.color,
+      rotation:
+        typeof parsed.rotation === "number"
+          ? parsed.rotation
+          : DEFAULT_SETTINGS.rotation,
+    }
+  } catch (error) {
+    console.error("failed to load settings", error)
+    return DEFAULT_SETTINGS
+  }
+}
+
+function saveSettings(settings: Settings): void {
+  console.log("> saveSettings")
+  try {
+    console.log(">> ", settings)
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+  } catch (error) {
+    console.error("failed to save settings", error)
+  }
+}
+
+class AppStateStore {
+  private static _instance: AppStateStore
+
+  private _listeners: Set<Listener> = new Set()
+
+  private _state: AppState
+
+  private constructor() {
+    const saved = loadSettings()
+    console.log("saved ", saved)
+
+    this._state = {
+      grid: saved.grid,
+      opacity: saved.opacity,
+      lineWidth: saved.lineWidth,
+      color: saved.color,
+      clickThrough: false,
+      alwaysOnTop: false,
+      rotation: saved.rotation,
+    }
+  }
+
+  public static Instance(): AppStateStore {
+    return this._instance || (this._instance = new AppStateStore())
+  }
+
+  public getState(): AppState {
+    return this._state
+  }
+
+  public subscribe(listener: Listener): () => void {
+    this._listeners.add(listener)
+    return () => {
+      this._listeners.delete(listener)
+    }
+  }
+
+  private emit(): void {
+    this._listeners.forEach((listener) => {
+      listener()
+    })
+  }
+
+  public setState(partial: Partial<AppState>): void {
+    const prev = this._state
+    this._state = {
+      ...this._state,
+      ...partial,
+    }
+
+    const settingsChanged =
+      prev.grid !== this._state.grid ||
+      prev.opacity !== this._state.opacity ||
+      prev.lineWidth !== this._state.lineWidth ||
+      prev.color !== this._state.color ||
+      prev.rotation !== this._state.rotation
+
+    if (settingsChanged) {
+      saveSettings({
+        grid: this._state.grid,
+        opacity: this._state.opacity,
+        lineWidth: this._state.lineWidth,
+        color: this._state.color,
+        rotation: this._state.rotation,
+      })
+    }
+
+    this.emit()
+  }
+
+  public setGrid(value: number): void {
+    this.setState({ grid: value })
+  }
+
+  public setOpacity(value: number): void {
+    this.setState({ opacity: value })
+  }
+
+  public setLineWidth(value: number): void {
+    this.setState({ lineWidth: value })
+  }
+
+  public setColor(value: string): void {
+    this.setState({ color: value })
+  }
+
+  public setRotation(value: number): void {
+    this.setState({ rotation: value })
+  }
+
+  public setClickThrough(value: boolean): void {
+    this.setState({ clickThrough: value })
+  }
+
+  public setAlwaysOnTop(value: boolean): void {
+    this.setState({ alwaysOnTop: value })
+  }
+}
+
+const appState = AppStateStore.Instance()
+
+export type {
+  Settings,
+  AppState,
 }
 
 export {
-    state,
-    saveSettings
+  appState,
+  loadSettings,
+  saveSettings,
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import { saveSettings, state } from "./state";
-import { setAlwaysOnTop, toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
+import { saveSettings, appState } from "./state";
+import { setAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
 //import { useDialog } from "./useDialog";
@@ -10,13 +10,13 @@ export function AppToolbar(props: {
     onClickColorCheck?: () => void
     onClickClearColorCheck?: () => void
 }) {
-    const [grid, setGrid] = useState(state.grid)
-    const [opacity, setOpacity] = useState(state.opacity)
-    const [rotation, setRotation] = useState(state.rotation)
+    const [grid, setGrid] = useState(appState.getState().grid)
+    const [opacity, setOpacity] = useState(appState.getState().opacity)
+    const [rotation, setRotation] = useState(appState.getState().rotation)
     const [captureStatus, setCaptureStatus] = useState("")
     const [visible, setVisible] = useState(false)
     const [isPinned, setIsPinned] = useState(false)
-    const [isCursor, setIsCursor] = useState(false);
+    //const [isCursor, setIsCursor] = useState(false);
     //const dialog = useDialog();
 
     /*
@@ -79,10 +79,10 @@ export function AppToolbar(props: {
 
     useEffect(() => {
         console.log(">> useEffect [grid, opacity]", [grid, opacity])
-        state.grid = grid;
-        state.opacity = opacity;
-        state.rotation = rotation
-        saveSettings();
+        appState.getState().grid = grid;
+        appState.getState().opacity = opacity;
+        appState.getState().rotation = rotation
+        saveSettings(appState.getState());
         if (props.onChangeState) {
             props.onChangeState();
         }
@@ -199,7 +199,7 @@ export function AppToolbar(props: {
                         color
                         <input id="color" type="color" value="#00ff88" onChange={() => {
                             const color = document.getElementById("color") as HTMLInputElement;
-                            state.color = color.value;
+                            appState.getState().color = color.value;
                             if (props.onChangeState) {
                                 props.onChangeState();
                             }
