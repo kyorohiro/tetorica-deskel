@@ -11,9 +11,9 @@ export function AppToolbar(props: {
     onClickColorCheck?: () => void
     onClickClearColorCheck?: () => void
 }) {
-    const [grid, setGrid] = useState(appState.getState().grid)
-    const [opacity, setOpacity] = useState(appState.getState().opacity)
-    const [rotation, setRotation] = useState(appState.getState().rotation)
+    //const [grid, setGrid] = useState(appState.getState().grid)
+    //const [opacity, setOpacity] = useState(appState.getState().opacity)
+    //const [rotation, setRotation] = useState(appState.getState().rotation)
     const [visible, setVisible] = useState(false)
     const uAppState = useAppState();
 
@@ -73,15 +73,12 @@ export function AppToolbar(props: {
     }
 
     useEffect(() => {
-        console.log(">> useEffect [grid, opacity]", [grid, opacity])
-        appState.getState().grid = grid;
-        appState.getState().opacity = opacity;
-        appState.getState().rotation = rotation
+        console.log(">> useEffect [grid, opacity]", [appState.getState()])
         saveSettings(appState.getState());
         if (props.onChangeState) {
             props.onChangeState();
         }
-    }, [grid, opacity, rotation])
+    }, [appState.getState()])
     return (
         <>
             <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
@@ -206,8 +203,8 @@ export function AppToolbar(props: {
                         type="range"
                         min="20"
                         max="300"
-                        value={grid}
-                        onChange={(e) => setGrid(Number(e.target.value))}
+                        value={appState.getState().grid}
+                        onChange={(e) => appState.setGrid(Number(e.target.value))}
                     />
                 </label>
 
@@ -218,8 +215,8 @@ export function AppToolbar(props: {
                         min="0.05"
                         max="1"
                         step="0.05"
-                        value={opacity}
-                        onChange={(e) => setOpacity(Number(e.target.value))}
+                        value={appState.getState().opacity}
+                        onChange={(e) => appState.setOpacity(Number(e.target.value))}
                     />
                 </label>
 
@@ -229,8 +226,8 @@ export function AppToolbar(props: {
                         type="range"
                         min="-180"
                         max="180"
-                        value={rotation}
-                        onChange={(e) => setRotation(Number(e.target.value))}
+                        value={appState.getState().rotation}
+                        onChange={(e) => appState.setRotation(Number(e.target.value))}
                     />
                 </label>
             </div>
