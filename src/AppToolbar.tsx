@@ -3,7 +3,8 @@ import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
-//import { useDialog } from "./useDialog";
+import { showToast } from "./toast";
+import { useDialog } from "./useDialog";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
@@ -13,13 +14,11 @@ export function AppToolbar(props: {
     const [grid, setGrid] = useState(appState.getState().grid)
     const [opacity, setOpacity] = useState(appState.getState().opacity)
     const [rotation, setRotation] = useState(appState.getState().rotation)
-    const [captureStatus, setCaptureStatus] = useState("")
     const [visible, setVisible] = useState(false)
-    //const [isPinned, setIsPinned] = useState(false)
     const uAppState = useAppState();
 
     //const [isCursor, setIsCursor] = useState(false);
-    //const dialog = useDialog();
+    const dialog = useDialog();
 
     /*
     useEffect(() => {
@@ -48,34 +47,28 @@ export function AppToolbar(props: {
                     },
                 ],
             })
-            setCaptureStatus("capturing...")
-            //const path = await testMonitorScreenshot();
             const path = await captureAndCropToDownloads({ path: filePath ?? undefined })
-            setCaptureStatus(`saved: ${path}`)
+            showToast(`saved: ${path}`);
         } catch (e) {
             console.error(e)
-            setCaptureStatus(`error: ${String(e)}`)
+            dialog.showConfirmDialog({
+                title: "Error",
+                body: `${String(e)}`
+            })
         }
     }
 
     const handleColorCheck = async () => {
         try {
-            //await dialog.showConfirmDialog({
-            //    title: "....",
-            //    body: "now developping"
-            //})
-            setCaptureStatus("capturing...")
-            //const path = await testMonitorScreenshot();
-
-            //console.log(r);
-
-            setCaptureStatus(`color checked:`)
             if (props.onClickColorCheck) {
                 props.onClickColorCheck();
             }
         } catch (e) {
             console.error(e)
-            setCaptureStatus(`error: ${String(e)}`)
+            dialog.showConfirmDialog({
+                title: "Error",
+                body: `${String(e)}`
+            })
         }
     }
 
@@ -195,7 +188,6 @@ export function AppToolbar(props: {
                     >clear color check</button>
 
                 </div>
-                <div><div>{captureStatus}</div></div>
                 <div className="toolbar-row">
                     <label className="flex items-center gap-1.5 text-xs">
                         color
