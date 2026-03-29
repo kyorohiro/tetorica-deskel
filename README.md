@@ -2,7 +2,6 @@
 
 Lightweight drawing overlay tool (デスケルアプリ)
 
-![image](doc/image.png)
 
 ---
 
@@ -41,6 +40,9 @@ Prebuilt binaries are available on the GitHub Releases page.
 * screenshot with grid
 
 * measure stick
+![image](doc/image.png)
+
+* color analysis
 ![image](doc/image2.png)
 
 * simple draw
