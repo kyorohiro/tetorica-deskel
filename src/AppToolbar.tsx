@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
-import { setAlwaysOnTop, toggleClickCursorThrough } from "./window";
+import { setAlwaysOnTop, setClickThrough, toggleClickCursorThrough } from "./window";
 import { captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
 import { showToast } from "./toast";
@@ -92,7 +92,9 @@ export function AppToolbar(props: {
                 >
                     menu
                 </button>
-                {/** cursor
+                {
+                    //menu shortcut
+                }
                 <div
                     onClick={() => setVisible(v => !v)}
                     className={`
@@ -105,21 +107,21 @@ export function AppToolbar(props: {
                     <label className="flex cursor-pointer flex-col items-center justify-center text-center">
                         <input
                             type="checkbox"
-                            checked={isCursor}
+                            checked={uAppState.clickThrough}
                             className="peer sr-only"
                             onChange={async (e) => {
                                 const next = e.target.checked
-                                setIsCursor(next)
-                                await toggleClickCursorThrough()
+                                //appState.setAlwaysOnTop(next)
+                                const info = await setClickThrough(next)
+                                showToast(info);
                             }}
                         />
                         <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
                         <span className="mt-0 text-sm text-white">
-                            cursor
+                            click through
                         </span>
                     </label>
                 </div>
-                 */}
                 <div
                     onClick={() => setVisible(v => !v)}
                     className={`
@@ -142,7 +144,7 @@ export function AppToolbar(props: {
                         />
                         <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
                         <span className="mt-0 text-sm text-white">
-                            pin
+                            always on top
                         </span>
                     </label>
                 </div>

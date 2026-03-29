@@ -4,7 +4,7 @@ import { TOGGLE_CLICK_SHORTCUT } from "./shortcut";
 import { showToolbar, hideToolbarSoon } from "./toolbar";
 
 const win = getCurrentWindow();
-function updateWindowTitle(): void {
+function updateWindowTitle(): string {
   console.log("> updateWindowTitle", appState.getState().clickThrough);
   const title = appState.getState().clickThrough
     ? `Back to normal: ${TOGGLE_CLICK_SHORTCUT}`
@@ -15,6 +15,7 @@ function updateWindowTitle(): void {
   if (customTitleBar != null) {
     customTitleBar.textContent = title;
   }
+  return title;
 }
 
 async function setAlwaysOnTop(value: boolean): Promise<void> {
@@ -33,9 +34,9 @@ async function toggleAlwaysOnTop(): Promise<void> {
   await setAlwaysOnTop(!appState.getState().alwaysOnTop);
 }
 
-async function setClickThrough(value: boolean): Promise<void> {
+async function setClickThrough(value: boolean): Promise<string> {
   console.log(">  setClickThrough ", value)
-  appState.getState().clickThrough = value;
+  appState.setClickThrough(value);
   await win.setIgnoreCursorEvents(value);
   if(value) {
     await setAlwaysOnTop(value);
@@ -50,7 +51,7 @@ async function setClickThrough(value: boolean): Promise<void> {
   } else {
     showToolbar();
   }
-  updateWindowTitle();
+  return updateWindowTitle();
 }
 
 async function toggleClickCursorThrough(): Promise<void> {
