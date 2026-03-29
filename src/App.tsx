@@ -9,6 +9,7 @@ import { AppToolbar } from "./AppToolbar";
 import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
+import { DeskelSimpleDrawCanvas } from "./DeskelSimpleDrawCanvas"; 
 import { captureAndCropToAnalysis } from "./screenshot";
 import { sleep } from "./utils";
 
@@ -86,10 +87,12 @@ export default function App() {
   }, []);
   return (
     <div id="app">
-      { /*<CustomTitlebar/> */}
+      { /*<CustomTitlebar/> */} 
       <AppToolbar onChangeState={onChangeStateForToolbar} onClickColorCheck={onClickColorCheck} onClickClearColorCheck={onClickClearColorCheck}/>
       <AppDeslel ref={deskelRef} />
       <AppColorAnalysis ref={colorAnalysisRef} />
+      <DeskelSimpleDrawCanvas />
+
     </div>
   )
 }

@@ -73,7 +73,7 @@ export function AppToolbar(props: {
     }, [appState.getState()])
     return (
         <>
-            <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
+            <div className="absolute left-3 top-3 z-20 flex items-center gap-2"  style={{zIndex: 99999}}>
                 <button
                     onClick={() => setVisible(v => !v)}
                     className={`
@@ -122,6 +122,7 @@ export function AppToolbar(props: {
                     flex items-center justify-center
                     ${!visible ? "opacity-80" : "opacity-0"}
                 `}
+                style={{zIndex: 99999}}
                 >
                     <label className="flex cursor-pointer flex-col items-center justify-center text-center">
                         <input
@@ -153,7 +154,34 @@ export function AppToolbar(props: {
                     space-y-2
                     ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
                 `}
+                style={{zIndex: 99999}}
             >
+                <label className="flex items-center m-0 text-xs">
+                    Pen
+                </label>
+                <div className="px-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            onClick={() => appState.setTool("measure")}
+                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                                        ${uAppState.tool === "measure"
+                                        ? "border-sky-400 bg-sky-700 text-white"
+                                        : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        >
+                            Measure
+                        </button>
+
+                        <button
+                            onClick={() => appState.setTool("draw")}
+                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+        ${uAppState.tool === "draw"
+                                    ? "border-sky-400 bg-sky-700 text-white"
+                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        >
+                            Draw
+                        </button>
+                    </div>
+                </div>
                 <label className="flex items-center m-0 text-xs">
                     Design Scale
                 </label>
