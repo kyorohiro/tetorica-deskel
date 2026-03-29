@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
-import { setAlwaysOnTop, setClickThrough, toggleClickCursorThrough } from "./window";
+import { setAlwaysOnTop, setClickThrough } from "./window";
 import { captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
 import { showToast } from "./toast";
@@ -162,14 +162,6 @@ export function AppToolbar(props: {
                     ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
                 `}
             >
-                <div className="flex flex-wrap items-center gap-[10px]">
-                    <button
-                        id="toggleClickCursor"
-                        onClick={toggleClickCursorThrough}
-                        className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
-                    >cursor: off</button>
-
-                </div>
                 <div className="flex flex-wrap items-center gap-[10px]">
                     <button
                         onClick={handleSnapshot}
