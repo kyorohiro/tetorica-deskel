@@ -14,8 +14,18 @@ export function AppToolbar(props: {
     const [opacity, setOpacity] = useState(state.opacity)
     const [rotation, setRotation] = useState(state.rotation)
     const [captureStatus, setCaptureStatus] = useState("")
+    const [visible, setVisible] = useState(false)
     //const dialog = useDialog();
 
+    useEffect(() => {
+        const onMove = (e: MouseEvent) => {
+            const inHotArea = e.clientX < 180 && e.clientY < 120
+            setVisible(inHotArea)
+        }
+
+        window.addEventListener("mousemove", onMove)
+        return () => window.removeEventListener("mousemove", onMove)
+    }, [])
     const handleSnapshot = async () => {
         try {
             //await dialog.showConfirmDialog({
@@ -50,7 +60,7 @@ export function AppToolbar(props: {
             //})
             setCaptureStatus("capturing...")
             //const path = await testMonitorScreenshot();
-            
+
             //console.log(r);
 
             setCaptureStatus(`color checked:`)
@@ -74,8 +84,20 @@ export function AppToolbar(props: {
         }
     }, [grid, opacity, rotation])
     return (
-        <div id="toolbar">
-            <div className="toolbar-row">
+        <div
+            id="toolbar"
+            className={`
+                absolute left-3 top-[22px] z-10
+                rounded-xl bg-[rgba(20,20,20,0.6)]
+                px-[10px] py-2 text-white select-none
+                backdrop-blur-[6px]
+                transition-opacity duration-200
+                opacity-0 pointer-events-none
+                space-y-2
+                ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+            `}
+        >
+            <div className="flex flex-wrap items-center gap-[10px]">
                 <button
                     id="toggleClickCursor"
                     onClick={toggleClickCursorThrough}
@@ -88,7 +110,7 @@ export function AppToolbar(props: {
                 >pin: off</button>
 
             </div>
-            <div>
+            <div className="flex flex-wrap items-center gap-[10px]">
                 <button
                     onClick={handleSnapshot}
                     className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
@@ -103,11 +125,11 @@ export function AppToolbar(props: {
                     onClick={props.onClickClearColorCheck}
                     className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
                 >clear color check</button>
-                
+
             </div>
             <div><div>{captureStatus}</div></div>
             <div className="toolbar-row">
-                <label>
+                <label className="flex items-center gap-1.5 text-xs">
                     color
                     <input id="color" type="color" value="#00ff88" onChange={() => {
                         const color = document.getElementById("color") as HTMLInputElement;
@@ -118,7 +140,7 @@ export function AppToolbar(props: {
                     }} />
                 </label>
             </div>
-            <label>
+            <label className="flex items-center gap-1.5 text-xs">
                 grid
                 <input
                     type="range"
@@ -129,7 +151,7 @@ export function AppToolbar(props: {
                 />
             </label>
 
-            <label>
+            <label className="flex items-center gap-1.5 text-xs">
                 opacity
                 <input
                     type="range"
@@ -141,7 +163,7 @@ export function AppToolbar(props: {
                 />
             </label>
 
-            <label>
+            <label className="flex items-center gap-1.5 text-xs">
                 rotation
                 <input
                     type="range"
