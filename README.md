@@ -4,7 +4,6 @@ Lightweight drawing overlay tool (デスケルアプリ)
 
 ![image](doc/image.png)
 
-![image](doc/image2.png)
 ---
 
 ## ✨ What is this?
@@ -40,7 +39,12 @@ Prebuilt binaries are available on the GitHub Releases page.
 * Global shortcut support
 * rotate grid screen
 * screenshot with grid
+
 * measure stick
+![image](doc/image2.png)
+
+* simple draw
+![image](doc/image3.png)
 
 ---
 
