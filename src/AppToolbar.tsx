@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { saveSettings, state } from "./state";
-import { toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
+import { setAlwaysOnTop, toggleAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
 //import { useDialog } from "./useDialog";
@@ -15,6 +15,8 @@ export function AppToolbar(props: {
     const [rotation, setRotation] = useState(state.rotation)
     const [captureStatus, setCaptureStatus] = useState("")
     const [visible, setVisible] = useState(false)
+    const [isPinned, setIsPinned] = useState(false)
+    const [isCursor, setIsCursor] = useState(false);
     //const dialog = useDialog();
 
     /*
@@ -87,19 +89,77 @@ export function AppToolbar(props: {
     }, [grid, opacity, rotation])
     return (
         <>
-            <button
-                onClick={() => setVisible(v => !v)}
-                className={`
-                    absolute left-3 top-3 z-20 rounded-lg bg-black/60 px-3 py-2 text-sm text-white
-                    ${!visible ? "opacity-100" : "opacity-0"}`}
-            >
-                menu
-            </button>
+            <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
+                <button
+                    onClick={() => setVisible(v => !v)}
+                    className={`
+                    rounded-lg bg-black/60 px-3 py-2 text-sm text-white
+                    transition-opacity duration-200
+                    ${!visible ? "opacity-100" : "opacity-0"}
+                    `}
+                >
+                    menu
+                </button>
+                {/** cursor
+                <div
+                    onClick={() => setVisible(v => !v)}
+                    className={`
+                    rounded-lg bg-black/60 px-1 py-1 text-sm text-white
+                    transition-opacity duration-200
+                    flex items-center justify-center
+                    ${!visible ? "opacity-80" : "opacity-0"}
+                `}
+                >
+                    <label className="flex cursor-pointer flex-col items-center justify-center text-center">
+                        <input
+                            type="checkbox"
+                            checked={isCursor}
+                            className="peer sr-only"
+                            onChange={async (e) => {
+                                const next = e.target.checked
+                                setIsCursor(next)
+                                await toggleClickCursorThrough()
+                            }}
+                        />
+                        <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
+                        <span className="mt-0 text-sm text-white">
+                            cursor
+                        </span>
+                    </label>
+                </div>
+                 */}
+                <div
+                    onClick={() => setVisible(v => !v)}
+                    className={`
+                    rounded-lg bg-black/60 px-1 py-1 text-sm text-white
+                    transition-opacity duration-200
+                    flex items-center justify-center
+                    ${!visible ? "opacity-80" : "opacity-0"}
+                `}
+                >
+                    <label className="flex cursor-pointer flex-col items-center justify-center text-center">
+                        <input
+                            type="checkbox"
+                            checked={isPinned}
+                            className="peer sr-only"
+                            onChange={async (e) => {
+                                const next = e.target.checked
+                                setIsPinned(next)
+                                await setAlwaysOnTop(next);
+                            }}
+                        />
+                        <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
+                        <span className="mt-0 text-sm text-white">
+                            pin
+                        </span>
+                    </label>
+                </div>
+            </div>
 
             <div
                 id="toolbar"
                 className={`
-                    absolute left-3 top-[22px] z-10
+                    absolute left-3 top-[52px] z-10
                     rounded-xl bg-[rgba(20,20,20,0.6)]
                     px-[10px] py-2 text-white select-none
                     backdrop-blur-[6px]
@@ -114,11 +174,6 @@ export function AppToolbar(props: {
                         onClick={toggleClickCursorThrough}
                         className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
                     >cursor: off</button>
-                    <button
-                        id="togglePin"
-                        onClick={toggleAlwaysOnTop}
-                        className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
-                    >pin: off</button>
 
                 </div>
                 <div className="flex flex-wrap items-center gap-[10px]">

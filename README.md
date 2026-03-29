@@ -143,3 +143,9 @@ npm install @tauri-apps/plugin-global-shortcut
 cd src-tauri
 cargo add tauri-plugin-global-shortcut
 ```
+
+# ref
+
+## toggle button
+
+https://tailwindflex.com/@anonymous/toggle-me-animated-switch

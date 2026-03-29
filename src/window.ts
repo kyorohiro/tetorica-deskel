@@ -61,5 +61,6 @@ export {
     updateWindowTitle,
     toggleAlwaysOnTop,
     setClickThrough,
-    toggleClickCursorThrough
+    toggleClickCursorThrough,
+    setAlwaysOnTop    
 }
