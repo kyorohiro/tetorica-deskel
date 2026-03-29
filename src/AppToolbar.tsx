@@ -11,13 +11,9 @@ export function AppToolbar(props: {
     onClickColorCheck?: () => void
     onClickClearColorCheck?: () => void
 }) {
-    //const [grid, setGrid] = useState(appState.getState().grid)
-    //const [opacity, setOpacity] = useState(appState.getState().opacity)
-    //const [rotation, setRotation] = useState(appState.getState().rotation)
     const [visible, setVisible] = useState(false)
     const uAppState = useAppState();
 
-    //const [isCursor, setIsCursor] = useState(false);
     const dialog = useDialog();
 
     /*
@@ -33,10 +29,6 @@ export function AppToolbar(props: {
     */
     const handleSnapshot = async () => {
         try {
-            //await dialog.showConfirmDialog({
-            //  title: "Save",
-            //  body: "download folder"
-            //})
             const filePath = await save({
                 title: "画像を保存",
                 defaultPath: "deskel-crop.png",
@@ -162,68 +154,89 @@ export function AppToolbar(props: {
                     ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
                 `}
             >
-                <div className="flex flex-wrap items-center gap-[10px]">
-                    <button
-                        onClick={handleSnapshot}
-                        className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
-                    >capture</button>
-                </div>
-                <div>
-                    <button
-                        onClick={handleColorCheck}
-                        className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
-                    >color check</button>
-                    <button
-                        onClick={props.onClickClearColorCheck}
-                        className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-2 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
-                    >clear color check</button>
-
-                </div>
-                <div className="toolbar-row">
+                <label className="flex items-center m-0 text-xs">
+                    Design Scale
+                </label>
+                <div className="px-3">
+                    <div className="toolbar-row">
+                        <label className="flex items-center gap-1.5 text-xs">
+                            color
+                            <input id="color" type="color" value="#00ff88" onChange={() => {
+                                const color = document.getElementById("color") as HTMLInputElement;
+                                appState.getState().color = color.value;
+                                if (props.onChangeState) {
+                                    props.onChangeState();
+                                }
+                            }} />
+                        </label>
+                    </div>
                     <label className="flex items-center gap-1.5 text-xs">
-                        color
-                        <input id="color" type="color" value="#00ff88" onChange={() => {
-                            const color = document.getElementById("color") as HTMLInputElement;
-                            appState.getState().color = color.value;
-                            if (props.onChangeState) {
-                                props.onChangeState();
-                            }
-                        }} />
+                        grid
+                        <input
+                            type="range"
+                            min="20"
+                            max="300"
+                            value={appState.getState().grid}
+                            onChange={(e) => appState.setGrid(Number(e.target.value))}
+                        />
+                    </label>
+
+                    <label className="flex items-center gap-1.5 text-xs">
+                        opacity
+                        <input
+                            type="range"
+                            min="0.05"
+                            max="1"
+                            step="0.05"
+                            value={appState.getState().opacity}
+                            onChange={(e) => appState.setOpacity(Number(e.target.value))}
+                        />
+                    </label>
+
+                    <label className="flex items-center gap-1.5 text-xs">
+                        rotation
+                        <input
+                            type="range"
+                            min="-180"
+                            max="180"
+                            value={appState.getState().rotation}
+                            onChange={(e) => appState.setRotation(Number(e.target.value))}
+                        />
                     </label>
                 </div>
-                <label className="flex items-center gap-1.5 text-xs">
-                    grid
-                    <input
-                        type="range"
-                        min="20"
-                        max="300"
-                        value={appState.getState().grid}
-                        onChange={(e) => appState.setGrid(Number(e.target.value))}
-                    />
+                {
+                    //
+                }
+                <label className="flex items-center m-0 text-xs">
+                    Snapshot
                 </label>
+                <div className="px-3">
+                    <div className="flex flex-wrap items-center gap-[10px]">
+                        <button
+                            onClick={handleSnapshot}
+                            className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-0 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
+                        >capture</button>
+                    </div>
+                </div>
+                {
+                    //
+                }
+                <label className="flex items-center m-0 text-xs">
+                    Color Check
+                </label>
+                <div className="px-3">
+                    <div>
+                        <button
+                            onClick={handleColorCheck}
+                            className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-0 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
+                        >color check</button>
+                        <button
+                            onClick={props.onClickClearColorCheck}
+                            className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-0 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
+                        >clear</button>
 
-                <label className="flex items-center gap-1.5 text-xs">
-                    opacity
-                    <input
-                        type="range"
-                        min="0.05"
-                        max="1"
-                        step="0.05"
-                        value={appState.getState().opacity}
-                        onChange={(e) => appState.setOpacity(Number(e.target.value))}
-                    />
-                </label>
-
-                <label className="flex items-center gap-1.5 text-xs">
-                    rotation
-                    <input
-                        type="range"
-                        min="-180"
-                        max="180"
-                        value={appState.getState().rotation}
-                        onChange={(e) => appState.setRotation(Number(e.target.value))}
-                    />
-                </label>
+                    </div>
+                </div>
             </div>
         </>
     )
