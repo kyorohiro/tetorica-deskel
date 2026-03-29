@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from "react"
+
 type Settings = {
   grid: number
   opacity: number
@@ -164,6 +166,15 @@ class AppStateStore {
 
 const appState = AppStateStore.Instance()
 
+function useAppState() {
+  return useSyncExternalStore(
+    (listener) => appState.subscribe(listener),
+    () => appState.getState(),
+    () => appState.getState(),
+  )
+}
+
+
 export type {
   Settings,
   AppState,
@@ -173,4 +184,5 @@ export {
   appState,
   loadSettings,
   saveSettings,
+  useAppState
 }

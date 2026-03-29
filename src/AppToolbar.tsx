@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { saveSettings, appState } from "./state";
+import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, toggleClickCursorThrough } from "./window";
 import { captureAndCropToDownloads } from "./screenshot";
 import { save } from "@tauri-apps/plugin-dialog";
@@ -15,7 +15,9 @@ export function AppToolbar(props: {
     const [rotation, setRotation] = useState(appState.getState().rotation)
     const [captureStatus, setCaptureStatus] = useState("")
     const [visible, setVisible] = useState(false)
-    const [isPinned, setIsPinned] = useState(false)
+    //const [isPinned, setIsPinned] = useState(false)
+    const uAppState = useAppState();
+
     //const [isCursor, setIsCursor] = useState(false);
     //const dialog = useDialog();
 
@@ -140,11 +142,11 @@ export function AppToolbar(props: {
                     <label className="flex cursor-pointer flex-col items-center justify-center text-center">
                         <input
                             type="checkbox"
-                            checked={isPinned}
+                            checked={uAppState.alwaysOnTop}
                             className="peer sr-only"
                             onChange={async (e) => {
                                 const next = e.target.checked
-                                setIsPinned(next)
+                                //appState.setAlwaysOnTop(next)
                                 await setAlwaysOnTop(next);
                             }}
                         />
