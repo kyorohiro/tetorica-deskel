@@ -87,8 +87,8 @@ const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCo
 
     if (!startRef.current || !currentRef.current) return;
 
-    const x = Math.min(startRef.current.x, currentRef.current.x);
-    const y = Math.min(startRef.current.y, currentRef.current.y);
+    //const x = Math.min(startRef.current.x, currentRef.current.x);
+    //const y = Math.min(startRef.current.y, currentRef.current.y);
     const width = Math.abs(startRef.current.x - currentRef.current.x);
     const height = Math.abs(startRef.current.y - currentRef.current.y);
 
@@ -105,7 +105,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCo
       showToast(ret);
     }
     if (uAppState.tool == "color") {
-      const ret = await captureAndCropToAnalysis({path:undefined, targetRect: selectedRect})
+      const ret = await captureAndCropToAnalysis({targetRect: selectedRect})
       if(props.onColorAnalysis) {
         props.onColorAnalysis(ret.colors, ret.colors01);
       }

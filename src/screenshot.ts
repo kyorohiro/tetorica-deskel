@@ -35,6 +35,7 @@ type TargetRect = {
   height: number;
 };
 
+// targetRect :  window/canvas 内の CSS px 座標
 export async function captureAndCropToAnalysis(params: { targetRect?: TargetRect | null; }) {
   console.log("> captureAndCropToAnaluze", params);
   const appWindow = getCurrentWindow()
@@ -85,6 +86,7 @@ export async function captureAndCropToAnalysis(params: { targetRect?: TargetRect
 }
 
 
+// targetRect :  window/canvas 内の CSS px 座標
 export async function captureAndCropToDownloads(params: {
   path?: string | null;
   targetRect?: TargetRect | null;
@@ -118,7 +120,7 @@ export async function captureAndCropToDownloads(params: {
   }
 }
 
-
+// targetRect :  window/canvas 内の CSS px 座標
 export async function calcCaptureAndCropParams(params: {
   targetRect?: TargetRect | null;
 }): Promise<{x:number, y:number, width:number, height:number}> {
