@@ -144,6 +144,7 @@ export async function captureAndCropToDownloads(params: {
   const outerSize = await appWindow.outerSize();
 
   let scale = await appWindow.scaleFactor();
+  const scaleFactor = scale;
   const os = await platform();
   const isWindows = os === "windows";
   const isMac = os === "macos";
@@ -196,10 +197,10 @@ export async function captureAndCropToDownloads(params: {
     await sleep(300);
 
     const target = params.targetRect ?? null;
-    const targetX = target ? target.x * scale : 0;
-    const targetY = target ? target.y * scale : 0;
-    const targetWidth = target ? target.width * scale : innerSize.width;
-    const targetHeight = target ? target.height * scale : (innerSize.height - titlebarHeightForCapture);
+    const targetX = target ? target.x * scaleFactor : 0;
+    const targetY = target ? target.y * scaleFactor : 0;
+    const targetWidth = target ? target.width * scaleFactor : innerSize.width;
+    const targetHeight = target ? target.height * scaleFactor : (innerSize.height - titlebarHeightForCapture);
 
     const captureX = Math.round((innerPos.x + targetX) / scale);
     const captureY = Math.round((innerPos.y + titlebarHeightForCapture + targetY) / scale);
