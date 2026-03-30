@@ -2,6 +2,7 @@
 
 Lightweight drawing overlay tool (デスケルアプリ)
 
+![デモ画像](doc/demo01.gif)
 
 ---
 
