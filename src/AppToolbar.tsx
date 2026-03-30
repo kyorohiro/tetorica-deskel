@@ -39,7 +39,7 @@ export function AppToolbar(props: {
                     },
                 ],
             })
-            const path = await captureAndCropToDownloads({ path: filePath ?? undefined })
+            const path = await captureAndCropToDownloads({ path: filePath ?? undefined, targetRect: undefined })
             showToast(`saved: ${path}`);
         } catch (e) {
             console.error(e)
@@ -175,11 +175,30 @@ export function AppToolbar(props: {
                         <button
                             onClick={() => appState.setTool("draw")}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
-        ${uAppState.tool === "draw"
+                            ${uAppState.tool === "draw"
                                     ? "border-sky-400 bg-sky-700 text-white"
                                     : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
                         >
                             Draw
+                        </button>
+
+                        <button
+                            onClick={() => appState.setTool("capture")}
+                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                            ${uAppState.tool === "capture"
+                                    ? "border-sky-400 bg-sky-700 text-white"
+                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        >
+                            ScreenCaputure
+                        </button>
+                        <button
+                            onClick={() => appState.setTool("color")}
+                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                            ${uAppState.tool === "color"
+                                    ? "border-sky-400 bg-sky-700 text-white"
+                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        >
+                            Color
                         </button>
                     </div>
                 </div>

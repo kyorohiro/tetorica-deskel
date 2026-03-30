@@ -48,6 +48,7 @@ Prebuilt binaries are available on the GitHub Releases page.
 * simple draw
 ![image](doc/image3.png)
 
+* TODO Calibration Screen Capture
 ---
 
 ## ⌨️ Shortcuts
