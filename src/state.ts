@@ -8,7 +8,7 @@ type Settings = {
     rotation: number
 }
 
-type ToolMode = "measure" | "draw"
+type ToolMode = "measure" | "draw" | "color"
 
 type AppState = Settings & {
     clickThrough: boolean
