@@ -7,8 +7,9 @@ import {
   useState,
 } from "react";
 import { draw, drawClipRect, drawMeasure, resizeCanvas } from "./deskel";
-import { useAppState } from "./state";
+import { appState, useAppState } from "./state";
 import { captureAndCropToAnalysis, captureAndCropToDownloads } from "./screenshot";
+import { showToast } from "./toast";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -99,12 +100,15 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
       start: startRef.current,
       current: currentRef.current,
     });
-    const ret = await captureAndCropToDownloads({path:undefined, targetRect: selectedRect})
-    //const ret = await captureAndCropToAnalysis({
+    if (uAppState.tool == "capture") {
+      const ret = await captureAndCropToDownloads({path:undefined, targetRect: selectedRect})
+      showToast(ret);
+    }
+      //const ret = await captureAndCropToAnalysis({
     //  targetRect: selectedRect
     //})
     // まずは動作確認
-    console.log(ret);    
+    //console.log(ret);    
   }
   useEffect(() => {
     if (dragging) return;
@@ -127,10 +131,10 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
     const start = startRef.current;
     const current = currentRef.current;
     const dragging = draggingRef.current;
-    if (uAppState.tool == "measure") {
+    if (uAppState.tool == "measure" ) {
       drawMeasure({ canvas, ctx, start, current, dragging });
     }
-    else if (uAppState.tool == "color") {
+    else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
     }
   }, [uAppState.tool]);

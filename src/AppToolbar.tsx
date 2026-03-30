@@ -183,13 +183,22 @@ export function AppToolbar(props: {
                         </button>
 
                         <button
+                            onClick={() => appState.setTool("capture")}
+                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                            ${uAppState.tool === "capture"
+                                    ? "border-sky-400 bg-sky-700 text-white"
+                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        >
+                            ScreenCaputure
+                        </button>
+                        <button
                             onClick={() => appState.setTool("color")}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
                             ${uAppState.tool === "color"
                                     ? "border-sky-400 bg-sky-700 text-white"
                                     : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
                         >
-                            color
+                            Color
                         </button>
                     </div>
                 </div>
