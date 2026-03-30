@@ -4,7 +4,8 @@ import {
   useImperativeHandle,
   useCallback,
 } from "react";
-import { draw, drawMeasure, resizeCanvas } from "./deskel";
+import { draw, drawClipRect, drawMeasure, resizeCanvas } from "./deskel";
+import { useAppState } from "./state";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -23,6 +24,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
   const draggingRef = useRef(false);
 
   const cleanupRef = useRef<(() => void) | null>(null);
+  const uAppState = useAppState();
 
   const redraw = useCallback((props?: { isResizeCanvas: boolean }) => {
     const canvas = canvasRef.current;
@@ -40,8 +42,13 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
     const start = startRef.current;
     const current = currentRef.current;
     const dragging = draggingRef.current;
-    drawMeasure({ canvas, ctx, start, current, dragging });
-  }, []);
+    if(uAppState.tool == "measure") {
+      drawMeasure({ canvas, ctx, start, current, dragging });
+    }
+    else if(uAppState.tool == "color") {
+      drawClipRect ({ canvas, ctx, start, current, dragging });
+    }
+  }, [uAppState.tool]);
 
   const setCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
     // まず前のcanvasの掃除
