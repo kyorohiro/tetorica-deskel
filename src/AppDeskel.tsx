@@ -7,12 +7,12 @@ import {
   useState,
 } from "react";
 import { draw, drawClipRect, drawMeasure, resizeCanvas } from "./deskel";
-import { appState, useAppState } from "./state";
-import { captureAndCropToAnalysis, captureAndCropToDownloads } from "./screenshot";
+import { useAppState } from "./state";
+import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
 import { showToast } from "./toast";
 
 type AppDeskelHandle = {
-  redraw: (props?: { isResizeCanvas: boolean }) => void;
+  redraw: (props?: { isResizeCanvas: boolean})=>void;
   setVisible: (visible: boolean) => void;
   getCanvas: () => HTMLCanvasElement | null;
 };
@@ -62,7 +62,7 @@ function getRectFromPoints(params: {
 //  };
 //}
 
-const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
+const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCount[], colors01: ColorCount[]) => Promise<void>}>(function (props, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -104,7 +104,13 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
       const ret = await captureAndCropToDownloads({path:undefined, targetRect: selectedRect})
       showToast(ret);
     }
-      //const ret = await captureAndCropToAnalysis({
+    if (uAppState.tool == "color") {
+      const ret = await captureAndCropToAnalysis({path:undefined, targetRect: selectedRect})
+      if(props.onColorAnalysis) {
+        props.onColorAnalysis(ret.colors, ret.colors01);
+      }
+    }
+    //const ret = await captureAndCropToAnalysis({
     //  targetRect: selectedRect
     //})
     // まずは動作確認

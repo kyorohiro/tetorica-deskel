@@ -10,7 +10,7 @@ import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { DeskelSimpleDrawCanvas } from "./DeskelSimpleDrawCanvas";
-import { captureAndCropToAnalysis } from "./screenshot";
+import { captureAndCropToAnalysis, ColorCount } from "./screenshot";
 import { sleep } from "./utils";
 import { useAppState } from "./state";
 
@@ -26,6 +26,18 @@ export default function App() {
     showToolbar()
     updateWindowTitle()
   }, [])
+
+  const onColorAnalysis = async (colors: ColorCount[], colors01: ColorCount[]): Promise<void> => {
+    colorAnalysisRef.current?.redraw({
+      colors,
+      colors01
+    });
+    const colorAnalysis = colorAnalysisRef.current;
+    if(colorAnalysis) {
+      colorAnalysis.setVisible(true);
+    }
+    return;
+  };
 
   useEffect(() => {
     const win = getCurrentWindow()
@@ -95,7 +107,7 @@ export default function App() {
         onClickClearColorCheck={onClickClearColorCheck}
       />
 
-      <AppDeslel ref={deskelRef} />
+      <AppDeslel ref={deskelRef} onColorAnalysis={ onColorAnalysis } />
       <AppColorAnalysis ref={colorAnalysisRef} />
 
       {state.tool === "draw" && <DeskelSimpleDrawCanvas />}

@@ -35,65 +35,20 @@ type TargetRect = {
   height: number;
 };
 
-export async function captureAndCropToAnalysis(params: {}) {
+export async function captureAndCropToAnalysis(params: { targetRect?: TargetRect | null; }) {
   console.log("> captureAndCropToAnaluze", params);
   const appWindow = getCurrentWindow()
 
-
-  //appWindow.setDecorations(false);
-  const pos = await appWindow.innerPosition()
-  const size = await appWindow.innerSize()
-  let scale = await appWindow.scaleFactor()
-  const outerPos = await appWindow.outerPosition()
-  const outerSize = await appWindow.outerSize()
-  const isWindows = platform() === "windows"
-  const isMac = platform() === "macos"
-
-  const customTitleBar = document.getElementById("custom-title-bar")
-  let titlebarHight = 0;
-  if (customTitleBar != null) {
-    titlebarHight = customTitleBar.getBoundingClientRect().height;
-  }
-
-  if (isWindows) {
-    titlebarHight = titlebarHight * scale;
-    scale = 1.0;
-  }
-  if (isMac) {
-    if ((await appWindow.outerPosition()).y == (await appWindow.innerPosition()).y) {
-      titlebarHight = 30;
-    }
-  }
-
-  console.log({
-    pos,
-    outerPos,
-    size,
-    outerSize,
-    titlebarHight,
-  })
-
+  const caputureRect = await calcCaptureAndCropParams({targetRect:params.targetRect});
   const toolbar = document.getElementById("toolbar")
   try {
     if (toolbar != null) {
       toolbar.style.display = "none";
     }
     await sleep(300);
-
-    //const rect = target.getBoundingClientRect()
-    //const x = Math.round((pos.x + rect.left) / scale)
-    //const y = Math.round((pos.y + rect.top) / scale)
-    //const width = Math.round(rect.width / scale)
-    //const height = Math.round(rect.height / scale)
-    const x = Math.round(pos.x / scale);
-    const y = Math.round(pos.y / scale + titlebarHight);
-    const width = Math.round(size.width / scale);
-    const height = Math.round(size.height / scale - titlebarHight);
-    console.log(">> invoke");
     // 
     // mac だと 透明にしてゴーストが残ることがあるので Window を非表示にする
     //
-
     await appWindow.hide()
 
     // visibleがfalseになるまで待つ
@@ -108,10 +63,10 @@ export async function captureAndCropToAnalysis(params: {}) {
     await sleep(25);
 
     const result = await invoke<ColorAnalysisResult>("analyze_region_colors", {
-      x: x,
-      y: y,
-      width: width,
-      height: height,
+      x: caputureRect.x,
+      y: caputureRect.y,
+      width: caputureRect.width,
+      height: caputureRect.height,
       quantizeStep: 32,
       topN: 1000,
     });
@@ -135,6 +90,39 @@ export async function captureAndCropToDownloads(params: {
   targetRect?: TargetRect | null;
 }) {
   console.log("> captureAndCropToDownloads", params);
+  const caputureRect = await calcCaptureAndCropParams({targetRect:params.targetRect});
+
+  const toolbar = document.getElementById("toolbar");
+
+  try {
+    if (toolbar) {
+      toolbar.style.display = "none";
+    }
+
+    await sleep(300);
+
+
+    const path = await invoke<string>("capture_and_crop_to_downloads", {
+      x: caputureRect.x,
+      y: caputureRect.y,
+      width: caputureRect.width,
+      height: caputureRect.height,
+      path: params.path ?? "",
+    });
+
+    return path;
+  } finally {
+    if (toolbar) {
+      toolbar.style.display = "";
+    }
+  }
+}
+
+
+export async function calcCaptureAndCropParams(params: {
+  targetRect?: TargetRect | null;
+}): Promise<{x:number, y:number, width:number, height:number}> {
+  console.log("> calcCaptureAndCropParams", params);
 
   const appWindow = getCurrentWindow();
 
@@ -187,46 +175,29 @@ export async function captureAndCropToDownloads(params: {
     titlebarHeightForCapture,
   });
 
-  const toolbar = document.getElementById("toolbar");
+  const target = params.targetRect ?? null;
+  const targetX = target ? target.x * scaleFactor : 0;
+  const targetY = target ? target.y * scaleFactor : 0;
+  const targetWidth = target ? target.width * scaleFactor : innerSize.width;
+  const targetHeight = target ? target.height * scaleFactor : (innerSize.height - titlebarHeightForCapture);
 
-  try {
-    if (toolbar) {
-      toolbar.style.display = "none";
-    }
+  const captureX = Math.round((innerPos.x + targetX) / scale);
+  const captureY = Math.round((innerPos.y + titlebarHeightForCapture + targetY) / scale);
+  const captureWidth = Math.round(targetWidth / scale);
+  const captureHeight = Math.round(targetHeight / scale);
 
-    await sleep(300);
+  console.log("> capture rect", {
+    target,
+    captureX,
+    captureY,
+    captureWidth,
+    captureHeight,
+  });
 
-    const target = params.targetRect ?? null;
-    const targetX = target ? target.x * scaleFactor : 0;
-    const targetY = target ? target.y * scaleFactor : 0;
-    const targetWidth = target ? target.width * scaleFactor : innerSize.width;
-    const targetHeight = target ? target.height * scaleFactor : (innerSize.height - titlebarHeightForCapture);
-
-    const captureX = Math.round((innerPos.x + targetX) / scale);
-    const captureY = Math.round((innerPos.y + titlebarHeightForCapture + targetY) / scale);
-    const captureWidth = Math.round(targetWidth / scale);
-    const captureHeight = Math.round(targetHeight / scale);
-
-    console.log("> capture rect", {
-      target,
-      captureX,
-      captureY,
-      captureWidth,
-      captureHeight,
-    });
-
-    const path = await invoke<string>("capture_and_crop_to_downloads", {
-      x: captureX,
-      y: captureY,
-      width: captureWidth,
-      height: captureHeight,
-      path: params.path ?? "",
-    });
-
-    return path;
-  } finally {
-    if (toolbar) {
-      toolbar.style.display = "";
-    }
-  }
+  return {
+    x: captureX,
+    y: captureY,
+    width: captureWidth,
+    height: captureHeight,
+  };
 }
