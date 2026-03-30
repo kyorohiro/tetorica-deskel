@@ -39,7 +39,7 @@ export function AppToolbar(props: {
                     },
                 ],
             })
-            const path = await captureAndCropToDownloads({ path: filePath ?? undefined })
+            const path = await captureAndCropToDownloads({ path: filePath ?? undefined, targetRect: undefined })
             showToast(`saved: ${path}`);
         } catch (e) {
             console.error(e)

@@ -3,9 +3,12 @@ import {
   forwardRef,
   useImperativeHandle,
   useCallback,
+  useEffect,
+  useState,
 } from "react";
 import { draw, drawClipRect, drawMeasure, resizeCanvas } from "./deskel";
 import { useAppState } from "./state";
+import { captureAndCropToAnalysis, captureAndCropToDownloads } from "./screenshot";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -15,6 +18,49 @@ type AppDeskelHandle = {
 
 type AppDeskelPoint = { x: number; y: number };
 
+type AppDeskelRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+//
+// CSS座標で持つ
+function getRectFromPoints(params: {
+  start: AppDeskelPoint;
+  current: AppDeskelPoint;
+}): AppDeskelRect {
+  const x = Math.min(params.start.x, params.current.x);
+  const y = Math.min(params.start.y, params.current.y);
+  const width = Math.abs(params.current.x - params.start.x);
+  const height = Math.abs(params.current.y - params.start.y);
+
+  return { x, y, width, height };
+}
+
+//function getRectFromPoints(params: {
+//  start: AppDeskelPoint;
+//  current: AppDeskelPoint;
+//  canvas: HTMLCanvasElement;
+//}): AppDeskelRect {
+//  const rect = params.canvas.getBoundingClientRect();
+//  const scaleX = params.canvas.width / rect.width;
+//  const scaleY = params.canvas.height / rect.height;
+//
+//  const left = Math.min(params.start.x, params.current.x);
+//  const top = Math.min(params.start.y, params.current.y);
+//  const right = Math.max(params.start.x, params.current.x);
+//  const bottom = Math.max(params.start.y, params.current.y);
+//
+//  return {
+//    x: left * scaleX,
+//    y: top * scaleY,
+//    width: (right - left) * scaleX,
+//    height: (bottom - top) * scaleY,
+//  };
+//}
+
 const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -22,9 +68,48 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
   const startRef = useRef<AppDeskelPoint | null>(null);
   const currentRef = useRef<AppDeskelPoint | null>(null);
   const draggingRef = useRef(false);
+  const [dragging, setDragging] = useState(false);
+
+  function setDraggingValue(value: boolean) {
+    if (draggingRef.current === value) return;
+
+    draggingRef.current = value;
+    setDragging(value);
+  }
 
   const cleanupRef = useRef<(() => void) | null>(null);
   const uAppState = useAppState();
+
+  //
+  async function  onPointerUp() {
+    //updateDragging(false);
+
+    if (!startRef.current || !currentRef.current) return;
+
+    const x = Math.min(startRef.current.x, currentRef.current.x);
+    const y = Math.min(startRef.current.y, currentRef.current.y);
+    const width = Math.abs(startRef.current.x - currentRef.current.x);
+    const height = Math.abs(startRef.current.y - currentRef.current.y);
+
+    if (!canvasRef.current || width < 8 || height < 8) return;
+
+    // color check
+    const selectedRect = getRectFromPoints({
+      //canvas: canvasRef.current!,
+      start: startRef.current,
+      current: currentRef.current,
+    });
+    const ret = await captureAndCropToDownloads({path:undefined, targetRect: selectedRect})
+    //const ret = await captureAndCropToAnalysis({
+    //  targetRect: selectedRect
+    //})
+    // まずは動作確認
+    console.log(ret);    
+  }
+  useEffect(() => {
+    if (dragging) return;
+    onPointerUp();
+  }, [dragging]);
 
   const redraw = useCallback((props?: { isResizeCanvas: boolean }) => {
     const canvas = canvasRef.current;
@@ -42,11 +127,11 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
     const start = startRef.current;
     const current = currentRef.current;
     const dragging = draggingRef.current;
-    if(uAppState.tool == "measure") {
+    if (uAppState.tool == "measure") {
       drawMeasure({ canvas, ctx, start, current, dragging });
     }
-    else if(uAppState.tool == "color") {
-      drawClipRect ({ canvas, ctx, start, current, dragging });
+    else if (uAppState.tool == "color") {
+      drawClipRect({ canvas, ctx, start, current, dragging });
     }
   }, [uAppState.tool]);
 
@@ -72,7 +157,8 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
 
       startRef.current = p;
       currentRef.current = p;
-      draggingRef.current = true;
+      //draggingRef.current = true;
+      setDraggingValue(true);
       redraw();
     };
 
@@ -88,7 +174,8 @@ const AppDeslel = forwardRef<AppDeskelHandle, {}>(function (_, ref) {
     };
 
     const onMouseUp = () => {
-      draggingRef.current = false;
+      //draggingRef.current = false;
+      setDraggingValue(false);
       redraw();
     };
 
