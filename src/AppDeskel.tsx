@@ -10,7 +10,7 @@ import { draw, drawClipRect, drawMeasure, resizeCanvas } from "./deskel";
 import { useAppState } from "./state";
 import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
 import { showToast } from "./toast";
-import { ChainMesure, ChainPoint } from "./chainMesure";
+import { ChainMeasure, ChainPoint } from "./chainMesure";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -71,7 +71,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
   const currentRef = useRef<AppDeskelPoint | null>(null);
   const draggingRef = useRef(false);
   const [dragging, setDragging] = useState(false);
-  const chainMesureRef = useRef<ChainMesure>(new ChainMesure());
+  const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
 
   function setDraggingValue(value: boolean) {
     if (draggingRef.current === value) return;
