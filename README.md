@@ -51,13 +51,13 @@ Prebuilt binaries are available on the GitHub Releases page.
 * screenshot with grid
 
 * measure stick
-![image](doc/image.png)
+![デモ画像](doc/demo03.gif)
 
 * color analysis
-![image](doc/image2.png)
+![デモ画像](doc/demo01.gif)
 
 * simple draw
-![image](doc/image3.png)
+![デモ画像](doc/demo02.gif)
 
 * TODO Calibration Screen Capture
 ---
