@@ -140,14 +140,12 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     const current = currentRef.current;
     const dragging = draggingRef.current;
     if (uAppState.tool == "measure") {
-      drawMeasure({ canvas, ctx, start, current, dragging });
+      drawMeasure({ canvas, ctx, start, current, dragging, chainLength: chainMesureRef.current.getLength()});
 
       // redraw時
       chainMesureRef.current.draw(ctx, {
         color: uAppState.color,
         lineWidth: 1,
-        showPoints: true,
-        showLength: true,
       });
     }
     else if (uAppState.tool == "color" || uAppState.tool == "capture") {

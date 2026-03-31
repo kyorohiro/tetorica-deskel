@@ -281,7 +281,8 @@ function normalizeAngle180(deg: number): number {
 }
 
 function drawMeasure(params: {
-  canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, start?: AppDeskelPoint | null, current?: AppDeskelPoint | null, dragging?: boolean
+  canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, start?: AppDeskelPoint | null, current?: AppDeskelPoint | null, dragging?: boolean,
+  chainLength?:number
 }): void {
   if (!params.ctx) {
     return;
@@ -370,7 +371,7 @@ function drawMeasure(params: {
   {
     const ctx = params.ctx
 
-    const text1 = `len: ${len.toFixed(1)}`
+    const text1 = `len: ${len.toFixed(1)} (${params.chainLength ?? ""})`
     const text2 = `deg: ${normalizeAngle180(-1*angle).toFixed(1)}°  (${(360-angle).toFixed(1)})`
 
     const x = mx + 8
