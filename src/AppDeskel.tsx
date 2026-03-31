@@ -10,9 +10,10 @@ import { draw, drawClipRect, drawMeasure, resizeCanvas } from "./deskel";
 import { useAppState } from "./state";
 import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
 import { showToast } from "./toast";
+import { ChainMesure, ChainPoint } from "./chainMesure";
 
 type AppDeskelHandle = {
-  redraw: (props?: { isResizeCanvas: boolean})=>void;
+  redraw: (props?: { isResizeCanvas: boolean }) => void;
   setVisible: (visible: boolean) => void;
   getCanvas: () => HTMLCanvasElement | null;
 };
@@ -62,7 +63,7 @@ function getRectFromPoints(params: {
 //  };
 //}
 
-const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCount[], colors01: ColorCount[]) => Promise<void>}>(function (props, ref) {
+const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: ColorCount[], colors01: ColorCount[]) => Promise<void> }>(function (props, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -70,6 +71,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCo
   const currentRef = useRef<AppDeskelPoint | null>(null);
   const draggingRef = useRef(false);
   const [dragging, setDragging] = useState(false);
+  const chainMesureRef = useRef<ChainMesure>(new ChainMesure());
 
   function setDraggingValue(value: boolean) {
     if (draggingRef.current === value) return;
@@ -82,7 +84,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCo
   const uAppState = useAppState();
 
   //
-  async function  onPointerUp() {
+  async function onPointerUp() {
     //updateDragging(false);
 
     if (!startRef.current || !currentRef.current) return;
@@ -101,12 +103,12 @@ const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCo
       current: currentRef.current,
     });
     if (uAppState.tool == "capture") {
-      const ret = await captureAndCropToDownloads({path:undefined, targetRect: selectedRect})
+      const ret = await captureAndCropToDownloads({ path: undefined, targetRect: selectedRect })
       showToast(ret);
     }
     if (uAppState.tool == "color") {
-      const ret = await captureAndCropToAnalysis({targetRect: selectedRect})
-      if(props.onColorAnalysis) {
+      const ret = await captureAndCropToAnalysis({ targetRect: selectedRect })
+      if (props.onColorAnalysis) {
         props.onColorAnalysis(ret.colors, ret.colors01);
       }
     }
@@ -137,8 +139,16 @@ const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCo
     const start = startRef.current;
     const current = currentRef.current;
     const dragging = draggingRef.current;
-    if (uAppState.tool == "measure" ) {
+    if (uAppState.tool == "measure") {
       drawMeasure({ canvas, ctx, start, current, dragging });
+
+      // redraw時
+      chainMesureRef.current.draw(ctx, {
+        color: uAppState.color,
+        lineWidth: 1,
+        showPoints: true,
+        showLength: true,
+      });
     }
     else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
@@ -169,6 +179,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCo
       currentRef.current = p;
       //draggingRef.current = true;
       setDraggingValue(true);
+      chainMesureRef.current.update({x:startRef.current.x, y: startRef.current.y});
       redraw();
     };
 
@@ -180,12 +191,17 @@ const AppDeslel = forwardRef<AppDeskelHandle, {onColorAnalysis?:(colors: ColorCo
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
       };
+      //
+      // pointermove とかで
+      chainMesureRef.current.update({ x: currentRef.current.x, y: currentRef.current.y });
+
       redraw();
     };
 
     const onMouseUp = () => {
       //draggingRef.current = false;
       setDraggingValue(false);
+      chainMesureRef.current.clear()
       redraw();
     };
 

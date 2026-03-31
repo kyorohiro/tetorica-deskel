@@ -490,4 +490,9 @@ export {
   drawGrid,
   drawMeasure,
   drawClipRect,
+  //
+  makeShadowColorFromGrid,
+  hexToRgbaParams,
+  rgbaToHsla,
+  hslaToRgba
 }
