@@ -10,7 +10,7 @@ import { draw, drawClipRect, drawMeasure, resizeCanvas } from "./deskel";
 import { useAppState } from "./state";
 import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
 import { showToast } from "./toast";
-import { ChainMeasure, ChainPoint } from "./chainMesure";
+import { ChainMeasure } from "./chainMesure";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -140,7 +140,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     const current = currentRef.current;
     const dragging = draggingRef.current;
     if (uAppState.tool == "measure") {
-      drawMeasure({ canvas, ctx, start, current, dragging, chainLength: chainMesureRef.current.getLength()});
+      drawMeasure({ canvas, ctx, start, current, dragging, chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined) });
 
       // redraw時
       chainMesureRef.current.draw(ctx, {
@@ -177,7 +177,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
       currentRef.current = p;
       //draggingRef.current = true;
       setDraggingValue(true);
-      chainMesureRef.current.update({x:startRef.current.x, y: startRef.current.y});
+      chainMesureRef.current.update({ x: startRef.current.x, y: startRef.current.y });
       redraw();
     };
 

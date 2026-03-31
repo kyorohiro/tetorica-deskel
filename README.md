@@ -62,6 +62,10 @@ Prebuilt binaries are available on the GitHub Releases page.
 
 ![デモ画像](doc/demo02.gif)
 
+* chain measure stick
+
+![デモ画像](doc/demo04.gif)
+
 * TODO Calibration Screen Capture
 ---
 
