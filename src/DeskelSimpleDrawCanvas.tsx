@@ -15,6 +15,7 @@ type Stroke = {
     tool: Tool;
     color: string;
     size: number;
+    opacity: number;
     points: Point[];
 };
 
@@ -31,6 +32,7 @@ function drawStroke(ctx: CanvasRenderingContext2D, stroke: Stroke) {
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     ctx.lineWidth = stroke.size;
+    ctx.globalAlpha = stroke.opacity ?? 1;
 
     if (stroke.tool === "eraser") {
         ctx.globalCompositeOperation = "destination-out";
@@ -44,11 +46,9 @@ function drawStroke(ctx: CanvasRenderingContext2D, stroke: Stroke) {
         const p = stroke.points[0];
         ctx.beginPath();
         ctx.arc(p.x, p.y, stroke.size / 2, 0, Math.PI * 2);
-        if (stroke.tool === "eraser") {
-            ctx.fillStyle = "rgba(0,0,0,1)";
-        } else {
-            ctx.fillStyle = stroke.color;
-        }
+        ctx.fillStyle = stroke.tool === "eraser"
+            ? "rgba(0,0,0,1)"
+            : stroke.color;
         ctx.fill();
         ctx.restore();
         return;
@@ -123,22 +123,25 @@ function DeskelSimpleDrawCanvas() {
 
     const resizeCanvas = useCallback(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
+        const wrap = wrapRef.current;
+        if (!canvas || !wrap) return;
 
         const dpr = window.devicePixelRatio || 1;
-
-        // いったんCSS側の幅でレイアウトさせる
-        canvas.style.width = "100%";
-        canvas.style.height = `${Math.max(100, Math.floor(window.innerHeight * 0.68))}px`;
-
-        const rect = canvas.getBoundingClientRect();
+        const rect = wrap.getBoundingClientRect();
         const width = Math.floor(rect.width);
         const height = Math.floor(rect.height);
-        console.log("> rect", width, height);
+
+        // いったんCSS側の幅でレイアウトさせる
+        //canvas.style.width = "100%";
+        //canvas.style.height = `${Math.max(100, Math.floor(window.innerHeight * 0.68))}px`;
+        //console.log("> rect", width, height);
+
+        // ここで style.height を固定しない
+        canvas.style.width = "100%";
+        canvas.style.height = "100%";
 
         canvas.width = Math.floor(width * dpr);
         canvas.height = Math.floor(height * dpr);
-
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
@@ -172,6 +175,7 @@ function DeskelSimpleDrawCanvas() {
                 color,
                 size: activeSize,
                 points: [p],
+                opacity: 0.5,
             });
         },
         [activeSize, color, tool]
@@ -250,7 +254,7 @@ function DeskelSimpleDrawCanvas() {
                             <div className="flex h-full w-full flex-col space-y-0 p-0">
                                 <div
                                     ref={wrapRef}
-                                    className="min-h-0 flex-1 rounded-2xl border border-slate-800 p-0 m-0"
+                                    className="min-h-0 flex-1 rounded-2xl border border-slate-800 p-0 m-1"
                                 >
                                     <canvas
                                         ref={canvasRef}
