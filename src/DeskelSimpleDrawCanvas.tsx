@@ -236,95 +236,93 @@ function DeskelSimpleDrawCanvas() {
 
     return (
         <div
-            className="absolute left-3 top-3 z-20 flex items-center gap-2 select-none"
+            className="fixed inset-0 z-0 select-none"
             style={{
                 userSelect: "none",
                 WebkitUserSelect: "none",
                 WebkitTouchCallout: "none",
             }}
         >
-            <div className="min-h-scree text-slate-50 p-4 md:p-6">
-                <div className="mx-auto max-w-7xl space-y-4">
+            <div className="h-screen w-screen text-slate-50">
+                <div className="flex h-full w-full flex-col">
+                    <div className="flex-1 p-0">
+                        <div className="h-full w-full rounded-2xl border border-slate-800 shadow-xl">
+                            <div className="flex h-full w-full flex-col space-y-0 p-0">
+                                <div
+                                    ref={wrapRef}
+                                    className="min-h-0 flex-1 rounded-2xl border border-slate-800 p-0 m-0"
+                                >
+                                    <canvas
+                                        ref={canvasRef}
+                                        onPointerDown={onPointerDown}
+                                        onPointerMove={onPointerMove}
+                                        onPointerUp={onPointerUp}
+                                        onPointerCancel={endDraw}
+                                        className="block h-full w-full touch-none rounded-xl"
+                                    />
+                                </div>
 
-                    <div className="rounded-2xl border border-slate-800  shadow-xl">
-                        <div className="space-y-3 p-3 md:p-4">
-
-                            <div
-                                ref={wrapRef}
-                                className="rounded-2xl border border-slate-80 p-2"
-                            >
-                                <canvas
-                                    ref={canvasRef}
-                                    onPointerDown={onPointerDown}
-                                    onPointerMove={onPointerMove}
-                                    onPointerUp={onPointerUp}
-                                    onPointerCancel={endDraw}
-                                    className="block w-full touch-none rounded-x"
-                                />
-                            </div>
-                            {
-                                //
-                            }
-                            <div className="flex flex-wrap items-center justify-end gap-2">
-                                <button
-                                    className={`rounded-2xl border px-3 py-3 text-sm ${tool === "pen"
+                                <div className="fixed bottom-4 right-4 z-30 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur">
+                                    <button
+                                        className={`rounded-2xl border px-3 py-3 text-sm ${tool === "pen"
                                             ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                                             : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
-                                        }`}
-                                    onClick={() => setTool("pen")}
-                                    title="ペン"
-                                    aria-label="ペン"
-                                >
-                                    <Pencil size={18} />
-                                </button>
+                                            }`}
+                                        onClick={() => setTool("pen")}
+                                        title="ペン"
+                                        aria-label="ペン"
+                                    >
+                                        <Pencil size={18} />
+                                    </button>
 
-                                <button
-                                    className={`rounded-2xl border px-3 py-3 text-sm ${tool === "eraser"
+                                    <button
+                                        className={`rounded-2xl border px-3 py-3 text-sm ${tool === "eraser"
                                             ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                                             : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
-                                        }`}
-                                    onClick={() => setTool("eraser")}
-                                    title="消しゴム"
-                                    aria-label="消しゴム"
-                                >
-                                    <Eraser size={18} />
-                                </button>
+                                            }`}
+                                        onClick={() => setTool("eraser")}
+                                        title="消しゴム"
+                                        aria-label="消しゴム"
+                                    >
+                                        <Eraser size={18} />
+                                    </button>
 
-                                <label
-                                    className="flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950 px-3 py-3 text-sm"
-                                    title="色"
-                                    aria-label="色"
-                                >
-                                    <div className="relative flex items-center justify-center">
-                                        <Palette size={18} className="pointer-events-none" />
-                                        <input
-                                            type="color"
-                                            value={color}
-                                            onChange={(e) => setColor(e.target.value)}
-                                            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                                            disabled={tool === "eraser"}
-                                        />
-                                    </div>
-                                </label>
+                                    <label
+                                        className="flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950 px-3 py-3 text-sm"
+                                        title="色"
+                                        aria-label="色"
+                                    >
+                                        <div className="relative flex items-center justify-center">
+                                            <Palette size={18} className="pointer-events-none" color={color} />
+                                            <input
+                                                type="color"
+                                                value={color}
+                                                onChange={(e) => setColor(e.target.value)}
+                                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                                disabled={tool === "eraser"}
+                                            />
+                                        </div>
+                                    </label>
 
-                                <button
-                                    className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-slate-100 hover:bg-slate-800 disabled:opacity-40"
-                                    onClick={undo}
-                                    disabled={strokes.length === 0}
-                                    title="1つ戻す"
-                                    aria-label="1つ戻す"
-                                >
-                                    <Undo2 size={18} />
-                                </button>
+                                    <button
+                                        className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-slate-100 hover:bg-slate-800 disabled:opacity-40"
+                                        onClick={undo}
+                                        disabled={strokes.length === 0}
+                                        title="1つ戻す"
+                                        aria-label="1つ戻す"
+                                    >
+                                        <Undo2 size={18} />
+                                    </button>
 
-                                <button
-                                    className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-slate-100 hover:bg-slate-800"
-                                    onClick={clearAll}
-                                    title="クリア"
-                                    aria-label="クリア"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                    <button
+                                        className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-slate-100 hover:bg-slate-800"
+                                        onClick={clearAll}
+                                        title="クリア"
+                                        aria-label="クリア"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
