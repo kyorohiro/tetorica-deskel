@@ -1,4 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    Pencil,
+    Eraser,
+    Palette,
+    Undo2,
+    Trash2,
+} from "lucide-react";
 
 type Tool = "pen" | "eraser";
 
@@ -255,46 +262,68 @@ function DeskelSimpleDrawCanvas() {
                                     className="block w-full touch-none rounded-x"
                                 />
                             </div>
-
-                            <div className="flex flex-wrap items-center gap-2 justify-end">
+                            {
+                                //
+                            }
+                            <div className="flex flex-wrap items-center justify-end gap-2">
                                 <button
-                                    className="rounded-2xl border border-slate-700 px-4 py-2 text-sm bg-slate-900 hover:bg-slate-800"
+                                    className={`rounded-2xl border px-3 py-3 text-sm ${tool === "pen"
+                                            ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                                            : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                                        }`}
                                     onClick={() => setTool("pen")}
+                                    title="ペン"
+                                    aria-label="ペン"
                                 >
-                                    ペン
+                                    <Pencil size={18} />
                                 </button>
 
                                 <button
-                                    className="rounded-2xl border border-slate-700 px-4 py-2 text-sm bg-slate-900 hover:bg-slate-800"
+                                    className={`rounded-2xl border px-3 py-3 text-sm ${tool === "eraser"
+                                            ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                                            : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                                        }`}
                                     onClick={() => setTool("eraser")}
+                                    title="消しゴム"
+                                    aria-label="消しゴム"
                                 >
-                                    消しゴム
+                                    <Eraser size={18} />
                                 </button>
 
-                                <label className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
-                                    色
-                                    <input
-                                        type="color"
-                                        value={color}
-                                        onChange={(e) => setColor(e.target.value)}
-                                        className="h-8 w-10 cursor-pointer border-0 bg-transparent p-0"
-                                        disabled={tool === "eraser"}
-                                    />
+                                <label
+                                    className="flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950 px-3 py-3 text-sm"
+                                    title="色"
+                                    aria-label="色"
+                                >
+                                    <div className="relative flex items-center justify-center">
+                                        <Palette size={18} className="pointer-events-none" />
+                                        <input
+                                            type="color"
+                                            value={color}
+                                            onChange={(e) => setColor(e.target.value)}
+                                            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                            disabled={tool === "eraser"}
+                                        />
+                                    </div>
                                 </label>
 
                                 <button
-                                    className="rounded-2xl border border-slate-700 px-4 py-2 text-sm bg-slate-900 hover:bg-slate-800 disabled:opacity-40"
+                                    className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-slate-100 hover:bg-slate-800 disabled:opacity-40"
                                     onClick={undo}
                                     disabled={strokes.length === 0}
+                                    title="1つ戻す"
+                                    aria-label="1つ戻す"
                                 >
-                                    1つ戻す
+                                    <Undo2 size={18} />
                                 </button>
 
                                 <button
-                                    className="rounded-2xl border border-slate-700 px-4 py-2 text-sm bg-slate-900 hover:bg-slate-800"
+                                    className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-slate-100 hover:bg-slate-800"
                                     onClick={clearAll}
+                                    title="クリア"
+                                    aria-label="クリア"
                                 >
-                                    クリア
+                                    <Trash2 size={18} />
                                 </button>
                             </div>
                         </div>
