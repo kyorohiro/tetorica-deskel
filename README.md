@@ -136,6 +136,7 @@ npm run tauri build
 * [ ] Vector Search
 * [ ] Save Copy&Past Color Pallet
 * [ ] Calibration for ScreenCapture
+* [ ] Contrast Analysis
 
 
 ---
