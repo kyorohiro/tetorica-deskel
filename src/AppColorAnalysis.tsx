@@ -30,9 +30,9 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     const width = 320;
     const height = 320;
     const optWidth = 22 * 6 + 10;
-    const optHeight =  22 * 6 + 10;
-    const optX = optWidth /2;
-    const optY = optHeight /2;
+    const optHeight = 22 * 6 + 10;
+    const optX = optWidth / 2;
+    const optY = optHeight / 2;
     const centerX = width / 2 + optX;
     const centerY = height / 2 + optY;
     const maxRadius = 145;
@@ -116,10 +116,29 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       const angleDeg = color.hue_angle - 90; // 0°を上にしたい
       const angleRad = (angleDeg * Math.PI) / 180;
 
+      // 正確な書き方
       const radius = Math.max(0, Math.min(1, color.hsv_saturation)) * maxRadius;
-
       const x = centerX + Math.cos(angleRad) * radius;
       const y = centerY + Math.sin(angleRad) * radius;
+
+      //
+      // 見やすい書き方だが正確ではない
+      //let x: number;
+      //let y: number;
+
+      // 無彩色は中央の縦ラインに並べる
+      //const sat = Math.max(0, Math.min(1, color.hsv_saturation));
+      //const val = Math.max(0, Math.min(1, color.value));
+      //
+      //if (sat < 0.05) {
+      //  const graySpread = maxRadius * 0.25;
+      //  x = centerX;
+      //  y = centerY + (0.5 - val) * 2 * graySpread;
+      //} else {
+      //  const radius = sat * maxRadius;
+      //  x = centerX + Math.cos(angleRad) * radius;
+      //  y = centerY + Math.sin(angleRad) * radius;
+      //}
 
       // ratio で点サイズ調整
       // [01]
@@ -185,11 +204,11 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
         // 色チップ
         ctx.fillStyle = color.hex;
-        ctx.fillRect(legendX + 8 + Math.floor(index/10)* 22, itemY + 2, legendBoxSize, legendBoxSize);
+        ctx.fillRect(legendX + 8 + Math.floor(index / 10) * 22, itemY + 2, legendBoxSize, legendBoxSize);
 
         ctx.strokeStyle = "rgba(255,255,255,0.8)";
         ctx.lineWidth = 1;
-        ctx.strokeRect(legendX + 8 + Math.floor(index/10)* 22, itemY + 2, legendBoxSize, legendBoxSize);
+        ctx.strokeRect(legendX + 8 + Math.floor(index / 10) * 22, itemY + 2, legendBoxSize, legendBoxSize);
 
         // テキスト
         //ctx.fillStyle = "rgba(255,255,255,0.92)";
@@ -241,7 +260,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
         ctx.fillStyle = color.hex;
         ctx.fillRect(chipX, chipY, legendBoxSize, legendBoxSize);
-       // ctx.fillRect(legendX + 8 + Math.floor(index/10)* 22, itemY + 2, legendBoxSize, legendBoxSize);
+        // ctx.fillRect(legendX + 8 + Math.floor(index/10)* 22, itemY + 2, legendBoxSize, legendBoxSize);
 
         ctx.strokeStyle = "rgba(255,255,255,0.8)";
         ctx.lineWidth = 1;
@@ -281,7 +300,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
         pointerEvents: "none",
       }}
     >
-      <canvas id="color-analysis" ref={canvasRef} className="w-full h-full"/>
+      <canvas id="color-analysis" ref={canvasRef} className="w-full h-full" />
     </div>
   );
 });
