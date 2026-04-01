@@ -6,6 +6,7 @@ import {
     Undo2,
     Trash2,
 } from "lucide-react";
+import { useAppState } from "./state";
 
 type Tool = "pen" | "eraser";
 
@@ -106,7 +107,7 @@ function getCanvasPoint(canvas: HTMLCanvasElement, clientX: number, clientY: num
     };
 }
 
-function DeskelSimpleDrawCanvas() {
+function AppSimpleDrawCanvas() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const wrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -116,6 +117,7 @@ function DeskelSimpleDrawCanvas() {
     const [draftStroke, setDraftStroke] = useState<Stroke | null>(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 760 });
+    const state = useAppState();
 
     const activeSize = useMemo(() => {
         return tool === "eraser" ? ERASER_SIZE : PEN_SIZE;
@@ -266,7 +268,7 @@ function DeskelSimpleDrawCanvas() {
                                     />
                                 </div>
 
-                                <div className="fixed bottom-4 right-4 z-30 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur">
+                                <div className={`fixed bottom-4 right-4 z-30 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool === "draw" ? "block" : "hidden"}`}>
                                     <button
                                         className={`rounded-2xl border px-3 py-3 text-sm ${tool === "pen"
                                             ? "border-emerald-500 bg-emerald-950 text-emerald-300"
@@ -339,5 +341,5 @@ function DeskelSimpleDrawCanvas() {
 
 
 export {
-    DeskelSimpleDrawCanvas as AppSimpleDrawCanvas
+    AppSimpleDrawCanvas
 }
