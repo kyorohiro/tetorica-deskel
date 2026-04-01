@@ -29,13 +29,15 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     canvas.getClientRects();
     const width = 320;
     const height = 320;
-    const optWidth = 22 * 3 + 10;
-    const optHeight =  22 * 3 + 10;
-    const centerX = width / 2 + optWidth/2;
-    const centerY = height / 2 + optHeight/2;
+    const optWidth = 22 * 6 + 10;
+    const optHeight =  22 * 6 + 10;
+    const optX = optWidth /2;
+    const optY = optHeight /2;
+    const centerX = width / 2 + optX;
+    const centerY = height / 2 + optY;
     const maxRadius = 145;
 
-    const canvasWidth = width + optWidth
+    const canvasWidth = width + optWidth;
     const canvasHeight = height + optHeight;
 
     canvas.width = canvasWidth;
@@ -45,8 +47,8 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
     // 背景
 
-    ctx.fillStyle = "rgba(220,220,220,0.35)";
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = "rgba(20,20,20,0.35)";
+    ctx.fillRect(optX, optY, width, height);
 
 
     // ガイド円
@@ -158,7 +160,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       // 左下に上位10色の一覧を描く
       const legendColors = colors.slice(0, 30);
 
-      const legendX = width;
+      const legendX = width + optX;
       const legendItemHeight = 26;
       const legendBoxSize = 14;
       const legendPaddingY = 10;
@@ -221,7 +223,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
         (legendRows - 1) * legendGapY;
 
       const legendX = 12;
-      const legendY = height; //- legendHeight - 12;
+      const legendY = height + optY; //- legendHeight - 12;
 
       // 枠
       ctx.strokeStyle = "rgba(255,255,255,0.18)";
