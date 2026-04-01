@@ -110,21 +110,46 @@ export default function App() {
       <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
       <AppColorAnalysis ref={colorAnalysisRef} />
 
-      { 
-      //
-      // どっちにしよ..
-      //<div
-      //  className={state.tool === "draw" ? "block pointer-events-auto" : "hidden pointer-events-none"}
-      //>
-      //  <AppSimpleDrawCanvas />
-      //</div>
+      {
+        //
+        // どっちにしよ..
+        //<div
+        //  className={state.tool === "draw" ? "block pointer-events-auto" : "hidden pointer-events-none"}
+        //>
+        //  <AppSimpleDrawCanvas />
+        //</div>
       }
+      {
       <div
         className={state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"}
       >
         <AppSimpleDrawCanvas />
       </div>
+      }
 
+      {
+        // 共通toolbar 
+        // 置き場所はここで良いか? 共通化すべきか..迷いどころ
+      }
+      {
+        /*
+      <div
+        className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${true ? "block" : "hidden"
+          }`}
+      >       <button
+        className={`rounded-2xl border px-3 py-3 text-sm ${true
+          ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+          : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+          }`}
+        onClick={() => true}
+        title="ペン"
+        aria-label="ペン"
+      >
+          demo
+        </button>
+      </div>
+      */
+      }
     </div>
   )
 }
