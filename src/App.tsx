@@ -9,7 +9,7 @@ import { AppToolbar } from "./AppToolbar";
 import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
-import { DeskelSimpleDrawCanvas } from "./DeskelSimpleDrawCanvas";
+import { AppSimpleDrawCanvas } from "./AppSimpleDrawCanvas";
 import { captureAndCropToAnalysis, ColorCount } from "./screenshot";
 import { sleep } from "./utils";
 import { useAppState } from "./state";
@@ -33,7 +33,7 @@ export default function App() {
       colors01
     });
     const colorAnalysis = colorAnalysisRef.current;
-    if(colorAnalysis) {
+    if (colorAnalysis) {
       colorAnalysis.setVisible(true);
     }
     return;
@@ -107,10 +107,24 @@ export default function App() {
         onClickClearColorCheck={onClickClearColorCheck}
       />
 
-      <AppDeslel ref={deskelRef} onColorAnalysis={ onColorAnalysis } />
+      <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
       <AppColorAnalysis ref={colorAnalysisRef} />
 
-      {state.tool === "draw" && <DeskelSimpleDrawCanvas />}
+      { 
+      //
+      // どっちにしよ..
+      //<div
+      //  className={state.tool === "draw" ? "block pointer-events-auto" : "hidden pointer-events-none"}
+      //>
+      //  <AppSimpleDrawCanvas />
+      //</div>
+      }
+      <div
+        className={state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"}
+      >
+        <AppSimpleDrawCanvas />
+      </div>
+
     </div>
   )
 }

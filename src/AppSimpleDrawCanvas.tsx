@@ -339,5 +339,5 @@ function DeskelSimpleDrawCanvas() {
 
 
 export {
-    DeskelSimpleDrawCanvas
+    DeskelSimpleDrawCanvas as AppSimpleDrawCanvas
 }
