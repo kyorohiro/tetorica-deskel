@@ -126,16 +126,6 @@ npm run tauri dev
 npm run tauri build
 ```
 
----
-
-## ⚠️ macOS Notes
-
-This app uses a transparent overlay window.
-
-* Works fine for direct distribution (GitHub Releases)
-* Not suitable for Mac App Store
-
----
 
 ## 💡 Roadmap
 
@@ -145,7 +135,7 @@ This app uses a transparent overlay window.
 * [ ] iOS/Android App
 * [ ] Vector Search
 * [ ] Save Copy&Past Color Pallet
-
+* [ ] Calibration for ScreenCapture
 
 
 ---
@@ -156,16 +146,6 @@ MIT
 
 ---
 
-
-# Memo
-
-## install shortcut func
-
-```
-npm install @tauri-apps/plugin-global-shortcut
-cd src-tauri
-cargo add tauri-plugin-global-shortcut
-```
 
 # ref
 
