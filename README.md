@@ -137,8 +137,7 @@ npm run tauri build
 * [ ] Save Copy&Past Color Pallet
 * [ ] Calibration for ScreenCapture
 * [ ] Contrast Analysis
-
-
+* [ ] Support RYB base (now HSV)
 ---
 
 ## 📝 License
