@@ -98,6 +98,7 @@ function redrawAll(
 //        y: (clientY - rect.top) * scaleY,
 //    };
 //}
+
 function getCanvasPoint(canvas: HTMLCanvasElement, clientX: number, clientY: number): Point {
     const rect = canvas.getBoundingClientRect();
 
@@ -123,6 +124,9 @@ function AppSimpleDrawCanvas() {
         return tool === "eraser" ? ERASER_SIZE : PEN_SIZE;
     }, [tool]);
 
+    //
+    // canvas内部は dpr 倍の解像度
+    //
     const resizeCanvas = useCallback(() => {
         const canvas = canvasRef.current;
         const wrap = wrapRef.current;

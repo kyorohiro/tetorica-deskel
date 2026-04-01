@@ -26,14 +26,17 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
     const colors = props?.colors ?? [];
 
+    canvas.getClientRects();
     const width = 320;
     const height = 320;
-    const centerX = width / 2;
-    const centerY = height / 2;
+    const optWidth = 22 * 3 + 10;
+    const optHeight =  22 * 3 + 10;
+    const centerX = width / 2 + optWidth/2;
+    const centerY = height / 2 + optHeight/2;
     const maxRadius = 145;
 
-    const canvasWidth = width + 22 * 2 + 10;
-    const canvasHeight = height + 22 * 2 + 10;
+    const canvasWidth = width + optWidth
+    const canvasHeight = height + optHeight;
 
     canvas.width = canvasWidth;
     canvas.height = canvasHeight;
@@ -153,7 +156,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     //
     {
       // 左下に上位10色の一覧を描く
-      const legendColors = colors.slice(0, 20);
+      const legendColors = colors.slice(0, 30);
 
       const legendX = width;
       const legendItemHeight = 26;
@@ -180,11 +183,11 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
         // 色チップ
         ctx.fillStyle = color.hex;
-        ctx.fillRect(legendX + 8 + (index >= 10 ? 22 : 0), itemY + 2, legendBoxSize, legendBoxSize);
+        ctx.fillRect(legendX + 8 + Math.floor(index/10)* 22, itemY + 2, legendBoxSize, legendBoxSize);
 
         ctx.strokeStyle = "rgba(255,255,255,0.8)";
         ctx.lineWidth = 1;
-        ctx.strokeRect(legendX + 8 + (index >= 10 ? 22 : 0), itemY + 2, legendBoxSize, legendBoxSize);
+        ctx.strokeRect(legendX + 8 + Math.floor(index/10)* 22, itemY + 2, legendBoxSize, legendBoxSize);
 
         // テキスト
         //ctx.fillStyle = "rgba(255,255,255,0.92)";
@@ -197,7 +200,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       });
     }
     if (props?.colors01) {
-      const legendColors = props.colors01.slice(0, 20);
+      const legendColors = props.colors01.slice(0, 30);
 
       const legendBoxSize = 14;
       const legendGapX = 8;
@@ -236,6 +239,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
 
         ctx.fillStyle = color.hex;
         ctx.fillRect(chipX, chipY, legendBoxSize, legendBoxSize);
+       // ctx.fillRect(legendX + 8 + Math.floor(index/10)* 22, itemY + 2, legendBoxSize, legendBoxSize);
 
         ctx.strokeStyle = "rgba(255,255,255,0.8)";
         ctx.lineWidth = 1;
@@ -275,7 +279,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
         pointerEvents: "none",
       }}
     >
-      <canvas id="color-analysis" ref={canvasRef} />
+      <canvas id="color-analysis" ref={canvasRef} className="w-full h-full"/>
     </div>
   );
 });
