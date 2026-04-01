@@ -139,12 +139,14 @@ This app uses a transparent overlay window.
 
 ## 💡 Roadmap
 
-* [ ] Rule-of-thirds preset
-* [ ] Diagonal guides
-* [ ] Circle / ellipse guides
 * [ ] Image overlay (reference mode)
-* [ ] Measurement tools (distance / angle)
-* [ ] Save & restore settings
+* [ ] Multi Monitor
+* [ ] PWA
+* [ ] iOS/Android App
+* [ ] Vector Search
+* [ ] Save Copy&Past Color Pallet
+
+
 
 ---
 
@@ -153,10 +155,6 @@ This app uses a transparent overlay window.
 MIT
 
 ---
-
-## 👀 Author
-
-teto (tetorica)
 
 
 # Memo
