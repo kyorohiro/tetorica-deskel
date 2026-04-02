@@ -67,6 +67,14 @@ Prebuilt binaries are available on the GitHub Releases page.
 ![デモ画像](doc/demo04.gif)
 
 * TODO Calibration Screen Capture
+
+* Multi Monitor   
+tested obs and Indirect Display Driver (IDD) Sample (GitHub):
+tested mac book air and usb c monitor
+
+
+
+
 ---
 
 ## ⌨️ Shortcuts
@@ -130,7 +138,6 @@ npm run tauri build
 ## 💡 Roadmap
 
 * [ ] Image overlay (reference mode)
-* [ ] Multi Monitor
 * [ ] PWA
 * [ ] iOS/Android App
 * [ ] Vector Search
