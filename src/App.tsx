@@ -13,6 +13,7 @@ import { AppSimpleDrawCanvas } from "./AppSimpleDrawCanvas";
 import { captureAndCropToAnalysis, ColorCount } from "./screenshot";
 import { sleep } from "./utils";
 import { useAppState } from "./state";
+import { showToast } from "./toast";
 
 export default function App() {
   //const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -83,6 +84,12 @@ export default function App() {
         console.log("> redraw");
         const params = await captureAndCropToAnalysis({})
         colorAnalysisRef.current?.redraw(params);
+      } catch (e) {
+        if (e instanceof Error) {
+          showToast(e.message)
+        } else {
+          showToast(`${e}`);
+        }
       } finally {
         const deskel = deskelRef.current;
         deskel.setVisible(true);

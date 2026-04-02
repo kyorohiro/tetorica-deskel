@@ -73,9 +73,15 @@ export async function captureAndCropToAnalysis(params: { targetRect?: TargetRect
     });
     console.log(">> result", result);
     return result;
-  } catch (e) {
-    console.log(">> error", e);
-    throw e;
+  }  catch(e) {
+    console.log(e);
+    if (typeof e === "string") {
+      throw new Error(e);
+    } else if ( e instanceof Error) {
+      throw e;
+    } else {
+      throw new Error(JSON.stringify(e));
+    }
   } finally {
     if (toolbar) {
       toolbar.style.display = ""
@@ -113,6 +119,15 @@ export async function captureAndCropToDownloads(params: {
     });
 
     return path;
+  } catch(e) {
+    console.log(e);
+    if (typeof e === "string") {
+      throw new Error(e);
+    } else if ( e instanceof Error) {
+      throw e;
+    } else {
+      throw new Error(JSON.stringify(e));
+    }
   } finally {
     if (toolbar) {
       toolbar.style.display = "";

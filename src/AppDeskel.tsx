@@ -103,13 +103,29 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
       current: currentRef.current,
     });
     if (uAppState.tool == "capture") {
-      const ret = await captureAndCropToDownloads({ path: undefined, targetRect: selectedRect })
-      showToast(ret);
+      try {
+        const ret = await captureAndCropToDownloads({ path: undefined, targetRect: selectedRect })
+        showToast(ret);
+      } catch (e) {
+        if (e instanceof Error) {
+          showToast(e.message)
+        } else {
+          showToast(`${e}`);
+        }
+      }
     }
     if (uAppState.tool == "color") {
-      const ret = await captureAndCropToAnalysis({ targetRect: selectedRect })
-      if (props.onColorAnalysis) {
-        props.onColorAnalysis(ret.colors, ret.colors01);
+      try {
+        const ret = await captureAndCropToAnalysis({ targetRect: selectedRect })
+        if (props.onColorAnalysis) {
+          props.onColorAnalysis(ret.colors, ret.colors01);
+        }
+      } catch (e) {
+        if (e instanceof Error) {
+          showToast(e.message)
+        } else {
+          showToast(`${e}`);
+        }
       }
     }
     //const ret = await captureAndCropToAnalysis({
