@@ -1,8 +1,11 @@
-# tetorica deskel
+# TETORICA DESKEL
 
 Lightweight drawing overlay tool (デスケルアプリ)
 
 ![デモ画像](docs/demo01.gif)
+
+https://kyorohiro.github.io/tetorica-deskel/
+
 
 
 ---
