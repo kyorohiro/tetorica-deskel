@@ -284,14 +284,14 @@ class ChainMeasure {
             ctx.save();
             ctx.fillStyle = shadowColor;
             ctx.beginPath();
-            ctx.arc(point.x, point.y, ratios[0] == ratio ? radius * 3.0 : radius, 0, Math.PI * 2);
+            ctx.arc(point.x, point.y, ratios[0] == ratio ? radius * 3.0 : radius * 2.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
 
             ctx.save();
             ctx.fillStyle = mainColor;
             ctx.beginPath();
-            ctx.arc(point.x, point.y, ratios[0] == ratio ? radius * 1.5 : radius, 0, Math.PI * 2);
+            ctx.arc(point.x, point.y, ratios[0] == ratio ? radius * 2.5 : radius * 1.8, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
