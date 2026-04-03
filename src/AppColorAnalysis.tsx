@@ -63,7 +63,7 @@ async function exportPalettePng(colors: ColorCount[]) {
   const size = 1024;
   const padding = 32;
   const cols = Math.ceil(Math.sqrt(colors.length));
-  const rows = Math.ceil(colors.length / cols);
+  //const rows = Math.ceil(colors.length / cols);
   const cell = Math.floor((size - padding * 2) / cols);
 
   const canvas = document.createElement("canvas");
