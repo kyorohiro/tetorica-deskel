@@ -137,10 +137,10 @@ npm run tauri build
 * [ ] PWA
 * [ ] iOS/Android App
 * [ ] Vector Search
-* [ ] Save Copy&Past Color Pallet
 * [ ] Calibration for ScreenCapture
 * [ ] Contrast Analysis
 * [ ] Support RYB base (now HSV)
+* [ ] Perspective correction ruler
 ---
 
 ## 📝 License
