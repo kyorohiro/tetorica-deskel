@@ -72,6 +72,8 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
   const draggingRef = useRef(false);
   const [dragging, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
+  const state = useAppState();
+  const [measureMode, setMeasureMode] = useState<"line" | "chain">("line");
 
   function setDraggingValue(value: boolean) {
     if (draggingRef.current === value) return;
@@ -156,18 +158,22 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     const current = currentRef.current;
     const dragging = draggingRef.current;
     if (uAppState.tool == "measure") {
-      drawMeasure({ canvas, ctx, start, current, dragging, chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined) });
+      console.log({ measureMode });
+      if (measureMode == "line") {
+        drawMeasure({ canvas, ctx, start, current, dragging, chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined) });
+      } else if (measureMode == "chain") {
+        // redraw時
+        chainMesureRef.current.draw(ctx, {
+          color: uAppState.color,
+          lineWidth: 1,
+        });
 
-      // redraw時
-      chainMesureRef.current.draw(ctx, {
-        color: uAppState.color,
-        lineWidth: 1,
-      });
+      }
     }
     else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
     }
-  }, [uAppState.tool]);
+  }, [uAppState.tool, measureMode, uAppState.color]);
 
   const setCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
     // まず前のcanvasの掃除
@@ -246,9 +252,48 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
   );
 
   return (
-    <div ref={rootRef}>
-      <canvas key="deskel-default" id="deskel" ref={setCanvasRef} />
-    </div>
+    <>
+      <div ref={rootRef}>
+        <canvas key="deskel-default" id="deskel" ref={setCanvasRef} />
+      </div>
+      {
+        // Measure Sub Toolbar
+      }
+      {
+        <div
+          className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool == "measure" ? "block" : "hidden"
+            }`}
+        >
+          <button
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "line"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              }`}
+            onClick={() => { 
+              console.log("chain measure line click");
+              setMeasureMode("line") }}
+            title="Save"
+            aria-label="Save"
+          >
+            Line Measure
+          </button>
+          <button
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "chain"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              }`}
+            onClick={() => { 
+              console.log("chain measure click");
+              setMeasureMode("chain") 
+            }}
+            title="Save"
+            aria-label="Save"
+          >
+            Chain Measure
+          </button>
+        </div>
+      }
+    </>
   );
 });
 

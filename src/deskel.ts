@@ -371,7 +371,7 @@ function drawMeasure(params: {
   {
     const ctx = params.ctx
 
-    const text1 = `len: ${len.toFixed(1)} (${params.chainLength ? params.chainLength.toFixed(1):""})`
+    const text1 = `len: ${len.toFixed(1)}`;// (${params.chainLength ? params.chainLength.toFixed(1):""})`
     const text2 = `deg: ${normalizeAngle180(-1*angle).toFixed(1)}°  (${(360-angle).toFixed(1)})`
 
     const x = mx + 8

@@ -77,9 +77,9 @@ class ChainMeasure {
         if (this.chains.length === 0) return;
 
         const color = options?.color ?? "#00ff88";
-        const lineWidth = options?.lineWidth ?? 1;
+        //const lineWidth = options?.lineWidth ?? 1;
         const showNormals = options?.showNormals ?? true;
-        const showLength = options?.showLength ?? false;
+        const showLength = options?.showLength ?? true;
         const normalLength = options?.normalLength ?? 8;
         const majorEvery = options?.majorEvery ?? 5;
         const majorScale = options?.majorScale ?? 1.8;
@@ -90,8 +90,8 @@ class ChainMeasure {
 
         ctx.save();
 
-        this.drawPolyline(ctx, shadowColor, lineWidth + 1);
-        this.drawPolyline(ctx, mainColor, lineWidth);
+        this.drawPolyline(ctx, shadowColor, 4);
+        this.drawPolyline(ctx, mainColor, 1);
 
         if (showNormals) {
             this.drawNormals(ctx, {
@@ -242,16 +242,54 @@ class ChainMeasure {
         const totalLength = this.getLength();
         if (totalLength <= 0) return;
 
-        const color = options?.color ?? "#00ff88";
         const radius = options?.radius ?? 2;
+        const { shadowColor, mainColor } = this.getStrokeColors(options?.color ?? "#00ff88");
+
+        //
+        if (this.chains.length > 0) {
+
+            ctx.save();
+            ctx.fillStyle = shadowColor;
+            ctx.beginPath();
+            ctx.arc(this.chains[0].x, this.chains[0].y, radius * 3.0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.fillStyle = shadowColor;
+            ctx.beginPath();
+            ctx.arc(this.chains[this.chains.length - 1].x, this.chains[this.chains.length - 1].y, radius * 3.0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            ctx.save();
+            ctx.fillStyle = mainColor;
+            ctx.beginPath();
+            ctx.arc(this.chains[0].x, this.chains[0].y, radius * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.fillStyle = mainColor;
+            ctx.beginPath();
+            ctx.arc(this.chains[this.chains.length - 1].x, this.chains[this.chains.length - 1].y, radius * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
 
 
+        }
         for (const ratio of ratios) {
             const point = this.getPointAtLength(totalLength * ratio);
             if (!point) continue;
 
             ctx.save();
-            ctx.fillStyle = color;
+            ctx.fillStyle = shadowColor;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, ratios[0] == ratio ? radius * 3.0 : radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.fillStyle = mainColor;
             ctx.beginPath();
             ctx.arc(point.x, point.y, ratios[0] == ratio ? radius * 1.5 : radius, 0, Math.PI * 2);
             ctx.fill();
@@ -318,9 +356,25 @@ class ChainMeasure {
 
         const last = this.chains[this.chains.length - 1];
         const length = this.getLength();
+        const { shadowColor, mainColor } = this.getStrokeColors(color ?? "#00ff88");
 
+
+
+        const m1 = ctx.measureText(`${length.toFixed(1)} px`);
+
+        const padX = 4
+        const padY = 4
+        const lineHeight = 22
+
+        const w = Math.max(m1.width)*2 + padX * 2
+        const top = last.y - lineHeight + 2
+
+        ctx.fillStyle = shadowColor;
+        ctx.beginPath();
+        ctx.fillRect(last.x - padX, top - padY, w, lineHeight + padY * 2)
+        ctx.restore();
         ctx.save();
-        ctx.fillStyle = color;
+        ctx.fillStyle = mainColor;
         ctx.font = font;
         ctx.fillText(`${length.toFixed(1)} px`, last.x + 8, last.y - 8);
         ctx.restore();
