@@ -72,7 +72,7 @@ Prebuilt binaries are available on the GitHub Releases page.
 tested obs and Indirect Display Driver (IDD) Sample (GitHub):
 tested mac book air and usb c monitor
 
-
+* Export Procreate Format and Png and CSV
 
 
 ---
