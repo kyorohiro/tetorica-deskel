@@ -16,17 +16,6 @@ export function AppToolbar(props: {
 
     const dialog = useDialog();
 
-    /*
-    useEffect(() => {
-        const onMove = (e: MouseEvent) => {
-            const inHotArea = e.clientX < 180 && e.clientY < 120
-            setVisible(inHotArea)
-        }
-
-        window.addEventListener("mousemove", onMove)
-        return () => window.removeEventListener("mousemove", onMove)
-    }, [])
-    */
     const handleSnapshot = async () => {
         try {
             const filePath = await save({

@@ -25,6 +25,11 @@
     "core:window:allow-show",
     "core:window:allow-hide",
     "dialog:default",
-    "os:default"
+    "os:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-home-write-recursive",
+      "allow": [{ "path": "$HOME/**/*" }]
+    } 
   ]
 }

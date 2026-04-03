@@ -162,7 +162,7 @@ fn analyze_region_colors_sync(
         3,    // 各セル上位3色
         20,   // 最終パレット10色
         22.0, // RGB距離のマージ閾値
-        8
+        8,
     )?;
 
     Ok(ColorAnalysisResult {

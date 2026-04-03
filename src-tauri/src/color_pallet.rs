@@ -1,7 +1,7 @@
 use std::collections::HashMap;
-use xcap::{image::RgbaImage};
+use xcap::image::RgbaImage;
 
-use crate::color_analysis::{ColorCount, rgb_to_hsl_hsv};
+use crate::color_analysis::{rgb_to_hsl_hsv, ColorCount};
 
 #[derive(Debug, Clone)]
 struct LocalColorCandidate {
@@ -85,9 +85,11 @@ pub fn build_palette_from_capture(
         .collect();
 
     colors.sort_by(|a, b| {
-        b.count
-            .cmp(&a.count)
-            .then_with(|| b.ratio.partial_cmp(&a.ratio).unwrap_or(std::cmp::Ordering::Equal))
+        b.count.cmp(&a.count).then_with(|| {
+            b.ratio
+                .partial_cmp(&a.ratio)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        })
     });
 
     colors.truncate(final_top_n);
@@ -225,14 +227,7 @@ fn cluster_center(cluster: &MergedColorCluster) -> (f32, f32, f32) {
 }
 
 /// RGB距離
-fn color_distance_rgb(
-    r1: f32,
-    g1: f32,
-    b1: f32,
-    r2: f32,
-    g2: f32,
-    b2: f32,
-) -> f32 {
+fn color_distance_rgb(r1: f32, g1: f32, b1: f32, r2: f32, g2: f32, b2: f32) -> f32 {
     let dr = r1 - r2;
     let dg = g1 - g2;
     let db = b1 - b2;
@@ -246,10 +241,7 @@ fn cluster_score(cluster: &MergedColorCluster) -> f32 {
 }
 
 /// クラスタから ColorCount を作る
-fn cluster_to_color_count(
-    cluster: MergedColorCluster,
-    total_weight_all: f32,
-) -> ColorCount {
+fn cluster_to_color_count(cluster: MergedColorCluster, total_weight_all: f32) -> ColorCount {
     let center = cluster_center(&cluster);
 
     // クラスタ中心に最も近い実在サンプル色を代表色にする

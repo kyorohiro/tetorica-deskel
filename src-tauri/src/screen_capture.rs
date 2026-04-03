@@ -6,12 +6,7 @@ pub struct CaptureResult {
     pub crop_width: u32,
     pub crop_height: u32,
 }
-pub fn capture_and_crop(
-    x: i32,
-    y: i32,
-    width: u32,
-    height: u32,
-) -> Result<CaptureResult, String> {
+pub fn capture_and_crop(x: i32, y: i32, width: u32, height: u32) -> Result<CaptureResult, String> {
     let monitors = Monitor::all().map_err(|e| e.to_string())?;
 
     let req_left = x;
@@ -32,11 +27,10 @@ pub fn capture_and_crop(
         //
 
         // 要求矩形がこのモニターに完全に含まれているか
-        let contains =
-            req_left >= m_left &&
-            req_top >= m_top &&
-            req_right <= m_right &&
-            req_bottom <= m_bottom;
+        let contains = req_left >= m_left
+            && req_top >= m_top
+            && req_right <= m_right
+            && req_bottom <= m_bottom;
 
         if contains {
             let local_x = (req_left - m_left) as u32;
@@ -88,6 +82,9 @@ pub fn capture_and_crop_to_downloads(
     }
 
     println!(">> path {}", path);
-    capture_result.image.save(&path).map_err(|e| e.to_string())?;
+    capture_result
+        .image
+        .save(&path)
+        .map_err(|e| e.to_string())?;
     Ok(path.to_string())
 }

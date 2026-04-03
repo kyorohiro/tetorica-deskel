@@ -6,6 +6,91 @@ import {
   useEffect,
 } from "react";
 import { ColorCount } from "./screenshot";
+import { useAppState } from "./state";
+import { Download } from "lucide-react";
+import { useDialog } from "./useDialog";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
+import { showToast } from "./toast";
+
+async function exportPalettePng(colors: ColorCount[]) {
+  const size = 1024;
+  const padding = 32;
+  const cols = Math.ceil(Math.sqrt(colors.length));
+  const rows = Math.ceil(colors.length / cols);
+  const cell = Math.floor((size - padding * 2) / cols);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Failed to get canvas context");
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, size, size);
+
+  colors.forEach((color, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = padding + col * cell;
+    const y = padding + row * cell;
+
+    ctx.fillStyle = color.hex;
+    ctx.fillRect(x, y, cell, cell);
+  });
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((b) => {
+      if (b) resolve(b);
+      else reject(new Error("Failed to create PNG blob"));
+    }, "image/png");
+  });
+
+  const path = await save({
+    title: "Save Palette PNG",
+    defaultPath: "palette.png",
+    filters: [{ name: "PNG Image", extensions: ["png"] }],
+  });
+
+  if (!path) return;
+
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  await writeFile(path, bytes);
+
+  console.log("> saved png:", path);
+  showToast(`> saved png: ${path}`);
+}
+
+async function exportPaletteCsv(colors: ColorCount[]) {
+  const lines = [
+    ["index", "hex", "ratio", "hue_angle", "hsv_saturation"].join(","),
+    ...colors.map((color, index) =>
+      [
+        index + 1,
+        color.hex,
+        color.ratio,
+        color.hue_angle,
+        color.hsv_saturation,
+      ].join(",")
+    ),
+  ];
+
+  const csvText = lines.join("\n");
+  const path = await save({
+    title: "Save Palette CSV",
+    defaultPath: "palette.csv",
+    filters: [{ name: "CSV", extensions: ["csv"] }],
+  });
+
+  if (!path) return;
+
+  const bytes = new TextEncoder().encode(csvText);
+  await writeFile(path, bytes);
+
+  console.log("> saved csv:", path);
+  showToast(`> saved csv: ${path}`);
+}
 
 type AppColorAnalysisHandle = {
   redraw: (props?: { colors: ColorCount[], colors01: ColorCount[] }) => void;
@@ -16,6 +101,81 @@ type AppColorAnalysisHandle = {
 const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const state = useAppState();
+  const colorsRef = useRef<{ colors: ColorCount[], colors01: ColorCount[] }>({ colors: [], colors01: [] });
+
+  const { showSelectDialog } = useDialog();
+
+
+
+const handleExport = useCallback(async () => {
+  console.log("> handleExport");
+
+  const selectedColorType = await showSelectDialog({
+    title: "Export Palette",
+    message: "Choose a palette source.",
+    options: [
+      {
+        value: "color-count",
+        label: "Color (Count)",
+        description: "Export colors based on appearance frequency.",
+      },
+      {
+        value: "color-clustering",
+        label: "Color (Clustering)",
+        description: "Export colors based on clustering results.",
+      },
+    ],
+    cancelText: "Cancel",
+  });
+
+  if (selectedColorType === null) {
+    console.log("> canceled: color type");
+    return;
+  }
+
+  const selectedFormat = await showSelectDialog({
+    title: "Export Format",
+    message: "Choose a format.",
+    options: [
+      {
+        value: "procreate",
+        label: "Procreate PNG",
+        description: "Export colors as a PNG palette image.",
+      },
+      {
+        value: "csv",
+        label: "CSV",
+        description: "Export colors as a CSV file.",
+      },
+    ],
+    cancelText: "Cancel",
+  });
+
+  if (selectedFormat === null) {
+    console.log("> canceled: format");
+    return;
+  }
+
+  const exportColors =
+    selectedColorType === "color-count"
+      ? colorsRef.current.colors
+      : colorsRef.current.colors01;
+
+  if (!exportColors || exportColors.length === 0) {
+    console.log("> no colors to export");
+    return;
+  }
+
+  switch (selectedFormat) {
+    case "procreate":
+      await exportPalettePng(exportColors);
+      break;
+    case "csv":
+      await exportPaletteCsv(exportColors);
+      break;
+  }
+}, [showSelectDialog]);
 
   const redraw = useCallback((props?: { colors: ColorCount[], colors01: ColorCount[] }) => {
     const canvas = canvasRef.current;
@@ -24,6 +184,10 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    colorsRef.current = {
+      colors: props?.colors ?? [],
+      colors01: props?.colors01 ?? [],
+    }
     const colors = props?.colors ?? [];
 
     canvas.getClientRects();
@@ -289,19 +453,43 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   );
 
   return (
-    <div
-      ref={rootRef}
-      style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        zIndex: 8,
-        pointerEvents: "none",
-      }}
-    >
-      <canvas id="color-analysis" ref={canvasRef} className="w-full h-full" />
-    </div>
+    <>
+      <div
+        ref={rootRef}
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: 8,
+          pointerEvents: "none",
+        }}
+      >
+        <canvas id="color-analysis" ref={canvasRef} className="w-full h-full" />
+      </div>
+      {
+        // 共通toolbar 
+        // 置き場所はここで良いか? 共通化すべきか..迷いどころ
+      }
+      {
+        <div
+          className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool == "color" ? "block" : "hidden"
+            }`}
+        >       <button
+          className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+            ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+            : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+            }`}
+          onClick={handleExport}
+          title="Save"
+          aria-label="Save"
+        >
+            <Download className="w-4 h-4" />
+            Export
+          </button>
+        </div>
+      }
+    </>
   );
 });
 

@@ -1,6 +1,6 @@
-mod screen_capture;
 mod color_analysis;
 mod color_pallet;
+mod screen_capture;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -23,6 +23,7 @@ fn capture_and_crop_to_downloads(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -36,7 +37,6 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-
 #[tauri::command]
 async fn analyze_region_colors(
     x: i32,
@@ -46,5 +46,6 @@ async fn analyze_region_colors(
     quantize_step: Option<u8>,
     top_n: Option<usize>,
 ) -> Result<crate::color_analysis::ColorAnalysisResult, String> {
-    return crate::color_analysis::analyze_region_colors(x, y, width, height, quantize_step, top_n).await;
+    return crate::color_analysis::analyze_region_colors(x, y, width, height, quantize_step, top_n)
+        .await;
 }
