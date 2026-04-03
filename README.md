@@ -4,15 +4,6 @@ Lightweight drawing overlay tool (デスケルアプリ)
 
 ![デモ画像](doc/demo01.gif)
 
-## Demo Image
-
-I used these artworks for the demo. Thank you!
-Great artwork really enhances the visuals.
-
-- https://walterlicinio.itch.io/artworks
-
-- https://x.com/walterlicinio
-
 
 ---
 
@@ -159,3 +150,17 @@ MIT
 ## toggle button
 
 https://tailwindflex.com/@anonymous/toggle-me-animated-switch
+
+
+## generated icon
+
+https://www.design.com
+
+## Demo Image
+
+I used these artworks for the demo. Thank you!
+Great artwork really enhances the visuals.
+
+- https://walterlicinio.itch.io/artworks
+
+- https://x.com/walterlicinio
