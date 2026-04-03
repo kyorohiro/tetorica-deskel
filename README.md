@@ -9,6 +9,8 @@ Lightweight drawing overlay tool (デスケルアプリ)
 
 ## ✨ What is this?
 
+![アイコン](doc/icon01.png)
+
 **tetorica deskel** is a simple overlay tool for artists.
 
 It displays grids and guides on top of your screen so you can:
