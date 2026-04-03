@@ -2,14 +2,14 @@
 
 Lightweight drawing overlay tool (デスケルアプリ)
 
-![デモ画像](doc/demo01.gif)
+![デモ画像](docs/demo01.gif)
 
 
 ---
 
 ## ✨ What is this?
 
-![アイコン](doc/icon01.png)
+![アイコン](docs/icon01.png)
 
 **tetorica deskel** is a simple overlay tool for artists.
 
@@ -45,19 +45,19 @@ Prebuilt binaries are available on the GitHub Releases page.
 
 * measure stick
 
-![デモ画像](doc/demo03.gif)
+![デモ画像](docs/demo03.gif)
 
 * color analysis
 
-![デモ画像](doc/demo01.gif)
+![デモ画像](docs/demo01.gif)
 
 * simple draw
 
-![デモ画像](doc/demo02.gif)
+![デモ画像](docs/demo02.gif)
 
 * chain measure stick
 
-![デモ画像](doc/demo04.gif)
+![デモ画像](docs/demo04.gif)
 
 * TODO Calibration Screen Capture
 

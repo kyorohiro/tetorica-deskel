@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tetorica deskel</title>
+    <meta
+      name="description"
+      content="Lightweight drawing overlay tool for artists. Grid, measure stick, color analysis, simple draw, and more."
+    />
+    <style>
+      :root {
+        --bg: #0f1115;
+        --panel: #171a21;
+        --panel-2: #1d2230;
+        --text: #e8e8e8;
+        --muted: #b6bcc8;
+        --line: #2c3446;
+        --accent: #d7b86e;
+        --accent-2: #8c7440;
+        --link: #f0cf7f;
+        --max: 960px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+          sans-serif;
+        line-height: 1.7;
+        color: var(--text);
+        background:
+          linear-gradient(180deg, #0b0d12 0%, #10131a 100%);
+      }
+
+      a {
+        color: var(--link);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 12px;
+      }
+
+      .container {
+        width: min(calc(100% - 32px), var(--max));
+        margin: 0 auto;
+      }
+
+      .hero {
+        padding: 56px 0 32px;
+      }
+
+      .hero-card {
+        background: linear-gradient(180deg, rgba(29, 34, 48, 0.95), rgba(23, 26, 33, 0.95));
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+        margin: 0 0 16px;
+      }
+
+      h1 {
+        font-size: clamp(32px, 6vw, 52px);
+      }
+
+      h2 {
+        font-size: clamp(24px, 4vw, 32px);
+        margin-top: 0;
+      }
+
+      h3 {
+        font-size: 20px;
+      }
+
+      p {
+        margin: 0 0 16px;
+        color: var(--muted);
+      }
+
+      .hero-grid {
+        display: grid;
+        gap: 24px;
+        align-items: center;
+      }
+
+      @media (min-width: 860px) {
+        .hero-grid {
+          grid-template-columns: 1.1fr 0.9fr;
+        }
+      }
+
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 20px 0 0;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 12px;
+        border: 1px solid var(--accent-2);
+        background: linear-gradient(180deg, var(--accent), #b9984b);
+        color: #17130b;
+        font-weight: 700;
+      }
+
+      .button.secondary {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--line);
+      }
+
+      .section {
+        padding: 18px 0 24px;
+      }
+
+      .section-card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 24px;
+      }
+
+      .lead-image {
+        margin-top: 24px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+      }
+
+      .icon-box {
+        width: 92px;
+        height: 92px;
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: #11151d;
+        margin-bottom: 18px;
+      }
+
+      .feature-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      @media (min-width: 760px) {
+        .feature-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .feature-card {
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 18px;
+      }
+
+      .feature-card img {
+        margin-top: 12px;
+        border: 1px solid var(--line);
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+        color: var(--muted);
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        overflow: hidden;
+        border-radius: 12px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      th {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      code,
+      pre {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+      }
+
+      pre {
+        margin: 12px 0 0;
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: #0e1218;
+        overflow-x: auto;
+        color: #d8dee9;
+      }
+
+      .two-col {
+        display: grid;
+        gap: 20px;
+      }
+
+      @media (min-width: 760px) {
+        .two-col {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .footer {
+        padding: 16px 0 56px;
+        color: var(--muted);
+      }
+
+      .small {
+        font-size: 14px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .hr {
+        height: 1px;
+        background: var(--line);
+        margin: 24px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="container">
+        <div class="hero-card">
+          <div class="hero-grid">
+            <div>
+              <div class="eyebrow">Lightweight drawing overlay tool</div>
+              <h1>tetorica deskel</h1>
+              <p>
+                A simple overlay tool for artists. Display grids and guides on top of
+                your screen to measure proportions, align drawings, trace references,
+                and check balance and composition.
+              </p>
+              <p>Works with any app (Clip Studio, browser, PDF, etc.)</p>
+
+              <div class="badge-row">
+                <span class="badge">Transparent overlay</span>
+                <span class="badge">Measure stick</span>
+                <span class="badge">Color analysis</span>
+                <span class="badge">Simple draw</span>
+                <span class="badge">Multi monitor</span>
+              </div>
+
+              <div class="cta-row">
+                <a
+                  class="button"
+                  href="https://github.com/kyorohiro/tetorica-deskel/releases"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Download from Releases
+                </a>
+                <a
+                  class="button secondary"
+                  href="https://github.com/kyorohiro/tetorica-deskel"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View on GitHub
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <div class="lead-image">
+                <img src="demo01.gif" alt="tetorica deskel demo" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <div class="icon-box">
+              <img src="icon01.png" alt="tetorica deskel icon" />
+            </div>
+            <h2>What is this?</h2>
+            <p>
+              <strong>tetorica deskel</strong> is a screen overlay tool for artists and
+              designers.
+            </p>
+            <ul>
+              <li>Measure proportions</li>
+              <li>Align drawings</li>
+              <li>Trace references</li>
+              <li>Check balance and composition</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <h2>Features</h2>
+            <div class="two-col">
+              <div>
+                <ul>
+                  <li>Transparent overlay window</li>
+                  <li>Grid (adjustable spacing)</li>
+                  <li>Center cross</li>
+                  <li>Custom color / opacity / line width</li>
+                  <li>Click-through mode (interact with apps behind)</li>
+                  <li>Always-on-top toggle (pin)</li>
+                  <li>Global shortcut support</li>
+                  <li>Rotate grid screen</li>
+                  <li>Screenshot with grid</li>
+                  <li>Multi monitor support</li>
+                  <li>Export Procreate format, PNG and CSV</li>
+                </ul>
+              </div>
+              <div>
+                <p class="small">
+                  Tested with OBS and Indirect Display Driver (IDD) Sample on GitHub.
+                  Also tested with MacBook Air and USB-C monitor.
+                </p>
+                <p class="small muted">TODO: Calibration Screen Capture</p>
+              </div>
+            </div>
+
+            <div class="feature-grid" style="margin-top: 20px">
+              <div class="feature-card">
+                <h3>Measure stick</h3>
+                <img src="demo03.gif" alt="measure stick demo" />
+              </div>
+
+              <div class="feature-card">
+                <h3>Color analysis</h3>
+                <img src="demo01.gif" alt="color analysis demo" />
+              </div>
+
+              <div class="feature-card">
+                <h3>Simple draw</h3>
+                <img src="demo02.gif" alt="simple draw demo" />
+              </div>
+
+              <div class="feature-card">
+                <h3>Chain measure stick</h3>
+                <img src="demo04.gif" alt="chain measure stick demo" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <h2>Shortcuts</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Action</th>
+                  <th>Shortcut</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Toggle click-through</td>
+                  <td><code>Cmd/Ctrl + Shift + J</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <h2>Use Cases</h2>
+            <ul>
+              <li>Drawing practice (デッサン)</li>
+              <li>Manga / illustration layout</li>
+              <li>Proportion checking</li>
+              <li>Tracing reference images</li>
+              <li>UI / design alignment</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <h2>Concept</h2>
+            <p>Most existing tools:</p>
+            <ul>
+              <li>require importing images</li>
+              <li>modify the original image</li>
+              <li>are not designed for real-time drawing</li>
+            </ul>
+
+            <div class="hr"></div>
+
+            <p><strong>tetorica deskel</strong> is different:</p>
+            <p>It does nothing but overlay guides on your screen.</p>
+            <p>No saving. No editing. No friction. Just open and draw.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <div class="two-col">
+              <div>
+                <h2>Tech</h2>
+                <ul>
+                  <li>Tauri</li>
+                  <li>TypeScript</li>
+                  <li>Canvas API</li>
+                </ul>
+              </div>
+              <div>
+                <h2>Build</h2>
+                <pre><code>npm install
+npm run tauri dev</code></pre>
+                <pre><code>npm run tauri build</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <h2>Roadmap</h2>
+            <ul>
+              <li>Image overlay (reference mode)</li>
+              <li>PWA</li>
+              <li>iOS/Android App</li>
+              <li>Vector Search</li>
+              <li>Save Copy&amp;Paste Color Palette</li>
+              <li>Calibration for Screen Capture</li>
+              <li>Contrast Analysis</li>
+              <li>Support RYB base (now HSV)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <h2>License</h2>
+            <p>MIT</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-card">
+            <h2>References</h2>
+
+            <h3>Toggle button</h3>
+            <p>
+              <a
+                href="https://tailwindflex.com/@anonymous/toggle-me-animated-switch"
+                target="_blank"
+                rel="noreferrer"
+              >
+                tailwindflex.com/@anonymous/toggle-me-animated-switch
+              </a>
+            </p>
+
+            <h3>Generated icon</h3>
+            <p>
+              <a href="https://www.design.com" target="_blank" rel="noreferrer">
+                design.com
+              </a>
+            </p>
+
+            <h3>Demo Image</h3>
+            <p>I used these artworks for the demo. Thank you.</p>
+            <p>Great artwork really enhances the visuals.</p>
+            <ul>
+              <li>
+                <a
+                  href="https://walterlicinio.itch.io/artworks"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  walterlicinio.itch.io/artworks
+                </a>
+              </li>
+              <li>
+                <a href="https://x.com/walterlicinio" target="_blank" rel="noreferrer">
+                  x.com/walterlicinio
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container small">
+        tetorica deskel / GitHub Pages
+      </div>
+    </footer>
+  </body>
+</html>
