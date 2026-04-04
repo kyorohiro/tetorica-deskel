@@ -11,7 +11,23 @@ const openPrivacySettings = async () => {
   await await invoke("open_privacy_settings");
 };
 
+
+const canCaptureForeignWindow = async (): Promise<boolean> => {
+  return await invoke<boolean>("can_capture_foreign_window");
+};
+
+
+type ProbeResult = {
+  status: "granted" | "denied" | "indeterminate";
+  checkedWindows: number;
+};
+
+async function probePermission(): Promise<ProbeResult> {
+  return await invoke("probe_screen_capture_permission");
+}
 export {
     hasPermission,
-    openPrivacySettings
+    openPrivacySettings,
+    canCaptureForeignWindow,
+    probePermission
 }

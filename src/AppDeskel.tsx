@@ -11,8 +11,12 @@ import { useAppState } from "./state";
 import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
 import { showToast } from "./toast";
 import { ChainMeasure } from "./chainMesure";
-import { hasPermission, openPrivacySettings } from "./permissionCheck";
+//import { //canCaptureForeignWindow, hasPermission, 
+//  openPrivacySettings, probePermission
+//} from "./permissionCheck";
+import { platform } from "@tauri-apps/plugin-os"
 import { useDialog } from "./useDialog";
+import { openPrivacySettings } from "./permissionCheck";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -76,7 +80,10 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
   const state = useAppState();
   const [measureMode, setMeasureMode] = useState<"line" | "chain">("line");
+  const [isMac, setIsMac] = useState(false);
   const dialog = useDialog();
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const uAppState = useAppState();
 
   function setDraggingValue(value: boolean) {
     if (draggingRef.current === value) return;
@@ -85,9 +92,73 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     setDragging(value);
   }
 
-  const cleanupRef = useRef<(() => void) | null>(null);
-  const uAppState = useAppState();
 
+
+
+  useEffect(() => {
+    let mounted = true;
+
+    void (async () => {
+      try {
+        const p = await platform();
+        if (mounted) {
+          setIsMac(p === "macos");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+  const handleHelpMac = useCallback(async () => {
+    const result = await dialog.showConfirmDialog({
+      title: "Screen Capture Reset Required",
+      body:
+        "Please go to Settings -> Privacy & Security -> Screen Recording & System Audio.\n\n" +
+        "IMPORTANT: You must select 'tetorica-deskel' and click the '-' (minus) button to remove it first, then click '+' to add it back.\n\n" +
+        "Simply toggling it Off and On will NOT work.\r\n" +
+        "Move to settings now?"
+    });
+    if (result) {
+      await openPrivacySettings();
+    }
+  }, []);
+  //
+  //  async function ensureScreenCapturePermission(): Promise<boolean> {
+  //    const permissionResult = await probePermission();
+  //    console.log("probePermission result", permissionResult);
+  //
+  //    if (permissionResult.status === "granted") {
+  //      return true;
+  //    }
+  //
+  //    if (permissionResult.status === "indeterminate") {
+  //      // 判定不能なので、ここでは止めない
+  //      // 実キャプチャで最終判断する
+  //      if (permissionResult.status === "indeterminate") {
+  //        showToast("Screen capture permission is indeterminate; proceeding to actual capture.");
+  //        return true;
+  //      }
+  //      return true;
+  //    }
+  //
+  //    // denied
+  //    showToast("Screen capture permission required.");
+  //
+  //    await dialog.showConfirmDialog({
+  //      title: "Screen Capture Reset Required",
+  //      body:
+  //        "Please go to Settings -> Privacy & Security -> Screen Recording & System Audio.\n\n" +
+  //        "IMPORTANT: You must select 'tetorica-deskel' and click the '-' (minus) button to remove it first, then click '+' to add it back.\n\n" +
+  //        "Simply toggling it Off and On will NOT work.",
+  //    });
+  //
+  //    await openPrivacySettings();
+  //    return false;
+  //  }
   //
   async function onPointerUp() {
     //updateDragging(false);
@@ -109,18 +180,9 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     });
     if (uAppState.tool == "capture") {
       try {
-        if (!await hasPermission()) {
-          showToast("Screen capture permission required.");
-
-          await dialog.showConfirmDialog({
-            title: "Screen Capture Reset Required",
-            body: "Please go to Settings -> Privacy & Security -> Screen Recording & System Audio.\n\n" +
-              "IMPORTANT: You must select 'tetorica-deskel' and click the '-' (minus) button to remove it first, then click '+' to add it back.\n\n" +
-              "Simply toggling it Off and On will NOT work.",
-          });
-
-          await openPrivacySettings();
-        }
+        //if (!await await ensureScreenCapturePermission()) {
+        //  return
+        //}
         const ret = await captureAndCropToDownloads({ path: undefined, targetRect: selectedRect })
         showToast(ret);
       } catch (e) {
@@ -134,18 +196,9 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     if (uAppState.tool == "color") {
       try {
         //
-        if (!await hasPermission()) {
-          showToast("Screen capture permission required.");
-
-          await dialog.showConfirmDialog({
-            title: "Screen Capture Reset Required",
-            body: "Please go to Settings -> Privacy & Security -> Screen Recording & System Audio.\n\n" +
-              "IMPORTANT: You must select 'tetorica-deskel' and click the '-' (minus) button to remove it first, then click '+' to add it back.\n\n" +
-              "Simply toggling it Off and On will NOT work.",
-          });
-
-          await openPrivacySettings();
-        }
+        //if (!await await ensureScreenCapturePermission()) {
+        //  return
+        //}
         const ret = await captureAndCropToAnalysis({ targetRect: selectedRect })
         if (props.onColorAnalysis) {
           props.onColorAnalysis(ret.colors, ret.colors01);
@@ -320,6 +373,28 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
             aria-label="Save"
           >
             Chain Measure
+          </button>
+        </div>
+      }
+      {
+        <div
+          className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(state.tool === "capture" || state.tool === "color") && isMac ? "flex" : "hidden"
+            }`}
+        >
+          <button
+            className="
+        rounded-lg bg-black/60 px-3 py-2 text-sm text-white
+        transition-opacity duration-200
+        opacity-80
+      "
+            onClick={() => {
+              console.log("CheckMac");
+              void handleHelpMac();
+            }}
+            title="Screen capture help"
+            aria-label="Screen capture help"
+          >
+            ?
           </button>
         </div>
       }
