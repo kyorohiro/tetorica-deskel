@@ -1,41 +1,13 @@
 import { useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
-import { captureAndCropToDownloads } from "./screenshot";
-import { save } from "@tauri-apps/plugin-dialog";
 import { showToast } from "./toast";
-import { useDialog } from "./useDialog";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
 }) {
     const [visible, setVisible] = useState(false)
     const uAppState = useAppState();
-
-    const dialog = useDialog();
-
-    const handleSnapshot = async () => {
-        try {
-            const filePath = await save({
-                title: "画像を保存",
-                defaultPath: "deskel-crop.png",
-                filters: [
-                    {
-                        name: "PNG Image",
-                        extensions: ["png"],
-                    },
-                ],
-            })
-            const path = await captureAndCropToDownloads({ path: filePath ?? undefined, targetRect: undefined })
-            showToast(`saved: ${path}`);
-        } catch (e) {
-            console.error(e)
-            dialog.showConfirmDialog({
-                title: "Error",
-                body: `${String(e)}`
-            })
-        }
-    }
 
     useEffect(() => {
         console.log(">> useEffect [grid, opacity]", [appState.getState()])
