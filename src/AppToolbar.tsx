@@ -232,11 +232,7 @@ export function AppToolbar(props: {
                     Snapshot
                 </label>
                 <div className="px-3">
-                    <div className="flex flex-wrap items-center gap-[10px]">
-                        <button
-                            onClick={handleSnapshot}
-                            className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-0 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
-                        >capture</button>
+                    <div>
                     </div>
                 </div>
                 {

@@ -7,7 +7,7 @@ import {
 } from "react";
 import { ColorCount } from "./screenshot";
 import { useAppState } from "./state";
-import { Download } from "lucide-react";
+import { Download, BrushCleaning } from "lucide-react";
 import { useDialog } from "./useDialog";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
@@ -151,6 +151,13 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const colorsRef = useRef<{ colors: ColorCount[], colors01: ColorCount[] }>({ colors: [], colors01: [] });
 
   const { showSelectDialog } = useDialog();
+  const setVisible = useCallback((visible: boolean) => {
+    if (!rootRef.current) return;
+    rootRef.current.style.display = visible ? "block" : "none";
+  }, []);
+  const handleClear = useCallback(() => {
+    setVisible(false);
+  }, []);
 
   const handleExport = useCallback(async () => {
     console.log("> handleExport");
@@ -503,10 +510,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     ref,
     () => ({
       redraw,
-      setVisible: (visible: boolean) => {
-        if (!rootRef.current) return;
-        rootRef.current.style.display = visible ? "block" : "none";
-      },
+      setVisible: setVisible,
       getCanvas: () => canvasRef.current,
     }),
     [redraw]
@@ -535,17 +539,30 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
         <div
           className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool == "color" ? "block" : "hidden"
             }`}
-        >       <button
-          className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
-            ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-            : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-            }`}
-          onClick={handleExport}
-          title="Save"
-          aria-label="Save"
         >
+          <button
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              }`}
+            onClick={handleExport}
+            title="Save"
+            aria-label="Save"
+          >
             <Download className="w-4 h-4" />
             Export
+          </button>
+          <button
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              }`}
+            onClick={handleClear}
+            title="Clear"
+            aria-label="Clear"
+          >
+            <BrushCleaning className="w-4 h-4" />
+            Clear
           </button>
         </div>
       }
