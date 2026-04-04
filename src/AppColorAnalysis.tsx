@@ -4,6 +4,7 @@ import {
   useImperativeHandle,
   useCallback,
   useEffect,
+  useState,
 } from "react";
 import { ColorCount } from "./screenshot";
 import { useAppState } from "./state";
@@ -13,6 +14,8 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { showToast } from "./toast";
 import { createSwatchesFile } from "procreate-swatches";
+
+type AppCoclorAnalysisMode = "hue-saturation" | "hue-lightness";
 
 function hexToRgb(hex: string): [number, number, number] {
   const normalized = hex.replace("#", "").trim();
@@ -149,6 +152,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const state = useAppState();
   const colorsRef = useRef<{ colors: ColorCount[], colors01: ColorCount[] }>({ colors: [], colors01: [] });
+  const [colorAnalysisMode, setColorAnalysisMode] = useState<AppCoclorAnalysisMode>("hue-saturation");
 
   const { showSelectDialog } = useDialog();
   const setVisible = useCallback((visible: boolean) => {
@@ -347,10 +351,18 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       const angleDeg = color.hue_angle - 90; // 0°を上にしたい
       const angleRad = (angleDeg * Math.PI) / 180;
 
-      // 正確な書き方
-      const radius = Math.max(0, Math.min(1, color.hsv_saturation)) * maxRadius;
-      const x = centerX + Math.cos(angleRad) * radius;
-      const y = centerY + Math.sin(angleRad) * radius;
+      let radius: number;
+      let x: number;
+      let y: number;
+      if (colorAnalysisMode === "hue-lightness") {
+        console.log("> hue-lightness", colorAnalysisMode , color.lightness)
+        radius = Math.max(0, Math.min(1, color.lightness)) * maxRadius;
+      } else {
+        console.log("> hue-saturation", colorAnalysisMode , color.hsv_saturation)
+        radius = Math.max(0, Math.min(1, color.hsv_saturation)) * maxRadius;
+      }
+      x = centerX + Math.cos(angleRad) * radius;
+      y = centerY + Math.sin(angleRad) * radius;
 
       //
       // 見やすい書き方だが正確ではない
@@ -498,7 +510,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
         ctx.strokeRect(chipX, chipY, legendBoxSize, legendBoxSize);
       });
     }
-  }, []);
+  }, [colorAnalysisMode]);
 
   useEffect(() => {
     if (!rootRef.current) return;
@@ -540,6 +552,38 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
           className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool == "color" ? "block" : "hidden"
             }`}
         >
+          <button
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${colorAnalysisMode == "hue-saturation"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              }`}
+            onClick={() => {
+              console.log("chain measure line click");
+              setColorAnalysisMode("hue-saturation");
+              redraw({colors: colorsRef.current.colors, colors01: colorsRef.current.colors01});
+
+            }}
+            title="Save"
+            aria-label="Save"
+          >
+            Saturation
+          </button>
+          <button
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${colorAnalysisMode == "hue-lightness"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              }`}
+            onClick={() => {
+              console.log("chain measure click");
+              setColorAnalysisMode("hue-lightness");
+              redraw({colors: colorsRef.current.colors, colors01: colorsRef.current.colors01});
+            }}
+            title="Save"
+            aria-label="Save"
+          >
+            Lightness
+          </button>
+          {}
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
               ? "border-emerald-500 bg-emerald-950 text-emerald-300"
