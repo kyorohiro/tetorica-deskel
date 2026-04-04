@@ -70,7 +70,9 @@ tested mac book air and usb c monitor
 
 * Export Procreate Format and Png and CSV
 
+* Contrast Analysis
 
+![デモ画像](docs/demo05.gif)
 ---
 
 ## ⌨️ Shortcuts
@@ -138,7 +140,6 @@ npm run tauri build
 * [ ] iOS/Android App
 * [ ] Vector Search
 * [ ] Calibration for ScreenCapture
-* [ ] Contrast Analysis
 * [ ] Support RYB base (now HSV)
 * [ ] Perspective correction ruler
 ---
