@@ -29,7 +29,12 @@
     "fs:default",
     {
       "identifier": "fs:allow-home-write-recursive",
-      "allow": [{ "path": "$HOME/**/*" }]
-    } 
+      "allow": [
+        {
+          "path": "$HOME/**/*"
+        }
+      ]
+    },
+    "shell:default"
   ]
 }

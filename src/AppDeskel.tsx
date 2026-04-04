@@ -11,6 +11,8 @@ import { useAppState } from "./state";
 import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
 import { showToast } from "./toast";
 import { ChainMeasure } from "./chainMesure";
+import { hasPermission, openPrivacySettings } from "./permissionCheck";
+import { useDialog } from "./useDialog";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -74,6 +76,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
   const state = useAppState();
   const [measureMode, setMeasureMode] = useState<"line" | "chain">("line");
+  const dialog = useDialog();
 
   function setDraggingValue(value: boolean) {
     if (draggingRef.current === value) return;
@@ -106,6 +109,18 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     });
     if (uAppState.tool == "capture") {
       try {
+        if (!await hasPermission()) {
+          showToast("Screen capture permission required.");
+
+          await dialog.showConfirmDialog({
+            title: "Screen Capture Reset Required",
+            body: "Please go to Settings -> Privacy & Security -> Screen Recording & System Audio.\n\n" +
+              "IMPORTANT: You must select 'tetorica-deskel' and click the '-' (minus) button to remove it first, then click '+' to add it back.\n\n" +
+              "Simply toggling it Off and On will NOT work.",
+          });
+
+          await openPrivacySettings();
+        }
         const ret = await captureAndCropToDownloads({ path: undefined, targetRect: selectedRect })
         showToast(ret);
       } catch (e) {
@@ -118,11 +133,25 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     }
     if (uAppState.tool == "color") {
       try {
+        //
+        if (!await hasPermission()) {
+          showToast("Screen capture permission required.");
+
+          await dialog.showConfirmDialog({
+            title: "Screen Capture Reset Required",
+            body: "Please go to Settings -> Privacy & Security -> Screen Recording & System Audio.\n\n" +
+              "IMPORTANT: You must select 'tetorica-deskel' and click the '-' (minus) button to remove it first, then click '+' to add it back.\n\n" +
+              "Simply toggling it Off and On will NOT work.",
+          });
+
+          await openPrivacySettings();
+        }
         const ret = await captureAndCropToAnalysis({ targetRect: selectedRect })
         if (props.onColorAnalysis) {
           props.onColorAnalysis(ret.colors, ret.colors01);
         }
       } catch (e) {
+        console.log(e);
         if (e instanceof Error) {
           showToast(e.message)
         } else {
@@ -269,9 +298,10 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
               ? "border-emerald-500 bg-emerald-950 text-emerald-300"
               : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
-            onClick={() => { 
+            onClick={() => {
               console.log("chain measure line click");
-              setMeasureMode("line") }}
+              setMeasureMode("line")
+            }}
             title="Save"
             aria-label="Save"
           >
@@ -282,9 +312,9 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
               ? "border-emerald-500 bg-emerald-950 text-emerald-300"
               : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
-            onClick={() => { 
+            onClick={() => {
               console.log("chain measure click");
-              setMeasureMode("chain") 
+              setMeasureMode("chain")
             }}
             title="Save"
             aria-label="Save"

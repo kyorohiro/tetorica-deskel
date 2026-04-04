@@ -1,6 +1,6 @@
 [package]
 name = "tetorica-deskel"
-version = "0.8.5"
+version = "0.8.6"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -29,4 +29,8 @@ tauri-plugin-dialog = "2"
 tauri-plugin-os = "2"
 tokio = "1.50.0"
 tauri-plugin-fs = "2"
+tauri-plugin-shell = "2"
 
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.23"
+core-foundation = "0.10.1"

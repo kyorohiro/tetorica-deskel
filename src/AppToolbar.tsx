@@ -8,8 +8,6 @@ import { useDialog } from "./useDialog";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
-    onClickColorCheck?: () => void
-    onClickClearColorCheck?: () => void
 }) {
     const [visible, setVisible] = useState(false)
     const uAppState = useAppState();
@@ -30,20 +28,6 @@ export function AppToolbar(props: {
             })
             const path = await captureAndCropToDownloads({ path: filePath ?? undefined, targetRect: undefined })
             showToast(`saved: ${path}`);
-        } catch (e) {
-            console.error(e)
-            dialog.showConfirmDialog({
-                title: "Error",
-                body: `${String(e)}`
-            })
-        }
-    }
-
-    const handleColorCheck = async () => {
-        try {
-            if (props.onClickColorCheck) {
-                props.onClickColorCheck();
-            }
         } catch (e) {
             console.error(e)
             dialog.showConfirmDialog({
@@ -263,15 +247,6 @@ export function AppToolbar(props: {
                 </label>
                 <div className="px-3">
                     <div>
-                        <button
-                            onClick={handleColorCheck}
-                            className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-0 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
-                        >color check</button>
-                        <button
-                            onClick={props.onClickClearColorCheck}
-                            className="rounded-lg border border-slate-500 bg-slate-800 px-3 py-0 text-sm text-white shadow hover:bg-slate-700 active:translate-y-px"
-                        >clear</button>
-
                     </div>
                 </div>
             </div>
