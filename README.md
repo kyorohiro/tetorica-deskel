@@ -12,7 +12,7 @@ https://kyorohiro.github.io/tetorica-deskel/
 
 ## ✨ What is this?
 
-![アイコン](docs/icon01.png)
+![アイコン](docs/icon01_mini.png)
 
 **tetorica deskel** is a simple overlay tool for artists.
 
