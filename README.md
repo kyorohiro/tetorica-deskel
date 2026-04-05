@@ -170,3 +170,7 @@ Great artwork really enhances the visuals.
 - https://walterlicinio.itch.io/artworks
 
 - https://x.com/walterlicinio
+
+# itch.io pages
+
+- https://kyorohiro.itch.io/tetorica-deskel
