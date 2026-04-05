@@ -79,7 +79,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
   const [dragging, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
   const state = useAppState();
-  const [measureMode, setMeasureMode] = useState<"line" | "chain">("line");
+  const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit">("line");
   const [isMac, setIsMac] = useState(false);
   const dialog = useDialog();
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -242,14 +242,24 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     if (uAppState.tool == "measure") {
       console.log({ measureMode });
       if (measureMode == "line") {
-        drawMeasure({ canvas, ctx, start, current, dragging, chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined) });
+        drawMeasure({
+          canvas, ctx, start, current, dragging,
+          chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined),
+          measureUnit: state.measureUnit,
+        });
       } else if (measureMode == "chain") {
         // redraw時
         chainMesureRef.current.draw(ctx, {
           color: uAppState.color,
           lineWidth: 1,
         });
-
+      } else if (measureMode == "setUnit") {
+        //state.measureUnit = chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined),
+        drawMeasure({
+          canvas, ctx, start, current, dragging,
+          chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined),
+          measureUnit: state.measureUnit,
+        });
       }
     }
     else if (uAppState.tool == "color" || uAppState.tool == "capture") {
@@ -277,6 +287,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
         y: e.clientY - rect.top,
       };
 
+      chainMesureRef.current.setChainLengthMin(state.measureUnit);
       startRef.current = p;
       currentRef.current = p;
       //draggingRef.current = true;
@@ -304,7 +315,16 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
       //draggingRef.current = false;
       setDraggingValue(false);
       chainMesureRef.current.clear()
+
       redraw();
+      if (measureMode == "setUnit" && startRef.current && currentRef.current) {
+        // 単位設定モードで、線分が引かれている状態でマウスアップした場合は、その線分の長さを単位として設定する
+        const dx = currentRef.current.x - startRef.current.x;
+        const dy = currentRef.current.y - startRef.current.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        state.measureUnit = len / 5;
+        showToast(`Measure unit set to ${state.measureUnit.toFixed(2)} pixels`); // トーストで単位設定を通知
+      }
     };
 
     canvas.addEventListener("mousedown", onMouseDown);
@@ -355,8 +375,8 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
               console.log("chain measure line click");
               setMeasureMode("line")
             }}
-            title="Save"
-            aria-label="Save"
+            title="line measure"
+            aria-label="line measure"
           >
             Line Measure
           </button>
@@ -369,10 +389,25 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
               console.log("chain measure click");
               setMeasureMode("chain")
             }}
-            title="Save"
-            aria-label="Save"
+            title="chain measure"
+            aria-label="chain measure"
           >
             Chain Measure
+          </button>
+
+          <button
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "setUnit"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              }`}
+            onClick={() => {
+              console.log("set unit click");
+              setMeasureMode("setUnit")
+            }}
+            title="set unit"
+            aria-label="set unit"
+          >
+            Set Unit
           </button>
         </div>
       }

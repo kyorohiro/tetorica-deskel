@@ -218,12 +218,14 @@ function drawMeasureTicks(params: {
 
   for (let d = startOffset, i = 1; d < endOffset; d += step, i++) {
     let tickHalf = 4
-
+    let lineWidth = 2;
     // 5本ごとに長く、10本ごとにさらに長く
     if (i % 10 === 0) {
       tickHalf = 10
+      lineWidth = 8
     } else if (i % 5 === 0) {
       tickHalf = 7
+      lineWidth = 6;
     }
 
     const px = start.x + ux * d
@@ -236,7 +238,7 @@ function drawMeasureTicks(params: {
 
     // shadow
     ctx.beginPath()
-    ctx.lineWidth = 2
+    ctx.lineWidth = lineWidth;
     ctx.strokeStyle = shadowColor
     ctx.moveTo(x1, y1)
     ctx.lineTo(x2, y2)
@@ -244,7 +246,7 @@ function drawMeasureTicks(params: {
 
     // main
     ctx.beginPath()
-    ctx.lineWidth = 1
+    ctx.lineWidth = lineWidth / 2;
     ctx.strokeStyle = mainColor
     ctx.moveTo(x1, y1)
     ctx.lineTo(x2, y2)
@@ -282,7 +284,8 @@ function normalizeAngle180(deg: number): number {
 
 function drawMeasure(params: {
   canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, start?: AppDeskelPoint | null, current?: AppDeskelPoint | null, dragging?: boolean,
-  chainLength?:number
+  chainLength?:number,
+  measureUnit?: number
 }): void {
   if (!params.ctx) {
     return;
@@ -343,7 +346,7 @@ function drawMeasure(params: {
     current: params.current,
     mainColor,
     shadowColor,
-    step: 20,
+    step: params.measureUnit ? params.measureUnit : 20,
   })
   //
   // circle

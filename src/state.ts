@@ -6,6 +6,7 @@ type Settings = {
     lineWidth: number
     color: string
     rotation: number
+    measureUnit: number
 }
 
 type ToolMode = "measure" | "draw" | "color" | "capture"
@@ -24,6 +25,7 @@ const DEFAULT_SETTINGS: Settings = {
     lineWidth: 1,
     color: "#00ff88",
     rotation: 0,
+    measureUnit: 20,
 }
 
 const SETTINGS_KEY = "tetorica-deskel-settings"
@@ -51,6 +53,10 @@ function loadSettings(): Settings {
                 typeof parsed.rotation === "number"
                     ? parsed.rotation
                     : DEFAULT_SETTINGS.rotation,
+            measureUnit:
+                typeof parsed.measureUnit === "number"
+                    ? parsed.measureUnit
+                    : DEFAULT_SETTINGS.measureUnit,
         }
     } catch (error) {
         console.error("failed to load settings", error)
@@ -88,6 +94,7 @@ class AppStateStore {
             alwaysOnTop: false,
             rotation: saved.rotation,
             tool: "measure",
+            measureUnit: saved.measureUnit,
         }
     }
 
@@ -133,6 +140,7 @@ class AppStateStore {
                 lineWidth: this._state.lineWidth,
                 color: this._state.color,
                 rotation: this._state.rotation,
+                measureUnit: this._state.measureUnit,
             })
         }
 

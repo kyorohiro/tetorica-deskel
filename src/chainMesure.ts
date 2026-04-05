@@ -24,12 +24,15 @@ type DrawOptions = {
 
 class ChainMeasure {
     private chains: ChainPoint[] = [];
-    private readonly chainLengthMin: number;
+    private chainLengthMin: number;
 
     constructor(chainLengthMin = 20) {
         this.chainLengthMin = chainLengthMin;
     }
 
+    setChainLengthMin(length: number) {
+        this.chainLengthMin = length;
+    }
     clear() {
         this.chains = [];
     }
@@ -212,8 +215,15 @@ class ChainMeasure {
             const nx = -dy / tangentLen;
             const ny = dx / tangentLen;
 
-            const tickLength =
+            let tickLength =
                 i % majorEvery === 0 ? normalLength * majorScale : normalLength;
+            let lineWidth =
+                i % majorEvery === 0 ? 3 : 1;
+
+            tickLength =
+                i % (majorEvery*2) === 0 ? tickLength*1.5 : tickLength;
+            lineWidth =
+                i % (majorEvery*2) === 0 ? lineWidth*2: lineWidth;
 
             const x1 = p.x - nx * tickLength * 0.5;
             const y1 = p.y - ny * tickLength * 0.5;
@@ -221,6 +231,7 @@ class ChainMeasure {
             const y2 = p.y + ny * tickLength * 0.5;
 
             ctx.beginPath();
+            ctx.lineWidth = lineWidth;
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
             ctx.stroke();
