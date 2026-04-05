@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
 import { showToast } from "./toast";
-import { hideToolbarSoon } from "./toolbar";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
