@@ -523,11 +523,14 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   useImperativeHandle(
     ref,
     () => ({
-      redraw:(props?: { colors: ColorCount[], colors01: ColorCount[] }) => redraw({ colors: props?.colors || [], colors01: props?.colors01 || [], colorAnalysisMode }),
+      redraw:(props?: { colors: ColorCount[], colors01: ColorCount[] }) => {
+        console.log("> AppColorAnalysis imperative redraw", props);
+        redraw({ colors: props?.colors || [], colors01: props?.colors01 || [], colorAnalysisMode })
+      },
       setVisible: setVisible,
       getCanvas: () => canvasRef.current,
     }),
-    [redraw]
+    [redraw, colorAnalysisMode]
   );
 
   return (
