@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
 import { showToast } from "./toast";
+import { hideToolbarSoon } from "./toolbar";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
@@ -108,7 +109,10 @@ export function AppToolbar(props: {
                 <div className="px-3">
                     <div className="flex flex-wrap items-center gap-2">
                         <button
-                            onClick={() => appState.setTool("measure")}
+                            onClick={() => {
+                                appState.setTool("measure")
+                                setVisible(false);
+                            }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
                                         ${uAppState.tool === "measure"
                                         ? "border-sky-400 bg-sky-700 text-white"
@@ -118,7 +122,10 @@ export function AppToolbar(props: {
                         </button>
 
                         <button
-                            onClick={() => appState.setTool("draw")}
+                            onClick={() => {
+                                appState.setTool("draw")
+                                setVisible(false);
+                            }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
                             ${uAppState.tool === "draw"
                                     ? "border-sky-400 bg-sky-700 text-white"
@@ -128,7 +135,10 @@ export function AppToolbar(props: {
                         </button>
 
                         <button
-                            onClick={() => appState.setTool("capture")}
+                            onClick={() => {
+                                appState.setTool("capture")
+                                setVisible(false);
+                            }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
                             ${uAppState.tool === "capture"
                                     ? "border-sky-400 bg-sky-700 text-white"
@@ -137,7 +147,10 @@ export function AppToolbar(props: {
                             ScreenCaputure
                         </button>
                         <button
-                            onClick={() => appState.setTool("color")}
+                            onClick={() => {
+                                appState.setTool("color")
+                                setVisible(false);
+                            }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
                             ${uAppState.tool === "color"
                                     ? "border-sky-400 bg-sky-700 text-white"
