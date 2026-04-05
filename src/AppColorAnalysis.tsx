@@ -15,7 +15,7 @@ import { writeFile } from "@tauri-apps/plugin-fs";
 import { showToast } from "./toast";
 import { createSwatchesFile } from "procreate-swatches";
 
-type AppCoclorAnalysisMode = "hue-saturation" | "hue-lightness";
+type AppColorAnalysisMode = "hue-saturation" | "hue-lightness";
 
 function hexToRgb(hex: string): [number, number, number] {
   const normalized = hex.replace("#", "").trim();
@@ -152,7 +152,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const state = useAppState();
   const colorsRef = useRef<{ colors: ColorCount[], colors01: ColorCount[] }>({ colors: [], colors01: [] });
-  const [colorAnalysisMode, setColorAnalysisMode] = useState<AppCoclorAnalysisMode>("hue-saturation");
+  const [colorAnalysisMode, setColorAnalysisMode] = useState<AppColorAnalysisMode>("hue-saturation");
 
   const { showSelectDialog } = useDialog();
   const setVisible = useCallback((visible: boolean) => {
@@ -248,7 +248,8 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
     }
   }, [showSelectDialog]);
 
-  const redraw = useCallback((props?: { colors: ColorCount[], colors01: ColorCount[] }) => {
+  const redraw = useCallback((props?: { colors: ColorCount[], colors01: ColorCount[], colorAnalysisMode: AppColorAnalysisMode }) => {
+    console.log("> redraw", props);
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -354,11 +355,11 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       let radius: number;
       let x: number;
       let y: number;
-      if (colorAnalysisMode === "hue-lightness") {
-        console.log("> hue-lightness", colorAnalysisMode , color.lightness)
+      if (props?.colorAnalysisMode === "hue-lightness") {
+        //console.log("> hue-lightness", colorAnalysisMode , color.lightness)
         radius = Math.max(0, Math.min(1, color.lightness)) * maxRadius;
       } else {
-        console.log("> hue-saturation", colorAnalysisMode , color.hsv_saturation)
+        //console.log("> hue-saturation", colorAnalysisMode , color.hsv_saturation)
         radius = Math.max(0, Math.min(1, color.hsv_saturation)) * maxRadius;
       }
       x = centerX + Math.cos(angleRad) * radius;
@@ -510,18 +511,19 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
         ctx.strokeRect(chipX, chipY, legendBoxSize, legendBoxSize);
       });
     }
-  }, [colorAnalysisMode]);
+  }, []);
 
   useEffect(() => {
     if (!rootRef.current) return;
     rootRef.current.style.display = "none";
-    redraw({ colors: [], colors01: [] });
+    console.log("> AppColorAnalysis mounted, hidden by default");
+    redraw({ colors: [], colors01: [], colorAnalysisMode });
   }, [redraw]);
 
   useImperativeHandle(
     ref,
     () => ({
-      redraw,
+      redraw:(props?: { colors: ColorCount[], colors01: ColorCount[] }) => redraw({ colors: props?.colors || [], colors01: props?.colors01 || [], colorAnalysisMode }),
       setVisible: setVisible,
       getCanvas: () => canvasRef.current,
     }),
@@ -560,7 +562,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
             onClick={() => {
               console.log("chain measure line click");
               setColorAnalysisMode("hue-saturation");
-              redraw({colors: colorsRef.current.colors, colors01: colorsRef.current.colors01});
+              redraw({colors: colorsRef.current.colors, colors01: colorsRef.current.colors01, colorAnalysisMode: "hue-saturation"});
 
             }}
             title="Save"
@@ -576,7 +578,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
             onClick={() => {
               console.log("chain measure click");
               setColorAnalysisMode("hue-lightness");
-              redraw({colors: colorsRef.current.colors, colors01: colorsRef.current.colors01});
+              redraw({colors: colorsRef.current.colors, colors01: colorsRef.current.colors01, colorAnalysisMode: "hue-lightness"});
             }}
             title="Save"
             aria-label="Save"
