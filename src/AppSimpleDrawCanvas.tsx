@@ -5,10 +5,11 @@ import {
     Palette,
     Undo2,
     Trash2,
+    PenLine
 } from "lucide-react";
 import { useAppState } from "./state";
 
-type Tool = "pen" | "eraser";
+type Tool = "pen" | "eraser" | "line";
 
 type Point = { x: number; y: number };
 
@@ -118,6 +119,9 @@ function AppSimpleDrawCanvas() {
     const [draftStroke, setDraftStroke] = useState<Stroke | null>(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 760 });
+    //const [currentPoint, setCurrentPoint] = useState<Point | null>(null);
+    //const [startPoint, setStartPoint] = useState<Point | null>(null);
+
     const state = useAppState();
 
     const activeSize = useMemo(() => {
@@ -175,6 +179,8 @@ function AppSimpleDrawCanvas() {
             const canvas = canvasRef.current;
             if (!canvas) return;
             const p = getCanvasPoint(canvas, clientX, clientY);
+            //setCurrentPoint(p);
+            //setStartPoint(p);
             setIsDrawing(true);
             setDraftStroke({
                 tool,
@@ -193,10 +199,18 @@ function AppSimpleDrawCanvas() {
         setDraftStroke((prev) => {
             if (!prev) return prev;
             const p = getCanvasPoint(canvas, clientX, clientY);
-            return {
-                ...prev,
-                points: [...prev.points, p],
-            };
+            //setCurrentPoint(p);
+            if (prev.tool === "line" && prev.points.length >= 1) {
+                return {
+                    ...prev,
+                    points: [ prev.points[0], p ]
+                }
+            } else {
+                return {
+                    ...prev,
+                    points: [...prev.points, p],
+                };
+            }
         });
     }, []);
 
@@ -284,7 +298,17 @@ function AppSimpleDrawCanvas() {
                                     >
                                         <Pencil size={18} />
                                     </button>
-
+                                    <button
+                                        className={`rounded-2xl border px-3 py-3 text-sm ${tool === "line"
+                                            ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                                            : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                                            }`}
+                                        onClick={() => setTool("line")}
+                                        title="line"
+                                        aria-label="line"
+                                    >
+                                        <PenLine size={18} />
+                                    </button>
                                     <button
                                         className={`rounded-2xl border px-3 py-3 text-sm ${tool === "eraser"
                                             ? "border-emerald-500 bg-emerald-950 text-emerald-300"
@@ -309,7 +333,7 @@ function AppSimpleDrawCanvas() {
                                                 value={color}
                                                 onChange={(e) => setColor(e.target.value)}
                                                 className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                                                disabled={tool === "eraser"}
+                                            //disabled={tool === "eraser"}
                                             />
                                         </div>
                                     </label>
