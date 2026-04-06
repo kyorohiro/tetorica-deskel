@@ -17,6 +17,7 @@ import { ChainMeasure } from "./chainMesure";
 import { platform } from "@tauri-apps/plugin-os"
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
+import { getRectFromPoints } from "./utils";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -26,51 +27,6 @@ type AppDeskelHandle = {
 
 type AppDeskelPoint = { x: number; y: number };
 
-type AppDeskelRect = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-//
-// CSS座標で持つ
-function getRectFromPoints(params: {
-  start: AppDeskelPoint;
-  current: AppDeskelPoint;
-}): AppDeskelRect {
-  const x = Math.min(params.start.x, params.current.x);
-  const y = Math.min(params.start.y, params.current.y);
-  const width = Math.abs(params.current.x - params.start.x);
-  const height = Math.abs(params.current.y - params.start.y);
-
-  return { x, y, width, height };
-}
-
-//
-// CSS座標をCanvas座標に変換する関数
-// ただし、CanvasのサイズをCSSサイズと同じにしているので、この関数は使用していない
-//function getRectFromPoints(params: {
-//  start: AppDeskelPoint;
-//  current: AppDeskelPoint;
-//  canvas: HTMLCanvasElement;
-//}): AppDeskelRect {
-//  const rect = params.canvas.getBoundingClientRect();
-//  const scaleX = params.canvas.width / rect.width;
-//  const scaleY = params.canvas.height / rect.height;
-//
-//  const left = Math.min(params.start.x, params.current.x);
-//  const top = Math.min(params.start.y, params.current.y);
-//  const right = Math.max(params.start.x, params.current.x);
-//  const bottom = Math.max(params.start.y, params.current.y);
-//
-//  return {
-//    x: left * scaleX,
-//    y: top * scaleY,
-//    width: (right - left) * scaleX,
-//    height: (bottom - top) * scaleY,
-//  };
-//}
 
 const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: ColorCount[], colors01: ColorCount[]) => Promise<void> }>(function (props, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
