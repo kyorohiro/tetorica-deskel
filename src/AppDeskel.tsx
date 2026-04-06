@@ -47,6 +47,9 @@ function getRectFromPoints(params: {
   return { x, y, width, height };
 }
 
+//
+// CSS座標をCanvas座標に変換する関数
+// ただし、CanvasのサイズをCSSサイズと同じにしているので、この関数は使用していない
 //function getRectFromPoints(params: {
 //  start: AppDeskelPoint;
 //  current: AppDeskelPoint;
@@ -92,9 +95,6 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     setDragging(value);
   }
 
-
-
-
   useEffect(() => {
     let mounted = true;
 
@@ -127,6 +127,13 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     }
   }, []);
   //
+  // アクセス権や 対象のWindowの状態から判断するためのコード
+  // ではあるが、MacOS の場合は、
+  // - アクセス権
+  // 更新後に再度権限を付与しないと動かないのに、付与済みと判定されるため、参考程度にしか使えない
+  // - キャプチャー対応のアプリ数
+  // キャプチャー対象がDesktopの場合は、これでもダメなので、参考程度にしか使えない
+  // "?"マークのヘルプボタンも用意して、そこからユーザーに設定を促すようにした
   //  async function ensureScreenCapturePermission(): Promise<boolean> {
   //    const permissionResult = await probePermission();
   //    console.log("probePermission result", permissionResult);
@@ -180,6 +187,8 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     });
     if (uAppState.tool == "capture") {
       try {
+        //
+        // ensureScreenCapturePermission() の コメントを確認してね
         //if (!await await ensureScreenCapturePermission()) {
         //  return
         //}
@@ -196,6 +205,13 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     if (uAppState.tool == "color") {
       try {
         //
+        // アクセス権や 対象のWindowの状態から判断するためのコード
+        // ではあるが、MacOS の場合は、
+        // - アクセス権
+        // 更新後に再度権限を付与しないと動かないのに、付与済みと判定されるため、参考程度にしか使えない
+        // - キャプチャー対応のアプリ数
+        // キャプチャー対象がDesktopの場合は、これでもダメなので、参考程度にしか使えない
+        // "?"マークのヘルプボタンも用意して、そこからユーザーに設定を促すようにした
         //if (!await await ensureScreenCapturePermission()) {
         //  return
         //}
@@ -212,11 +228,6 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
         }
       }
     }
-    //const ret = await captureAndCropToAnalysis({
-    //  targetRect: selectedRect
-    //})
-    // まずは動作確認
-    //console.log(ret);    
   }
   useEffect(() => {
     if (dragging) return;
@@ -254,7 +265,6 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
           lineWidth: 1,
         });
       } else if (measureMode == "setUnit") {
-        //state.measureUnit = chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined),
         drawMeasure({
           canvas, ctx, start, current, dragging,
           chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined),
