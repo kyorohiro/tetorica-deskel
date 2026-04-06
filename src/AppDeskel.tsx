@@ -214,18 +214,9 @@ const AppDeslel = forwardRef<
     }
   }, [uAppState.tool, measureMode, uAppState.color]);
 
-  const setCanvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
-    // まず前のcanvasの掃除
-    if (cleanupRef.current) {
-      cleanupRef.current();
-      cleanupRef.current = null;
-    }
-
-    canvasRef.current = canvas;
-
-    if (!canvas) {
-      return;
-    }
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
     const onMouseDown = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -237,12 +228,8 @@ const AppDeslel = forwardRef<
       chainMesureRef.current.setChainLengthMin(state.measureUnit);
       startRef.current = p;
       currentRef.current = p;
-      //draggingRef.current = true;
       setDraggingValue(true);
-      chainMesureRef.current.update({
-        x: startRef.current.x,
-        y: startRef.current.y,
-      });
+      chainMesureRef.current.update(p);
       redraw();
     };
 
@@ -254,29 +241,22 @@ const AppDeslel = forwardRef<
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
       };
-      //
-      // pointermove とかで
-      chainMesureRef.current.update({
-        x: currentRef.current.x,
-        y: currentRef.current.y,
-      });
 
+      chainMesureRef.current.update(currentRef.current);
       redraw();
     };
 
     const onMouseUp = () => {
-      //draggingRef.current = false;
       setDraggingValue(false);
       chainMesureRef.current.clear();
-
       redraw();
-      if (measureMode == "setUnit" && startRef.current && currentRef.current) {
-        // 単位設定モードで、線分が引かれている状態でマウスアップした場合は、その線分の長さを単位として設定する
+
+      if (measureMode === "setUnit" && startRef.current && currentRef.current) {
         const dx = currentRef.current.x - startRef.current.x;
         const dy = currentRef.current.y - startRef.current.y;
         const len = Math.sqrt(dx * dx + dy * dy);
         state.measureUnit = len / 5;
-        showToast(`Measure unit set to ${state.measureUnit.toFixed(2)} pixels`); // トーストで単位設定を通知
+        showToast(`Measure unit set to ${state.measureUnit.toFixed(2)} pixels`);
       }
     };
 
@@ -286,12 +266,12 @@ const AppDeslel = forwardRef<
 
     redraw({ isResizeCanvas: true });
 
-    cleanupRef.current = () => {
+    return () => {
       canvas.removeEventListener("mousedown", onMouseDown);
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mouseup", onMouseUp);
     };
-  }, [redraw]);
+  }, [redraw, measureMode, state]);
 
   useImperativeHandle(
     ref,
@@ -309,7 +289,7 @@ const AppDeslel = forwardRef<
   return (
     <>
       <div ref={rootRef}>
-        <canvas key="deskel-default" id="deskel" ref={setCanvasRef} />
+        <canvas key="deskel-default" id="deskel" ref={canvasRef} />
       </div>
       {
         // Measure Sub Toolbar
@@ -321,8 +301,8 @@ const AppDeslel = forwardRef<
         >
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "line"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
             onClick={() => {
               console.log("chain measure line click");
@@ -335,8 +315,8 @@ const AppDeslel = forwardRef<
           </button>
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "chain"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
             onClick={() => {
               console.log("chain measure click");
@@ -350,8 +330,8 @@ const AppDeslel = forwardRef<
 
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "setUnit"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
             onClick={() => {
               console.log("set unit click");
@@ -364,8 +344,8 @@ const AppDeslel = forwardRef<
           </button>
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "setVanishingPoint"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
             onClick={() => {
               console.log("set vanishing point click");
@@ -385,8 +365,8 @@ const AppDeslel = forwardRef<
       {
         <div
           className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(state.tool === "capture" || state.tool === "color") && isMac
-              ? "flex"
-              : "hidden"
+            ? "flex"
+            : "hidden"
             }`}
         >
           <button
