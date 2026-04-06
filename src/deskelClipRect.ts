@@ -1,5 +1,5 @@
 import { appState } from "./state";
-import { hexToRgbaParams, hslaToRgba, makeShadowColorFromGrid, rgbaToHsla } from "./deskel";
+import { hexToRgbaParams, hslaToRgba, makeShadowColorFromGrid, rgbaToHsla } from "./deskelCommon";
 
 function drawClipRect(params: {
   canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, start?: { x: number, y: number } | null, current?: { x: number, y: number } | null, dragging?: boolean

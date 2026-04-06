@@ -1,6 +1,6 @@
 
 import { AppDeskelPoint } from "./AppDeskel";
-import { hexToRgbaParams, hslaToRgba, makeShadowColorFromGrid, rgbaToHsla } from "./deskel";
+import { hexToRgbaParams, hslaToRgba, makeShadowColorFromGrid, rgbaToHsla } from "./deskelCommon";
 import { appState } from "./state";
 
 

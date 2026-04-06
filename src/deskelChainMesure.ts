@@ -1,9 +1,4 @@
-import {
-    hexToRgbaParams,
-    hslaToRgba,
-    makeShadowColorFromGrid,
-    rgbaToHsla,
-} from "./deskel";
+import { hexToRgbaParams, hslaToRgba, makeShadowColorFromGrid, rgbaToHsla } from "./deskelCommon";
 
 type ChainPoint = {
     x: number;
