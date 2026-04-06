@@ -46,13 +46,11 @@ const AppDeslel = forwardRef<
   const draggingRef = useRef(false);
   const [dragging, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
-  const state = useAppState();
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
   );
   const [isMac, setIsMac] = useState(false);
   const dialog = useDialog();
-  const cleanupRef = useRef<(() => void) | null>(null);
   const uAppState = useAppState();
 
   function setDraggingValue(value: boolean) {
@@ -188,7 +186,7 @@ const AppDeslel = forwardRef<
           chainLength: chainMesureRef.current.getLength(
             current ? { x: current?.x, y: current.y } : undefined,
           ),
-          measureUnit: state.measureUnit,
+          measureUnit: uAppState.measureUnit,
         });
       } else if (measureMode == "chain") {
         // redraw時
@@ -206,7 +204,7 @@ const AppDeslel = forwardRef<
           chainLength: chainMesureRef.current.getLength(
             current ? { x: current?.x, y: current.y } : undefined,
           ),
-          measureUnit: state.measureUnit,
+          measureUnit: uAppState.measureUnit,
         });
       }
     } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
@@ -225,7 +223,7 @@ const AppDeslel = forwardRef<
         y: e.clientY - rect.top,
       };
 
-      chainMesureRef.current.setChainLengthMin(state.measureUnit);
+      chainMesureRef.current.setChainLengthMin(uAppState.measureUnit);
       startRef.current = p;
       currentRef.current = p;
       setDraggingValue(true);
@@ -255,8 +253,8 @@ const AppDeslel = forwardRef<
         const dx = currentRef.current.x - startRef.current.x;
         const dy = currentRef.current.y - startRef.current.y;
         const len = Math.sqrt(dx * dx + dy * dy);
-        state.measureUnit = len / 5;
-        showToast(`Measure unit set to ${state.measureUnit.toFixed(2)} pixels`);
+        uAppState.measureUnit = len / 5;
+        showToast(`Measure unit set to ${uAppState.measureUnit.toFixed(2)} pixels`);
       }
     };
 
@@ -271,7 +269,7 @@ const AppDeslel = forwardRef<
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mouseup", onMouseUp);
     };
-  }, [redraw, measureMode, state]);
+  }, [redraw, measureMode, uAppState]);
 
   useImperativeHandle(
     ref,
@@ -296,7 +294,7 @@ const AppDeslel = forwardRef<
       }
       {
         <div
-          className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool == "measure" ? "block" : "hidden"
+          className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${uAppState.tool == "measure" ? "block" : "hidden"
             }`}
         >
           <button
@@ -364,7 +362,7 @@ const AppDeslel = forwardRef<
       }
       {
         <div
-          className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(state.tool === "capture" || state.tool === "color") && isMac
+          className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(uAppState.tool === "capture" || uAppState.tool === "color") && isMac
             ? "flex"
             : "hidden"
             }`}
