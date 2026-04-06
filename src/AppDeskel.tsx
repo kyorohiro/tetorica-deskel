@@ -1,20 +1,22 @@
 import {
-  useRef,
   forwardRef,
-  useImperativeHandle,
   useCallback,
   useEffect,
+  useImperativeHandle,
+  useRef,
   useState,
 } from "react";
 import { draw, drawClipRect, drawMeasure, resizeCanvas } from "./deskel";
 import { useAppState } from "./state";
-import { captureAndCropToAnalysis, captureAndCropToDownloads, ColorCount } from "./screenshot";
+import {
+  captureAndCropToAnalysis,
+  captureAndCropToDownloads,
+  ColorCount,
+} from "./screenshot";
 import { showToast } from "./toast";
 import { ChainMeasure } from "./chainMesure";
-//import { //canCaptureForeignWindow, hasPermission, 
-//  openPrivacySettings, probePermission
-//} from "./permissionCheck";
-import { platform } from "@tauri-apps/plugin-os"
+
+import { platform } from "@tauri-apps/plugin-os";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
@@ -27,8 +29,15 @@ type AppDeskelHandle = {
 
 type AppDeskelPoint = { x: number; y: number };
 
-
-const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: ColorCount[], colors01: ColorCount[]) => Promise<void> }>(function (props, ref) {
+const AppDeslel = forwardRef<
+  AppDeskelHandle,
+  {
+    onColorAnalysis?: (
+      colors: ColorCount[],
+      colors01: ColorCount[],
+    ) => Promise<void>;
+  }
+>(function (props, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -38,7 +47,9 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
   const [dragging, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
   const state = useAppState();
-  const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit">("line");
+  const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit">(
+    "line",
+  );
   const [isMac, setIsMac] = useState(false);
   const dialog = useDialog();
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -76,53 +87,13 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
         "Please go to Settings -> Privacy & Security -> Screen Recording & System Audio.\n\n" +
         "IMPORTANT: You must select 'tetorica-deskel' and click the '-' (minus) button to remove it first, then click '+' to add it back.\n\n" +
         "Simply toggling it Off and On will NOT work.\r\n" +
-        "Move to settings now?"
+        "Move to settings now?",
     });
     if (result) {
       await openPrivacySettings();
     }
   }, []);
-  //
-  // アクセス権や 対象のWindowの状態から判断するためのコード
-  // ではあるが、MacOS の場合は、
-  // - アクセス権
-  // 更新後に再度権限を付与しないと動かないのに、付与済みと判定されるため、参考程度にしか使えない
-  // - キャプチャー対応のアプリ数
-  // キャプチャー対象がDesktopの場合は、これでもダメなので、参考程度にしか使えない
-  // "?"マークのヘルプボタンも用意して、そこからユーザーに設定を促すようにした
-  //  async function ensureScreenCapturePermission(): Promise<boolean> {
-  //    const permissionResult = await probePermission();
-  //    console.log("probePermission result", permissionResult);
-  //
-  //    if (permissionResult.status === "granted") {
-  //      return true;
-  //    }
-  //
-  //    if (permissionResult.status === "indeterminate") {
-  //      // 判定不能なので、ここでは止めない
-  //      // 実キャプチャで最終判断する
-  //      if (permissionResult.status === "indeterminate") {
-  //        showToast("Screen capture permission is indeterminate; proceeding to actual capture.");
-  //        return true;
-  //      }
-  //      return true;
-  //    }
-  //
-  //    // denied
-  //    showToast("Screen capture permission required.");
-  //
-  //    await dialog.showConfirmDialog({
-  //      title: "Screen Capture Reset Required",
-  //      body:
-  //        "Please go to Settings -> Privacy & Security -> Screen Recording & System Audio.\n\n" +
-  //        "IMPORTANT: You must select 'tetorica-deskel' and click the '-' (minus) button to remove it first, then click '+' to add it back.\n\n" +
-  //        "Simply toggling it Off and On will NOT work.",
-  //    });
-  //
-  //    await openPrivacySettings();
-  //    return false;
-  //  }
-  //
+
   async function onPointerUp() {
     //updateDragging(false);
 
@@ -148,11 +119,14 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
         //if (!await await ensureScreenCapturePermission()) {
         //  return
         //}
-        const ret = await captureAndCropToDownloads({ path: undefined, targetRect: selectedRect })
+        const ret = await captureAndCropToDownloads({
+          path: undefined,
+          targetRect: selectedRect,
+        });
         showToast(ret);
       } catch (e) {
         if (e instanceof Error) {
-          showToast(e.message)
+          showToast(e.message);
         } else {
           showToast(`${e}`);
         }
@@ -161,24 +135,20 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     if (uAppState.tool == "color") {
       try {
         //
-        // アクセス権や 対象のWindowの状態から判断するためのコード
-        // ではあるが、MacOS の場合は、
-        // - アクセス権
-        // 更新後に再度権限を付与しないと動かないのに、付与済みと判定されるため、参考程度にしか使えない
-        // - キャプチャー対応のアプリ数
-        // キャプチャー対象がDesktopの場合は、これでもダメなので、参考程度にしか使えない
-        // "?"マークのヘルプボタンも用意して、そこからユーザーに設定を促すようにした
+        // ensureScreenCapturePermission() の コメントを確認してね
         //if (!await await ensureScreenCapturePermission()) {
         //  return
         //}
-        const ret = await captureAndCropToAnalysis({ targetRect: selectedRect })
+        const ret = await captureAndCropToAnalysis({
+          targetRect: selectedRect,
+        });
         if (props.onColorAnalysis) {
           props.onColorAnalysis(ret.colors, ret.colors01);
         }
       } catch (e) {
         console.log(e);
         if (e instanceof Error) {
-          showToast(e.message)
+          showToast(e.message);
         } else {
           showToast(`${e}`);
         }
@@ -210,8 +180,14 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
       console.log({ measureMode });
       if (measureMode == "line") {
         drawMeasure({
-          canvas, ctx, start, current, dragging,
-          chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined),
+          canvas,
+          ctx,
+          start,
+          current,
+          dragging,
+          chainLength: chainMesureRef.current.getLength(
+            current ? { x: current?.x, y: current.y } : undefined,
+          ),
           measureUnit: state.measureUnit,
         });
       } else if (measureMode == "chain") {
@@ -222,13 +198,18 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
         });
       } else if (measureMode == "setUnit") {
         drawMeasure({
-          canvas, ctx, start, current, dragging,
-          chainLength: chainMesureRef.current.getLength(current ? { x: current?.x, y: current.y } : undefined),
+          canvas,
+          ctx,
+          start,
+          current,
+          dragging,
+          chainLength: chainMesureRef.current.getLength(
+            current ? { x: current?.x, y: current.y } : undefined,
+          ),
           measureUnit: state.measureUnit,
         });
       }
-    }
-    else if (uAppState.tool == "color" || uAppState.tool == "capture") {
+    } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
     }
   }, [uAppState.tool, measureMode, uAppState.color]);
@@ -258,7 +239,10 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
       currentRef.current = p;
       //draggingRef.current = true;
       setDraggingValue(true);
-      chainMesureRef.current.update({ x: startRef.current.x, y: startRef.current.y });
+      chainMesureRef.current.update({
+        x: startRef.current.x,
+        y: startRef.current.y,
+      });
       redraw();
     };
 
@@ -272,7 +256,10 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
       };
       //
       // pointermove とかで
-      chainMesureRef.current.update({ x: currentRef.current.x, y: currentRef.current.y });
+      chainMesureRef.current.update({
+        x: currentRef.current.x,
+        y: currentRef.current.y,
+      });
 
       redraw();
     };
@@ -280,7 +267,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
     const onMouseUp = () => {
       //draggingRef.current = false;
       setDraggingValue(false);
-      chainMesureRef.current.clear()
+      chainMesureRef.current.clear();
 
       redraw();
       if (measureMode == "setUnit" && startRef.current && currentRef.current) {
@@ -316,7 +303,7 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
       },
       getCanvas: () => canvasRef.current,
     }),
-    [redraw]
+    [redraw],
   );
 
   return (
@@ -334,12 +321,12 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
         >
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "line"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
             onClick={() => {
               console.log("chain measure line click");
-              setMeasureMode("line")
+              setMeasureMode("line");
             }}
             title="line measure"
             aria-label="line measure"
@@ -348,12 +335,12 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
           </button>
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "chain"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
             onClick={() => {
               console.log("chain measure click");
-              setMeasureMode("chain")
+              setMeasureMode("chain");
             }}
             title="chain measure"
             aria-label="chain measure"
@@ -363,12 +350,12 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
 
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "setUnit"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
             onClick={() => {
               console.log("set unit click");
-              setMeasureMode("setUnit")
+              setMeasureMode("setUnit");
             }}
             title="set unit"
             aria-label="set unit"
@@ -379,7 +366,9 @@ const AppDeslel = forwardRef<AppDeskelHandle, { onColorAnalysis?: (colors: Color
       }
       {
         <div
-          className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(state.tool === "capture" || state.tool === "color") && isMac ? "flex" : "hidden"
+          className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(state.tool === "capture" || state.tool === "color") && isMac
+              ? "flex"
+              : "hidden"
             }`}
         >
           <button
