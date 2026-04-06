@@ -6,8 +6,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { draw, drawClipRect, resizeCanvas } from "./deskel";
+import { draw, resizeCanvas } from "./deskel";
 import { drawMeasure } from "./deskelMeasure";
+import { drawClipRect } from "./deskelClipRect";
 import { useAppState } from "./state";
 import {
   captureAndCropToAnalysis,
