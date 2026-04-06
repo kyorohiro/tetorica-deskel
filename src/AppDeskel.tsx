@@ -7,16 +7,16 @@ import {
   useState,
 } from "react";
 import { draw, drawClipRect, resizeCanvas } from "./deskel";
-import { drawMeasure } from "./deskel_measure";
+import { drawMeasure } from "./deskelMeasure";
 import { useAppState } from "./state";
 import {
   captureAndCropToAnalysis,
   captureAndCropToDownloads,
   ColorCount,
 } from "./screenshot";
-import { showToast } from "./toast";
-import { ChainMeasure } from "./chainMesure";
+import { ChainMeasure } from "./deskelChainMesure";
 
+import { showToast } from "./toast";
 import { platform } from "@tauri-apps/plugin-os";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
