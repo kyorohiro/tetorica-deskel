@@ -153,10 +153,6 @@ const AppDeslel = forwardRef<
       }
     }
   }
-  useEffect(() => {
-    if (dragging) return;
-    onPointerUp();
-  }, [dragging]);
 
   const redraw = useCallback((props?: { isResizeCanvas: boolean }) => {
     const canvas = canvasRef.current;
@@ -244,7 +240,7 @@ const AppDeslel = forwardRef<
       redraw();
     };
 
-    const onMouseUp = () => {
+    const onMouseUp = async () => {
       setDraggingValue(false);
       chainMesureRef.current.clear();
       redraw();
@@ -256,6 +252,8 @@ const AppDeslel = forwardRef<
         uAppState.measureUnit = len / 5;
         showToast(`Measure unit set to ${uAppState.measureUnit.toFixed(2)} pixels`);
       }
+
+      await onPointerUp();
     };
 
     canvas.addEventListener("mousedown", onMouseDown);
