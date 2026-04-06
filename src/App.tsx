@@ -14,7 +14,6 @@ import { ColorCount } from "./screenshot";
 import { useAppState } from "./state";
 
 export default function App() {
-  //const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const deskelRef = useRef<AppDeskelHandle | null>(null);
   const colorAnalysisRef = useRef<AppColorAnalysisHandle | null>(null);
   const state = useAppState();
@@ -67,31 +66,22 @@ export default function App() {
   const onChangeStateForToolbar = useCallback(() => {
     deskelRef.current?.redraw();
   }, []);
+
   return (
     <div id="app">
       <AppToolbar
         onChangeState={onChangeStateForToolbar}
       />
-
       <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
       <AppColorAnalysis ref={colorAnalysisRef} />
-
       {
-        //
-        // どっちにしよ..
-        //<div
-        //  className={state.tool === "draw" ? "block pointer-events-auto" : "hidden pointer-events-none"}
-        //>
-        //  <AppSimpleDrawCanvas />
-        //</div>
+        // Simple Draw Canvas
       }
-      {
       <div
         className={state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"}
       >
         <AppSimpleDrawCanvas />
       </div>
-      }
     </div>
   )
 }
