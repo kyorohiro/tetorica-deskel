@@ -44,7 +44,7 @@ const AppDeslel = forwardRef<
   const startRef = useRef<AppDeskelPoint | null>(null);
   const currentRef = useRef<AppDeskelPoint | null>(null);
   const draggingRef = useRef(false);
-  const [dragging, setDragging] = useState(false);
+  const [, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
