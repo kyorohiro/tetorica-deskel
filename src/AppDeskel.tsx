@@ -22,6 +22,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
+import { drawPoint } from "./deskelPoint";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -45,6 +46,7 @@ const AppDeslel = forwardRef<
 
   const startRef = useRef<AppDeskelPoint | null>(null);
   const currentRef = useRef<AppDeskelPoint | null>(null);
+  const vanishingPointRef = useRef<AppDeskelPoint | null>(null);
   const draggingRef = useRef(false);
   const [, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
@@ -173,7 +175,7 @@ const AppDeslel = forwardRef<
     const current = currentRef.current;
     const dragging = draggingRef.current;
     if (uAppState.tool == "measure") {
-      console.log({ measureMode });
+      //console.log({ measureMode });
       if (measureMode == "line") {
         drawMeasure({
           canvas,
@@ -204,6 +206,11 @@ const AppDeslel = forwardRef<
           ),
           measureUnit: uAppState.measureUnit,
         });
+      } else if (measureMode == "setVanishingPoint" && current) {
+        vanishingPointRef.current = { x: current.x, y: current.y } ;
+      }
+      if(vanishingPointRef.current) {
+        drawPoint({ canvas, ctx, current: vanishingPointRef.current });
       }
     } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
