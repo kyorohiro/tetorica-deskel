@@ -23,7 +23,7 @@ import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
 import { drawPoint } from "./deskelPoint";
-import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
+//import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -191,6 +191,7 @@ const AppDeslel = forwardRef<
         });
         //
         if (vanishingPointRef.current) {
+          /*
           drawPerspectiveRulerByUnitBaseRange({
             ctx,
             vanishingPoint: vanishingPointRef.current!,
@@ -206,6 +207,7 @@ const AppDeslel = forwardRef<
             //current: Point,
             unitBaseDivisions: 1,
           })
+          */
         }
       } else if (measureMode == "chain") {
         // redraw時
