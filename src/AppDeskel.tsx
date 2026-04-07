@@ -51,6 +51,7 @@ const AppDeslel = forwardRef<
   const draggingRef = useRef(false);
   const [, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
+  const [perspectiveOnOff, setPerspectiveOnOff] = useState<boolean>(false);
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
   );
@@ -221,12 +222,12 @@ const AppDeslel = forwardRef<
         //vanishingRectRef.current = { x: current.x, y: current.y };
       }
       if (clipQuadRef.current && clipQuadRef.current.length == 4) {
-          drawClipQuad({
-            canvas,
-            ctx,
-            points: clipQuadRef.current,
-            dragging: true
-          })
+        drawClipQuad({
+          canvas,
+          ctx,
+          points: clipQuadRef.current,
+          dragging: true
+        })
       }
     } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
@@ -267,7 +268,7 @@ const AppDeslel = forwardRef<
 
       chainMesureRef.current.update(currentRef.current);
 
-      if(clipQuadDraggingPointIndexRef.current != -1) {
+      if (clipQuadDraggingPointIndexRef.current != -1) {
         const index = clipQuadDraggingPointIndexRef.current;
         clipQuadRef.current[index] = { ...currentRef.current };
       }
@@ -378,22 +379,24 @@ const AppDeslel = forwardRef<
             Set Unit
           </button>
           <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "setVanishingPoint"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${perspectiveOnOff == true
+              ? "border-amber-500 bg-amber-950 text-amber-300"
+              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 active:bg-slate-700"
               }`}
             onClick={() => {
               console.log("set vanishing point click");
-              setMeasureMode("setVanishingPoint");
-              dialog.showConfirmDialog({
-                title: "Set Vanishing Point",
-                body: "now creating", //"Click on the canvas to set the vanishing point for perspective measurement. This will be used as the reference point for perspective measurements.",
-              });
+              setPerspectiveOnOff(!perspectiveOnOff);
+              if (!perspectiveOnOff) {
+                dialog.showConfirmDialog({
+                  title: "Set Vanishing Point",
+                  body: "now creating", //"Click on the canvas to set the vanishing point for perspective measurement. This will be used as the reference point for perspective measurements.",
+                });
+              }
             }}
             title="set vanishing point"
             aria-label="set vanishing point"
           >
-            Set Quad
+            Perspective {perspectiveOnOff ? "ON" : "OFF"}
           </button>
         </div>
       }
