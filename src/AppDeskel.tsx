@@ -8,7 +8,7 @@ import {
 } from "react";
 import { draw, resizeCanvas } from "./deskel";
 import { drawMeasure } from "./deskelMeasure";
-import { drawClipRect, drawClipQuad, findNearestQuadPointIndex } from "./deskelClipRect";
+import { drawClipRect, drawClipQuad2, findNearestQuadPointIndex } from "./deskelClipRect";
 import { useAppState } from "./state";
 import {
   captureAndCropToAnalysis,
@@ -192,8 +192,8 @@ const AppDeslel = forwardRef<
           measureUnit: uAppState.measureUnit,
         });
         //
-        if (clipQuadRef.current && clipQuadRef.current.length == 4) {
-          drawClipQuad({
+        if (clipQuadRef.current && clipQuadRef.current.length == 4 && perspectiveOnOff) {
+          drawClipQuad2({
             canvas,
             ctx,
             points: clipQuadRef.current,
@@ -221,8 +221,8 @@ const AppDeslel = forwardRef<
       } else if (measureMode == "setVanishingPoint" && current) {
         //vanishingRectRef.current = { x: current.x, y: current.y };
       }
-      if (clipQuadRef.current && clipQuadRef.current.length == 4) {
-        drawClipQuad({
+      if (clipQuadRef.current && clipQuadRef.current.length == 4 && perspectiveOnOff) {
+        drawClipQuad2({
           canvas,
           ctx,
           points: clipQuadRef.current,
@@ -232,7 +232,7 @@ const AppDeslel = forwardRef<
     } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
     }
-  }, [uAppState.tool, measureMode, uAppState.color]);
+  }, [uAppState.tool, measureMode, uAppState.color, perspectiveOnOff]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
