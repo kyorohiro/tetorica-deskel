@@ -1,4 +1,6 @@
-
+//
+// 射影変換のコード
+//
 type Point = { x: number; y: number };
 
 function dist(a: Point, b: Point): number {

@@ -8,7 +8,7 @@ import {
 } from "react";
 import { draw, resizeCanvas } from "./deskel";
 import { drawMeasure } from "./deskelMeasure";
-import { drawClipRect } from "./deskelClipRect";
+import { drawClipRect, drawClipQuad, findNearestQuadPointIndex } from "./deskelClipRect";
 import { useAppState } from "./state";
 import {
   captureAndCropToAnalysis,
@@ -22,7 +22,6 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
-import { drawPoint } from "./deskelPoint";
 //import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
 type AppDeskelHandle = {
@@ -47,7 +46,8 @@ const AppDeslel = forwardRef<
 
   const startRef = useRef<AppDeskelPoint | null>(null);
   const currentRef = useRef<AppDeskelPoint | null>(null);
-  const vanishingPointRef = useRef<AppDeskelPoint | null>(null);
+  const clipQuadRef = useRef<AppDeskelPoint[]>([{ x: 200, y: 200 }, { x: 300, y: 200 }, { x: 300, y: 300 }, { x: 200, y: 300 }]); // 台形を定義して、射系変換の基準点とする
+  const clipQuadDraggingPointIndexRef = useRef<number>(-1);
   const draggingRef = useRef(false);
   const [, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
@@ -55,6 +55,7 @@ const AppDeslel = forwardRef<
     "line",
   );
   const [isMac, setIsMac] = useState(false);
+
   const dialog = useDialog();
   const uAppState = useAppState();
 
@@ -190,24 +191,13 @@ const AppDeslel = forwardRef<
           measureUnit: uAppState.measureUnit,
         });
         //
-        if (vanishingPointRef.current) {
-          /*
-          drawPerspectiveRulerByUnitBaseRange({
+        if (clipQuadRef.current && clipQuadRef.current.length == 4) {
+          drawClipQuad({
+            canvas,
             ctx,
-            vanishingPoint: vanishingPointRef.current!,
-            //measureUnitSet: uAppState.measureUnitSet,
-            start: start ?? { x: 0, y: 0 },
-            current: current ?? { x: 0, y: 0 },
-            //
-            //ctx: CanvasRenderingContext2D,
-            //vanishingPoint: Point,
-            unitBaseStart: uAppState.measureUnitSet.start,
-            unitBaseEnd: uAppState.measureUnitSet.end,
-            //start: Point,
-            //current: Point,
-            unitBaseDivisions: 1,
+            points: clipQuadRef.current,
+            dragging: true
           })
-          */
         }
       } else if (measureMode == "chain") {
         // redraw時
@@ -228,10 +218,15 @@ const AppDeslel = forwardRef<
           measureUnit: uAppState.measureUnit,
         });
       } else if (measureMode == "setVanishingPoint" && current) {
-        vanishingPointRef.current = { x: current.x, y: current.y };
+        //vanishingRectRef.current = { x: current.x, y: current.y };
       }
-      if (vanishingPointRef.current) {
-        drawPoint({ canvas, ctx, current: vanishingPointRef.current });
+      if (clipQuadRef.current && clipQuadRef.current.length == 4) {
+          drawClipQuad({
+            canvas,
+            ctx,
+            points: clipQuadRef.current,
+            dragging: true
+          })
       }
     } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
@@ -255,6 +250,10 @@ const AppDeslel = forwardRef<
       setDraggingValue(true);
       chainMesureRef.current.update(p);
       redraw();
+      //
+      const pointIndex = findNearestQuadPointIndex(p, clipQuadRef.current, 14);
+      clipQuadDraggingPointIndexRef.current = pointIndex;
+      console.log(">> pointIndex:", pointIndex);
     };
 
     const onMouseMove = (e: MouseEvent) => {
@@ -267,6 +266,11 @@ const AppDeslel = forwardRef<
       };
 
       chainMesureRef.current.update(currentRef.current);
+
+      if(clipQuadDraggingPointIndexRef.current != -1) {
+        const index = clipQuadDraggingPointIndexRef.current;
+        clipQuadRef.current[index] = { ...currentRef.current };
+      }
       redraw();
     };
 
@@ -287,6 +291,7 @@ const AppDeslel = forwardRef<
         showToast(`Measure unit set to ${uAppState.measureUnit.toFixed(2)} pixels`);
       }
 
+      clipQuadDraggingPointIndexRef.current = -1;
       await onPointerUp();
     };
 
@@ -388,7 +393,7 @@ const AppDeslel = forwardRef<
             title="set vanishing point"
             aria-label="set vanishing point"
           >
-            Set Vanishing Point
+            Set Quad
           </button>
         </div>
       }
