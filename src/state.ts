@@ -7,6 +7,7 @@ type Settings = {
     color: string
     rotation: number
     measureUnit: number
+    measureUnitSet: {start:{x:number,y:number},end:{x:number,y:number}}
 }
 
 type ToolMode = "measure" | "draw" | "color" | "capture"
@@ -26,6 +27,7 @@ const DEFAULT_SETTINGS: Settings = {
     color: "#00ff88",
     rotation: 0,
     measureUnit: 20,
+    measureUnitSet: {start:{x:0,y:0}, end:{x:0,y:0}},
 }
 
 const SETTINGS_KEY = "tetorica-deskel-settings"
@@ -57,6 +59,28 @@ function loadSettings(): Settings {
                 typeof parsed.measureUnit === "number"
                     ? parsed.measureUnit
                     : DEFAULT_SETTINGS.measureUnit,
+            measureUnitSet:
+                typeof parsed.measureUnitSet === "object" && parsed.measureUnitSet !== null
+                    ? {
+                            start: {
+                                x: typeof parsed.measureUnitSet.start?.x === "number"
+                                    ? parsed.measureUnitSet.start.x
+                                    : DEFAULT_SETTINGS.measureUnitSet.start.x,
+                                y: typeof parsed.measureUnitSet.start?.y === "number"
+                                    ? parsed.measureUnitSet.start.y
+                                    : DEFAULT_SETTINGS.measureUnitSet.start.y,
+                            },
+                            end: {
+                                x: typeof parsed.measureUnitSet.end?.x === "number"
+                                    ? parsed.measureUnitSet.end.x
+                                    : DEFAULT_SETTINGS.measureUnitSet.end.x,
+                                y: typeof parsed.measureUnitSet.end?.y === "number"
+                                    ? parsed.measureUnitSet.end.y
+                                    : DEFAULT_SETTINGS.measureUnitSet.end.y,
+                            },
+                        }
+                    : DEFAULT_SETTINGS.measureUnitSet,
+                    
         }
     } catch (error) {
         console.error("failed to load settings", error)
@@ -95,6 +119,7 @@ class AppStateStore {
             rotation: saved.rotation,
             tool: "measure",
             measureUnit: saved.measureUnit,
+            measureUnitSet: saved.measureUnitSet,
         }
     }
 
@@ -141,6 +166,7 @@ class AppStateStore {
                 color: this._state.color,
                 rotation: this._state.rotation,
                 measureUnit: this._state.measureUnit,
+                measureUnitSet: this._state.measureUnitSet,
             })
         }
 

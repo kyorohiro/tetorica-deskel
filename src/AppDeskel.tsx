@@ -23,6 +23,7 @@ import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
 import { drawPoint } from "./deskelPoint";
+import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -188,6 +189,24 @@ const AppDeslel = forwardRef<
           ),
           measureUnit: uAppState.measureUnit,
         });
+        //
+        if (vanishingPointRef.current) {
+          drawPerspectiveRulerByUnitBaseRange({
+            ctx,
+            vanishingPoint: vanishingPointRef.current!,
+            //measureUnitSet: uAppState.measureUnitSet,
+            start: start ?? { x: 0, y: 0 },
+            current: current ?? { x: 0, y: 0 },
+            //
+            //ctx: CanvasRenderingContext2D,
+            //vanishingPoint: Point,
+            unitBaseStart: uAppState.measureUnitSet.start,
+            unitBaseEnd: uAppState.measureUnitSet.end,
+            //start: Point,
+            //current: Point,
+            unitBaseDivisions: 1,
+          })
+        }
       } else if (measureMode == "chain") {
         // redraw時
         chainMesureRef.current.draw(ctx, {
@@ -207,9 +226,9 @@ const AppDeslel = forwardRef<
           measureUnit: uAppState.measureUnit,
         });
       } else if (measureMode == "setVanishingPoint" && current) {
-        vanishingPointRef.current = { x: current.x, y: current.y } ;
+        vanishingPointRef.current = { x: current.x, y: current.y };
       }
-      if(vanishingPointRef.current) {
+      if (vanishingPointRef.current) {
         drawPoint({ canvas, ctx, current: vanishingPointRef.current });
       }
     } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
@@ -259,6 +278,10 @@ const AppDeslel = forwardRef<
         const dy = currentRef.current.y - startRef.current.y;
         const len = Math.sqrt(dx * dx + dy * dy);
         uAppState.measureUnit = len / 5;
+        uAppState.measureUnitSet = {
+          start: { ...startRef.current },
+          end: { ...currentRef.current },
+        };
         showToast(`Measure unit set to ${uAppState.measureUnit.toFixed(2)} pixels`);
       }
 

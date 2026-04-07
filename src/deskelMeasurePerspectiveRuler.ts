@@ -33,7 +33,7 @@ function calcDistance(a: Point, b: Point): number {
 function normalize(vx: number, vy: number): Point {
   const len = Math.hypot(vx, vy);
   if (len <= 1e-6) {
-    throw new Error("ベクトル長が 0 です");
+    throw new Error(`ベクトル長が 0 です ${vx}, ${vy}`);
   }
   return { x: vx / len, y: vy / len };
 }
@@ -199,7 +199,7 @@ function createPerspectiveRulerTicksByUnitBaseRange(
   return out;
 }
 
-function drawPerspectiveRulerByUnitBaseRange(
+function drawPerspectiveRulerByUnitBaseRange(params:{
   ctx: CanvasRenderingContext2D,
   vanishingPoint: Point,
   unitBaseStart: Point,
@@ -207,8 +207,12 @@ function drawPerspectiveRulerByUnitBaseRange(
   start: Point,
   current: Point,
   unitBaseDivisions: number,
-  tickPixelLength = 10
+  tickPixelLength?: number
+}
 ) {
+  let { ctx, vanishingPoint, unitBaseStart, unitBaseEnd, start, current, unitBaseDivisions, tickPixelLength } = params;
+  tickPixelLength = tickPixelLength ?? 10;
+  console.log("> drawPerspectiveRulerByUnitBaseRange", params);
   const ticks = createPerspectiveRulerTicksByUnitBaseRange(
     vanishingPoint,
     unitBaseStart,
