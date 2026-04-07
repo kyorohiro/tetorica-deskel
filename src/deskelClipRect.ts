@@ -334,9 +334,9 @@ function drawClipQuad2(params: {
   );
   const shadowRgbaParams = hslaToRgba(shadowHslaParams);
 
-  const shadowColor = `rgba(${shadowRgbaParams.r}, ${shadowRgbaParams.g}, ${shadowRgbaParams.b}, ${shadowRgbaParams.a})`;
-  const mainColor = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, ${rgbaParams.a})`;
-  const fillColor = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, 0.12)`;
+  const shadowColor = `rgba(${shadowRgbaParams.r}, ${shadowRgbaParams.g}, ${shadowRgbaParams.b}, 0.35)`;
+  const mainColor = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, 0.55)`;
+  const fillColor = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, 0.04)`;
   const guideColor = `rgba(${rgbaParams.r}, ${rgbaParams.g}, ${rgbaParams.b}, 0.55)`;
 
   const traceQuad = () => {
@@ -373,13 +373,39 @@ function drawClipQuad2(params: {
 
     ctx.save();
     ctx.strokeStyle = guideColor;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.5;
 
     // 欲しい分割
-    const fractions = [3/4, 1 / 4, 1 / 2, 1 / 3, 2 / 3];
+    const fractions = [3/4, 1 / 4, 1 / 2, 1 / 3, 2 / 3, 
+      //
+      1/8, 3/8, 5/8, 7/8];
 
     // 横方向の分割線（上辺AB → 下辺DC に向かう）
     for (const v of fractions) {
+
+      //
+      ctx.strokeStyle = shadowColor;
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([5, 0]);
+      drawProjectedLine({
+        ctx,
+        h,
+        from: { u: 0, v },
+        to: { u: 1, v },
+      });
+      //
+      ctx.strokeStyle = mainColor;
+      //
+      if(v== 1/3 || v == 2/3) {
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([5, 10]);
+      } else if(v ==1/4 || v == 3/4) {
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 1]);
+      } else if(v == 1/8 || v == 3/8 || v == 5/8 || v == 7/8) {
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([2, 1]);
+      }
       drawProjectedLine({
         ctx,
         h,
@@ -390,17 +416,42 @@ function drawClipQuad2(params: {
 
     // 縦方向の分割線（左辺AD → 右辺BC に向かう）
     for (const u of fractions) {
+
+      //
+      ctx.strokeStyle = shadowColor;
+      ctx.lineWidth = 1.8;
+      ctx.setLineDash([5, 0]);
       drawProjectedLine({
         ctx,
         h,
         from: { u, v: 0 },
         to: { u, v: 1 },
       });
+      //
+      ctx.strokeStyle = mainColor;
+      if(u== 1/3 || u == 2/3) {
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([5, 10]);
+      } else if(u ==1/4 || u == 3/4) {
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 1]);
+      } else if(u == 1/8 || u == 3/8 || u == 5/8 || u == 7/8) {
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([2,1]);
+      }
+
+      drawProjectedLine({
+        ctx,
+        h,
+        from: { u, v: 0 },
+        to: { u, v: 1 },
+      });    
     }
+    ctx.setLineDash([5, 0]);
 
     // 中央強調（1/2 だけ少し太く）
-    ctx.strokeStyle = mainColor;
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = shadowColor;
+    ctx.lineWidth = 3.5;
 
     drawProjectedLine({
       ctx,
@@ -416,6 +467,22 @@ function drawClipQuad2(params: {
       to: { u: 1 / 2, v: 1 },
     });
 
+    ctx.strokeStyle = mainColor;
+    ctx.lineWidth = 2.2;
+
+    drawProjectedLine({
+      ctx,
+      h,
+      from: { u: 0, v: 1 / 2 },
+      to: { u: 1, v: 1 / 2 },
+    });
+
+    drawProjectedLine({
+      ctx,
+      h,
+      from: { u: 1 / 2, v: 0 },
+      to: { u: 1 / 2, v: 1 },
+    });
     ctx.restore();
   } catch (e) {
     console.warn("drawClipQuad: guide line generation failed", e);

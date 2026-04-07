@@ -486,6 +486,7 @@ export {
   isConcaveQuadrilateral,
   isValidQuad,
   drawPerspectiveRuler,
+  dot,
 }
 
 export type {
