@@ -85,6 +85,12 @@ tested mac book air and usb c monitor
 * Contrast Analysis
 
 ![デモ画像](docs/demo05.gif)
+
+* Perspective correction ruler
+
+![デモ画像](docs/demo07.gif)
+
+
 ---
 
 ## ⌨️ Shortcuts
