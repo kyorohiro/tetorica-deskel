@@ -189,6 +189,11 @@ Great artwork really enhances the visuals.
 
 - https://x.com/walterlicinio
 
+- https://deviantart.com/al7al700/art/Japanese-Cc0-Girl-Anime-PNG-Free-Download-1144417787
+
+- https://instagram.com/intpcommunity/
+
+
 # itch.io pages
 
 - https://kyorohiro.itch.io/tetorica-deskel
