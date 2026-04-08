@@ -12,6 +12,7 @@ import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { AppSimpleDrawCanvas } from "./AppSimpleDrawCanvas";
 import { ColorCount } from "./screenshot";
 import { useAppState } from "./state";
+import ScreenCaptureCanvas from "./AppScreenCaptureCanvas";
 
 export default function App() {
   const deskelRef = useRef<AppDeskelHandle | null>(null);
@@ -81,6 +82,10 @@ export default function App() {
         className={state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"}
       >
         <AppSimpleDrawCanvas />
+      </div>
+      <div
+      className={state.tool === "capture" ? "pointer-events-auto" : "pointer-events-none"}>
+        <ScreenCaptureCanvas image={state.captureImage} />
       </div>
     </div>
   )

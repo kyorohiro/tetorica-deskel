@@ -7,7 +7,16 @@ type Settings = {
     color: string
     rotation: number
     measureUnit: number
-    measureUnitSet: {start:{x:number,y:number},end:{x:number,y:number}}
+    measureUnitSet: { start: { x: number, y: number }, end: { x: number, y: number } }
+    captureImage?: {
+        path: string;
+        sourceWidth: number;
+        sourceHeight: number;
+        cropX: number;
+        cropY: number;
+        cropWidth: number;
+        cropHeight: number;
+    } | null,
 }
 
 type ToolMode = "measure" | "draw" | "color" | "capture"
@@ -27,7 +36,7 @@ const DEFAULT_SETTINGS: Settings = {
     color: "#00ff88",
     rotation: 0,
     measureUnit: 20,
-    measureUnitSet: {start:{x:0,y:0}, end:{x:0,y:0}},
+    measureUnitSet: { start: { x: 0, y: 0 }, end: { x: 0, y: 0 } },
 }
 
 const SETTINGS_KEY = "tetorica-deskel-settings"
@@ -62,25 +71,25 @@ function loadSettings(): Settings {
             measureUnitSet:
                 typeof parsed.measureUnitSet === "object" && parsed.measureUnitSet !== null
                     ? {
-                            start: {
-                                x: typeof parsed.measureUnitSet.start?.x === "number"
-                                    ? parsed.measureUnitSet.start.x
-                                    : DEFAULT_SETTINGS.measureUnitSet.start.x,
-                                y: typeof parsed.measureUnitSet.start?.y === "number"
-                                    ? parsed.measureUnitSet.start.y
-                                    : DEFAULT_SETTINGS.measureUnitSet.start.y,
-                            },
-                            end: {
-                                x: typeof parsed.measureUnitSet.end?.x === "number"
-                                    ? parsed.measureUnitSet.end.x
-                                    : DEFAULT_SETTINGS.measureUnitSet.end.x,
-                                y: typeof parsed.measureUnitSet.end?.y === "number"
-                                    ? parsed.measureUnitSet.end.y
-                                    : DEFAULT_SETTINGS.measureUnitSet.end.y,
-                            },
-                        }
+                        start: {
+                            x: typeof parsed.measureUnitSet.start?.x === "number"
+                                ? parsed.measureUnitSet.start.x
+                                : DEFAULT_SETTINGS.measureUnitSet.start.x,
+                            y: typeof parsed.measureUnitSet.start?.y === "number"
+                                ? parsed.measureUnitSet.start.y
+                                : DEFAULT_SETTINGS.measureUnitSet.start.y,
+                        },
+                        end: {
+                            x: typeof parsed.measureUnitSet.end?.x === "number"
+                                ? parsed.measureUnitSet.end.x
+                                : DEFAULT_SETTINGS.measureUnitSet.end.x,
+                            y: typeof parsed.measureUnitSet.end?.y === "number"
+                                ? parsed.measureUnitSet.end.y
+                                : DEFAULT_SETTINGS.measureUnitSet.end.y,
+                        },
+                    }
                     : DEFAULT_SETTINGS.measureUnitSet,
-                    
+
         }
     } catch (error) {
         console.error("failed to load settings", error)

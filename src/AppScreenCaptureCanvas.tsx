@@ -13,7 +13,7 @@ export type ScreenCaptureImage = {
 };
 
 type Props = {
-  image: ScreenCaptureImage | null;
+  image: ScreenCaptureImage | null | undefined;
   className?: string;
 };
 
