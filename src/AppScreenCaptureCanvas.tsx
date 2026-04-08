@@ -2,7 +2,40 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { CaptureMode } from "./state";
+import { useDialog } from "./useDialog";
 
+function normalizeToBytes(buffer: unknown): Uint8Array {
+  if (buffer instanceof Uint8Array) {
+    return buffer;
+  }
+
+  if (buffer instanceof ArrayBuffer) {
+    return new Uint8Array(buffer);
+  }
+
+  if (Array.isArray(buffer)) {
+    return new Uint8Array(buffer);
+  }
+
+  if (
+    buffer &&
+    typeof buffer === "object" &&
+    "buffer" in (buffer as Record<string, unknown>)
+  ) {
+    const view = buffer as ArrayBufferView;
+    if (view.buffer instanceof ArrayBuffer) {
+      return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+    }
+  }
+
+  throw new Error(`Unsupported buffer type: ${Object.prototype.toString.call(buffer)}`);
+}
+
+//function bytesToHex(bytes: Uint8Array, count = 16): string {
+//  return Array.from(bytes.slice(0, count))
+///    .map((v) => v.toString(16).padStart(2, "0"))
+//    .join(" ");
+//}
 export type ScreenCaptureImage = {
   path?: string;
   buffer?: ArrayBuffer;
@@ -30,8 +63,10 @@ void main() {
 `;
 
 const fragmentShader = `
+precision mediump float;
+
 uniform sampler2D uTexture;
-uniform int uMode;
+uniform float uMode;
 varying vec2 vUv;
 
 vec3 applyLightness(vec3 c) {
@@ -70,17 +105,20 @@ void main() {
   vec4 color = texture2D(uTexture, vUv);
   vec3 rgb = color.rgb;
 
-  if (uMode == 1) {
+  if (uMode < 0.5) {
+  } else if (uMode < 1.5) {
     rgb = applyLightness(rgb);
-  } else if (uMode == 2) {
+  } else if (uMode < 2.5) {
     rgb = applyProtan(rgb);
-  } else if (uMode == 3) {
+  } else if (uMode < 3.5) {
     rgb = applyDeutan(rgb);
-  } else if (uMode == 4) {
+  } else {
     rgb = applyTritan(rgb);
   }
 
   gl_FragColor = vec4(rgb, color.a);
+
+  #include <colorspace_fragment>
 }
 `;
 
@@ -111,167 +149,266 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
   const geometryRef = useRef<THREE.PlaneGeometry | null>(null);
   const meshRef = useRef<THREE.Mesh | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-
+  const dialog = useDialog();
+  const showError = (title: string, body: string) => {
+    console.error(title, body);
+    dialog.showConfirmDialog({
+      title,
+      body,
+    });
+  };
   const renderNow = () => {
-    if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
-    rendererRef.current.render(sceneRef.current, cameraRef.current);
+    try {
+      if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    } catch (e) {
+      console.log(e)
+      showError("render error", e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e));
+    }
   };
 
   useEffect(() => {
-    const root = rootRef.current;
-    if (!root || !image) return;
+    try {
+      const root = rootRef.current;
+      if (!root || !image) return;
 
-    let disposed = false;
+      let disposed = false;
 
-    const scene = new THREE.Scene();
-    sceneRef.current = scene;
+      const scene = new THREE.Scene();
+      sceneRef.current = scene;
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    root.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+      });
+      //
+      renderer.debug.checkShaderErrors = true;
+      renderer.debug.onShaderError = (gl, program, glVertexShader, glFragmentShader) => {
+        const programLog = gl.getProgramInfoLog(program) || "";
+        const vertexLog = gl.getShaderInfoLog(glVertexShader) || "";
+        const fragmentLog = gl.getShaderInfoLog(glFragmentShader) || "";
 
-    const camera = new THREE.OrthographicCamera(
-      0,
-      image.sourceWidth,
-      image.sourceHeight,
-      0,
-      -1000,
-      1000
-    );
-    camera.position.z = 1;
-    cameraRef.current = camera;
+        showError(
+          "shader error",
+          [
+            "Program Log:",
+            programLog,
+            "",
+            "Vertex Shader Log:",
+            vertexLog,
+            "",
+            "Fragment Shader Log:",
+            fragmentLog,
+          ].join("\n")
+        );
+      };
+      //
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      root.appendChild(renderer.domElement);
+      rendererRef.current = renderer;
 
-    const geometry = new THREE.PlaneGeometry(1, 1);
-    geometryRef.current = geometry;
+      const camera = new THREE.OrthographicCamera(
+        0,
+        image.sourceWidth,
+        image.sourceHeight,
+        0,
+        -1000,
+        1000
+      );
+      camera.position.z = 1;
+      cameraRef.current = camera;
 
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        uTexture: { value: null },
-        uMode: { value: modeToInt(mode) },
-      },
-      vertexShader,
-      fragmentShader,
-      transparent: true,
-    });
-    materialRef.current = material;
+      const geometry = new THREE.PlaneGeometry(1, 1);
+      geometryRef.current = geometry;
 
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(
-      image.cropX + image.cropWidth / 2,
-      image.sourceHeight - image.cropY - image.cropHeight / 2,
-      0
-    );
-    mesh.scale.set(image.cropWidth, image.cropHeight, 1);
-    scene.add(mesh);
-    meshRef.current = mesh;
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          uTexture: { value: null },
+          uMode: { value: Number(modeToInt(mode)) },
+        },
+        vertexShader,
+        fragmentShader,
+        transparent: true,
+      });
+      materialRef.current = material;
 
-    const updateRendererSize = () => {
-      if (!rootRef.current || !rendererRef.current || !cameraRef.current || !image) return;
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(
+        image.cropX + image.cropWidth / 2,
+        image.sourceHeight - image.cropY - image.cropHeight / 2,
+        0
+      );
+      mesh.scale.set(image.cropWidth, image.cropHeight, 1);
+      scene.add(mesh);
+      meshRef.current = mesh;
 
-      const w = rootRef.current.clientWidth || 1;
-      const h = rootRef.current.clientHeight || 1;
-      rendererRef.current.setSize(w, h);
+      const updateRendererSize = () => {
+        if (!rootRef.current || !rendererRef.current || !cameraRef.current || !image) return;
 
-      const sourceAspect = image.sourceWidth / image.sourceHeight;
-      const rootAspect = w / h;
+        const w = rootRef.current.clientWidth || 1;
+        const h = rootRef.current.clientHeight || 1;
+        rendererRef.current.setSize(w, h);
 
-      if (rootAspect > sourceAspect) {
-        const viewWidth = image.sourceHeight * rootAspect;
-        cameraRef.current.left = 0;
-        cameraRef.current.right = viewWidth;
-        cameraRef.current.top = image.sourceHeight;
-        cameraRef.current.bottom = 0;
+        const sourceAspect = image.sourceWidth / image.sourceHeight;
+        const rootAspect = w / h;
+
+        if (rootAspect > sourceAspect) {
+          const viewWidth = image.sourceHeight * rootAspect;
+          cameraRef.current.left = 0;
+          cameraRef.current.right = viewWidth;
+          cameraRef.current.top = image.sourceHeight;
+          cameraRef.current.bottom = 0;
+        } else {
+          const viewHeight = image.sourceWidth / rootAspect;
+          cameraRef.current.left = 0;
+          cameraRef.current.right = image.sourceWidth;
+          cameraRef.current.top = viewHeight;
+          cameraRef.current.bottom = 0;
+        }
+
+        cameraRef.current.updateProjectionMatrix();
+        renderNow();
+      };
+
+
+
+      let imageUrl: string;
+      if (image.path) {
+        imageUrl = convertFileSrc(image.path);
       } else {
-        const viewHeight = image.sourceWidth / rootAspect;
-        cameraRef.current.left = 0;
-        cameraRef.current.right = image.sourceWidth;
-        cameraRef.current.top = viewHeight;
-        cameraRef.current.bottom = 0;
+        const bytes = normalizeToBytes(image.buffer);
+        //showError("buffer info", JSON.stringify({
+        //  byteLength: bytes.byteLength,
+        //  headerHex: bytesToHex(bytes, 16),
+        //}));
+        const blob = new Blob([bytes as any], { type: "image/png" });
+        imageUrl = URL.createObjectURL(blob);
+        blobUrlRef.current = imageUrl;
+        //imageUrl = URL.createObjectURL(new Blob([image.buffer!], { type: "image/png" }));
+        //blobUrlRef.current = imageUrl;
+
+        createImageBitmap(blob, {
+          imageOrientation: "flipY",
+        })
+          .then((bitmap) => {
+            if (disposed) {
+              bitmap.close();
+              return;
+            }
+
+            const texture = new THREE.Texture(bitmap);
+            texture.flipY = false;
+            texture.needsUpdate = true;
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            texture.generateMipmaps = false;
+            texture.colorSpace = THREE.SRGBColorSpace;
+
+            textureRef.current = texture;
+
+            if (materialRef.current) {
+              materialRef.current.uniforms.uTexture.value = texture;
+            }
+
+            updateRendererSize();
+          })
+          .catch((e) => {
+            showError(
+              "image decode error",
+              e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e)
+            );
+          });
       }
+      /*
+      loader.load(
+        imageUrl,
+        (loadedTexture) => {
+          if (disposed) {
+            loadedTexture.dispose();
+            return;
+          }
 
-      cameraRef.current.updateProjectionMatrix();
-      renderNow();
-    };
+          textureRef.current = loadedTexture;
+          loadedTexture.minFilter = THREE.LinearFilter;
+          loadedTexture.magFilter = THREE.LinearFilter;
+          loadedTexture.generateMipmaps = false;
+          loadedTexture.colorSpace = THREE.SRGBColorSpace; //THREE.NoColorSpace;;//
 
-    const loader = new THREE.TextureLoader();
+          if (materialRef.current) {
+            materialRef.current.uniforms.uTexture.value = loadedTexture;
+          }
 
-    let imageUrl: string;
-    if (image.path) {
-      imageUrl = convertFileSrc(image.path);
-    } else {
-      imageUrl = URL.createObjectURL(new Blob([image.buffer!], { type: "image/png" }));
-      blobUrlRef.current = imageUrl;
+          updateRendererSize();
+        },
+        undefined,
+        (err) => {
+          console.error("texture load error", {
+            imageUrl,
+            err,
+            //type: err?.type,
+            //target: err?.target,
+            //currentTarget: err?.currentTarget,
+          });
+
+          showError(
+            "texture load error",
+            JSON.stringify(
+              {
+                imageUrl,
+                type: (err as Event | undefined)?.type ?? null,
+              },
+              null,
+              2
+            )
+          );
+        }
+      );*/
+
+      const onResize = () => updateRendererSize();
+      window.addEventListener("resize", onResize);
+
+      return () => {
+        disposed = true;
+        window.removeEventListener("resize", onResize);
+
+        if (meshRef.current && sceneRef.current) {
+          sceneRef.current.remove(meshRef.current);
+        }
+
+        textureRef.current?.dispose();
+        geometryRef.current?.dispose();
+        materialRef.current?.dispose();
+        rendererRef.current?.dispose();
+
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+
+        if (renderer.domElement.parentNode === root) {
+          root.removeChild(renderer.domElement);
+        }
+
+        textureRef.current = null;
+        geometryRef.current = null;
+        materialRef.current = null;
+        meshRef.current = null;
+        cameraRef.current = null;
+        sceneRef.current = null;
+        rendererRef.current = null;
+      };
+    } catch (e) {
+      dialog.showConfirmDialog({
+        title: "error",
+        body: `${e}`
+      })
     }
-
-    loader.load(
-      imageUrl,
-      (loadedTexture) => {
-        if (disposed) {
-          loadedTexture.dispose();
-          return;
-        }
-
-        textureRef.current = loadedTexture;
-        loadedTexture.minFilter = THREE.LinearFilter;
-        loadedTexture.magFilter = THREE.LinearFilter;
-        loadedTexture.generateMipmaps = false;
-        loadedTexture.colorSpace =THREE.NoColorSpace;;//THREE.SRGBColorSpace;
-
-        if (materialRef.current) {
-          materialRef.current.uniforms.uTexture.value = loadedTexture;
-        }
-
-        updateRendererSize();
-      },
-      undefined,
-      (err) => {
-        console.error(err);
-      }
-    );
-
-    const onResize = () => updateRendererSize();
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      disposed = true;
-      window.removeEventListener("resize", onResize);
-
-      if (meshRef.current && sceneRef.current) {
-        sceneRef.current.remove(meshRef.current);
-      }
-
-      textureRef.current?.dispose();
-      geometryRef.current?.dispose();
-      materialRef.current?.dispose();
-      rendererRef.current?.dispose();
-
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-        blobUrlRef.current = null;
-      }
-
-      if (renderer.domElement.parentNode === root) {
-        root.removeChild(renderer.domElement);
-      }
-
-      textureRef.current = null;
-      geometryRef.current = null;
-      materialRef.current = null;
-      meshRef.current = null;
-      cameraRef.current = null;
-      sceneRef.current = null;
-      rendererRef.current = null;
-    };
   }, [image]);
 
   useEffect(() => {
     if (!materialRef.current) return;
 
-    materialRef.current.uniforms.uMode.value = modeToInt(mode);
+    materialRef.current.uniforms.uMode.value = Number(modeToInt(mode));
     renderNow();
   }, [mode]);
 
