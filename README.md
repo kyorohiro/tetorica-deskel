@@ -219,12 +219,19 @@ chmod +x /tmp/butler/butler
 mv /tmp/butler/butler ~/bin/butler
 ```
 
-``` 
-% npm run tauri build
-% npm run tauri build -- --target x86_64-apple-darwin
-% ~/bin/butler login
-% ~/bin/butler push src-tauri/target/release/bundle/macos kyorohiro/tetorica-deskel:mac
-% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/macos kyorohiro/tetorica-deskel:mac
+```
+1) Spotlightで開く (⌘ + Space 押す)
+2) キーチェーンアクセス → 証明書アシスタント → 認証局に証明書を要求
+3) Apple Developer Console で Certification->Developer ID Application
+4) security find-identity -v -p codesigning で 表示されれば成功
 
 ```
+
+``` 
+% sh deploy_mac.sh
+% ~/bin/butler login
+% ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.11.5_aarch64.dmg kyorohiro/tetorica-deskel:mac
+% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.11.5_x64.dmg kyorohiro/tetorica-deskel:mac
+```
+
 
