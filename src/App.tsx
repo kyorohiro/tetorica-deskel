@@ -69,24 +69,30 @@ export default function App() {
   }, []);
 
   return (
-    <div id="app">
-      <AppToolbar
-        onChangeState={onChangeStateForToolbar}
-      />
-      <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
-      <AppColorAnalysis ref={colorAnalysisRef} />
-      {
-        // Simple Draw Canvas
-      }
+    <div id="app" className="relative w-screen h-screen">
+      <div className="absolute inset-0 z-10">
+        <ScreenCaptureCanvas image={state.captureImage} />
+      </div>
+
+      <div className="absolute inset-0 z-20">
+        <AppColorAnalysis ref={colorAnalysisRef} />
+      </div>
+
+      <div className="absolute inset-0 z-30">
+        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
+      </div>
+
+
       <div
-        className={state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"}
+        className={`absolute inset-0 z-40 ${state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"
+          }`}
       >
         <AppSimpleDrawCanvas />
       </div>
-      <div
-      className={state.tool === "capture" ? "pointer-events-none" : "pointer-events-none"}>
-        <ScreenCaptureCanvas image={state.captureImage} />
+
+      <div className="absolute top-0 left-0 z-50">
+        <AppToolbar onChangeState={onChangeStateForToolbar} />
       </div>
     </div>
-  )
+  );
 }
