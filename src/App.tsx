@@ -71,7 +71,7 @@ export default function App() {
   return (
     <div id="app" className="relative w-screen h-screen">
       <div className="absolute inset-0 z-10">
-        <ScreenCaptureCanvas image={state.captureImage} />
+        <ScreenCaptureCanvas image={state.captureImage} mode={state.captureMode} />
       </div>
 
       <div className="absolute inset-0 z-20">
@@ -81,7 +81,6 @@ export default function App() {
       <div className="absolute inset-0 z-30">
         <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
       </div>
-
 
       <div
         className={`absolute inset-0 z-40 ${state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"

@@ -16,6 +16,7 @@ export type ScreenCaptureImage = {
 type Props = {
   image: ScreenCaptureImage | null | undefined;
   className?: string;
+  mode: "none" | "lightness" | undefined
 };
 
 const vertexShader = `
@@ -27,7 +28,7 @@ void main() {
 }
 `;
 
-const fragmentShader = `
+const fragmentShaderLightness = `
 uniform sampler2D uTexture;
 varying vec2 vUv;
 
@@ -38,7 +39,17 @@ void main() {
 }
 `;
 
-export default function ScreenCaptureCanvas({ image, className }: Props) {
+const fragmentShaderNone = `
+uniform sampler2D uTexture;
+varying vec2 vUv;
+
+void main() {
+  vec4 color = texture2D(uTexture, vUv);
+  gl_FragColor = vec4(color.r, color.g,color.b, color.a);
+}
+`;
+
+export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -74,7 +85,7 @@ export default function ScreenCaptureCanvas({ image, className }: Props) {
         uTexture: { value: null },
       },
       vertexShader,
-      fragmentShader,
+      fragmentShader: mode == "none" ? fragmentShaderNone : fragmentShaderLightness,
       transparent: true,
     });
 
@@ -155,7 +166,7 @@ export default function ScreenCaptureCanvas({ image, className }: Props) {
         root.removeChild(renderer.domElement);
       }
     };
-  }, [image]);
+  }, [image, mode]);
 
   return (<div ref={rootRef} className={className ?? "fixed inset-0 z-0 select-none w-full h-full"} ></div>);
 }

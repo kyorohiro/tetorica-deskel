@@ -12,7 +12,7 @@ import { drawClipRect, drawClipQuad2, findNearestQuadPointIndex } from "./deskel
 import { useAppState, appState } from "./state";
 
 import {
-  calcCaptureAndCropParams,
+  //calcCaptureAndCropParams,
   captureAndCrop,
   captureAndCropToAnalysis,
   captureAndCropToDownloads,
@@ -130,39 +130,20 @@ const AppDeslel = forwardRef<
     });
     if (uAppState.tool == "capture") {
       try {
-        if (captureMode == "saveAndContrast") {
-          const ret = await captureAndCrop({
-            targetRect: selectedRect,
-            hideWindow: true,
-          })
-          appState.setCaptureImage({
-            //path: ret.path,
-            buffer: ret.pngBuffer,
-            sourceWidth: ret.viewWidth,
-            sourceHeight: ret.viewHeight,
-            cropX: ret.x,
-            cropY: ret.y,
-            cropWidth: ret.width,
-            cropHeight: ret.height,
-          });
-        } else {
-          //
-          // ensureScreenCapturePermission() の コメントを確認してね
-          //if (!await await ensureScreenCapturePermission()) {
-          //  return
-          //}
-          const ret = await captureAndCropToDownloads({
-            path: undefined,
-            targetRect: selectedRect,
-            hideWindow: true,
-          });
-          // 実験的にコントラスト分析を追加
-
-          console.log("raw path", ret.path);
-          console.log("converted", convertFileSrc(ret.path));
-          console.log("captureMode", captureMode);
-          showToast(ret.path ? `Captured: ${ret.path}` : "Capture failed");
-        }
+        const ret = await captureAndCrop({
+          targetRect: selectedRect,
+          hideWindow: true,
+        })
+        appState.setCaptureImage({
+          //path: ret.path,
+          buffer: ret.pngBuffer,
+          sourceWidth: ret.viewWidth,
+          sourceHeight: ret.viewHeight,
+          cropX: ret.x,
+          cropY: ret.y,
+          cropWidth: ret.width,
+          cropHeight: ret.height,
+        });
       } catch (e) {
         if (e instanceof Error) {
           showToast(e.message);
@@ -556,14 +537,29 @@ const AppDeslel = forwardRef<
               onClick={() => {
                 console.log("save click");
                 setCaptureMode("save");
-                appState.setCaptureImage(undefined);
+                appState.setCaptureMode("none");
               }}
               title="save"
               aria-label="save"
             >
-              Save
+              None
             </button>
 
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
+                console.log("save and contrast click");
+                setCaptureMode("saveAndContrast");
+                appState.setCaptureMode("lightness");
+              }}
+              title="save and contrast"
+              aria-label="save and contrast"
+            >
+              Contrast
+            </button>
             <button
               className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "saveAndContrast"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
@@ -571,14 +567,13 @@ const AppDeslel = forwardRef<
                 }`}
               onClick={() => {
                 console.log("save and contrast click");
-                setCaptureMode("saveAndContrast");
+                appState.setCaptureImage(undefined);
               }}
               title="save and contrast"
               aria-label="save and contrast"
             >
-              Contrast
+              Clear
             </button>
-
           </div>
         </div>
 

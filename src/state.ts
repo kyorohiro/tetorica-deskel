@@ -17,7 +17,8 @@ type Settings = {
         cropY: number;
         cropWidth: number;
         cropHeight: number;
-    } | null | undefined,
+    } | null | undefined
+    captureMode?: "none" | "lightness";
 }
 
 type ToolMode = "measure" | "draw" | "color" | "capture"
@@ -231,6 +232,10 @@ class AppStateStore {
         cropHeight: number;
     }): void {
         this.setState({ captureImage: value })
+    }
+
+    public setCaptureMode(value: "none" | "lightness"): void {
+        this.setState({ captureMode: value })
     }
 
 }
