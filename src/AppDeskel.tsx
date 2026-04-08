@@ -9,7 +9,8 @@ import {
 import { draw, resizeCanvas } from "./deskel";
 import { drawMeasure } from "./deskelMeasure";
 import { drawClipRect, drawClipQuad2, findNearestQuadPointIndex } from "./deskelClipRect";
-import { useAppState } from "./state";
+import { useAppState, appState } from "./state";
+
 import {
   captureAndCropToAnalysis,
   captureAndCropToDownloads,
@@ -22,6 +23,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
+import { convertFileSrc } from "@tauri-apps/api/core";
 //import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
 
@@ -131,6 +133,19 @@ const AppDeslel = forwardRef<
         const ret = await captureAndCropToDownloads({
           path: undefined,
           targetRect: selectedRect,
+        });
+        // 実験的にコントラスト分析を追加
+
+        //console.log("raw path", ret.path);
+        //console.log("converted", convertFileSrc(ret.path));
+        appState.setCaptureImage({
+          path: ret.path,
+          sourceWidth: ret.viewWidth,
+          sourceHeight: ret.viewHeight,
+          cropX: ret.x,
+          cropY: ret.y,
+          cropWidth: ret.width,
+          cropHeight: ret.height,
         });
         showToast(ret.path ? `Captured: ${ret.path}` : "Capture failed");
       } catch (e) {
@@ -288,7 +303,8 @@ const AppDeslel = forwardRef<
         const dx = currentRef.current.x - startRef.current.x;
         const dy = currentRef.current.y - startRef.current.y;
         const len = Math.sqrt(dx * dx + dy * dy);
-        uAppState.measureUnit = len / 5;
+        appState.setMeasureUnit(len / 5);
+        //uAppState.measureUnit = len / 5;
         uAppState.measureUnitSet = {
           start: { ...startRef.current },
           end: { ...currentRef.current },
@@ -338,7 +354,7 @@ const AppDeslel = forwardRef<
           }`}
       >
         {/* 展開パネル */}
-                {/* 開閉タブ */}
+        {/* 開閉タブ */}
         <button
           className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-sm text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
           onClick={() => setMeasureToolbarOpen((v) => !v)}
@@ -359,7 +375,7 @@ const AppDeslel = forwardRef<
         //  }`}
 
         >
-          
+
           {
             //<div className="flex flex-col gap-2 p-2">
             // whitespace-nowrap
@@ -412,16 +428,16 @@ const AppDeslel = forwardRef<
               Set Unit
             </button>
 
-  <div className="flex items-center gap-2">
-  <div
-    className="
+            <div className="flex items-center gap-2">
+              <div
+                className="
       flex flex-col gap-1
       rounded-2xl border border-slate-700 bg-slate-900 p-1
       sm:flex-row sm:items-center
     "
-  >
-    <span
-      className="
+              >
+                <span
+                  className="
         inline-flex items-center justify-center
         rounded-xl
         bg-slate-800/80
@@ -431,35 +447,34 @@ const AppDeslel = forwardRef<
         select-none
         sm:rounded-l-xl sm:rounded-r-none
       "
-    >
-      Quad
-    </span>
+                >
+                  Quad
+                </span>
 
-    <div className="flex flex-col gap-1 sm:flex-row">
-      {(["off", "view", "apply"] as const).map((mode) => (
-        <button
-          key={mode}
-          className={`rounded-xl px-3 py-2 text-sm ${
-            quadMode === mode
-              ? "border border-amber-500 bg-amber-950 text-amber-300"
-              : "text-slate-100 hover:bg-slate-800"
-          }`}
-          onClick={() => {
-            setQuadMode(mode);
-            if (mode === "apply") {
-              dialog.showConfirmDialog({
-                title: "Quad Apply",
-                body: "now creating",
-              });
-            }
-          }}
-        >
-          {mode === "off" ? "Off" : mode === "view" ? "View" : "Apply"}
-        </button>
-      ))}
-    </div>
-  </div>
-</div>
+                <div className="flex flex-col gap-1 sm:flex-row">
+                  {(["off", "view", "apply"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      className={`rounded-xl px-3 py-2 text-sm ${quadMode === mode
+                        ? "border border-amber-500 bg-amber-950 text-amber-300"
+                        : "text-slate-100 hover:bg-slate-800"
+                        }`}
+                      onClick={() => {
+                        setQuadMode(mode);
+                        if (mode === "apply") {
+                          dialog.showConfirmDialog({
+                            title: "Quad Apply",
+                            body: "now creating",
+                          });
+                        }
+                      }}
+                    >
+                      {mode === "off" ? "Off" : mode === "view" ? "View" : "Apply"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

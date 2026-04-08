@@ -16,7 +16,7 @@ type Settings = {
         cropY: number;
         cropWidth: number;
         cropHeight: number;
-    } | null,
+    } | null | undefined,
 }
 
 type ToolMode = "measure" | "draw" | "color" | "capture"
@@ -65,7 +65,7 @@ function loadSettings(): Settings {
                     ? parsed.rotation
                     : DEFAULT_SETTINGS.rotation,
             measureUnit:
-                typeof parsed.measureUnit === "number"
+                typeof parsed.measureUnit === "number" && parsed.measureUnit > 0
                     ? parsed.measureUnit
                     : DEFAULT_SETTINGS.measureUnit,
             measureUnitSet:
@@ -209,9 +209,28 @@ class AppStateStore {
     public setAlwaysOnTop(value: boolean): void {
         this.setState({ alwaysOnTop: value })
     }
+
     public setTool(value: ToolMode): void {
         this.setState({ tool: value })
     }
+
+    // こちらに移した方が良いのかも
+    public setMeasureUnit(value: number): void {
+        this.setState({ measureUnit: value })
+    }
+
+    public setCaptureImage(value: {
+        path: string;
+        sourceWidth: number;
+        sourceHeight: number;
+        cropX: number;
+        cropY: number;
+        cropWidth: number;
+        cropHeight: number;
+    }): void {
+        this.setState({ captureImage: value })
+    }
+
 }
 
 const appState = AppStateStore.Instance()

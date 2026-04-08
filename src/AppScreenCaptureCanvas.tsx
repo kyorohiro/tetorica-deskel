@@ -82,7 +82,7 @@ export default function ScreenCaptureCanvas({ image, className }: Props) {
 
     mesh.position.set(
       image.cropX + image.cropWidth / 2,
-      image.cropY + image.cropHeight / 2,
+      image.sourceHeight - image.cropY - image.cropHeight / 2,
       0
     );
     mesh.scale.set(image.cropWidth, image.cropHeight, 1);
@@ -154,5 +154,6 @@ export default function ScreenCaptureCanvas({ image, className }: Props) {
     };
   }, [image]);
 
-  return (<div ref={rootRef} className={className ?? "w-full h-full"} ></div>);
+  return (<div ref={rootRef} className={className ?? "fixed inset-0 z-0 select-none w-full h-full"} ></div>);
 }
+

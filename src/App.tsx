@@ -84,7 +84,7 @@ export default function App() {
         <AppSimpleDrawCanvas />
       </div>
       <div
-      className={state.tool === "capture" ? "pointer-events-auto" : "pointer-events-none"}>
+      className={state.tool === "capture" ? "pointer-events-none" : "pointer-events-none"}>
         <ScreenCaptureCanvas image={state.captureImage} />
       </div>
     </div>
