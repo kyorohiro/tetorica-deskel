@@ -110,7 +110,19 @@ export type ScreenCaptureImage = {
   captureHeight: number;
 };
 
-
+export type ScreenCaptureImageBuffer = {
+  pngBuffer: ArrayBuffer;
+  viewWidth: number;
+  viewHeight: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  captureX: number;
+  captureY: number;
+  captureWidth: number;
+  captureHeight: number;
+};
 function getDefaultTargetRect(): TargetRect {
   return {
     x: 0,
@@ -149,7 +161,6 @@ export async function calcCaptureAndCropParams(params: {
   console.log("> calcCaptureAndCropParams", params);
 
   const appWindow = getCurrentWindow();
-
   const innerPos = await appWindow.innerPosition();
   const innerSize = await appWindow.innerSize();
   const outerPos = await appWindow.outerPosition();
@@ -305,6 +316,72 @@ export async function captureAndCropToDownloads(params: {
       // 
       // mac だと 透明にしてゴーストが残ることがあるので Window を非表示にする
       //
+      await appWindow.show();
+    }
+  }
+}
+
+export async function captureAndCrop(params: {
+  targetRect?: TargetRect | null;
+  hideWindow?: boolean;
+}): Promise<ScreenCaptureImageBuffer> {
+  const captureRect = await calcCaptureAndCropParams({
+    targetRect: params.targetRect,
+  });
+
+  const viewRect = calcScreenCaptureViewRect({
+    targetRect: params.targetRect,
+  });
+
+  const toolbar = document.getElementById("toolbar");
+  const appWindow = getCurrentWindow();
+
+  try {
+    if (params.hideWindow) {
+      await appWindow.hide();
+
+      for (let i = 0; i < 10; i++) {
+        const visible = await appWindow.isVisible();
+        if (!visible) break;
+        await new Promise((r) => setTimeout(r, 16));
+      }
+
+      await sleep(25);
+    }
+
+    const pngBuffer = await invoke<ArrayBuffer>("capture_and_crop_bytes", {
+      x: captureRect.x,
+      y: captureRect.y,
+      width: captureRect.width,
+      height: captureRect.height,
+    });
+
+    return {
+      pngBuffer,
+      viewWidth: viewRect.viewWidth,
+      viewHeight: viewRect.viewHeight,
+      x: viewRect.x,
+      y: viewRect.y,
+      width: viewRect.width,
+      height: viewRect.height,
+      captureX: captureRect.x,
+      captureY: captureRect.y,
+      captureWidth: captureRect.width,
+      captureHeight: captureRect.height,
+    };
+  } catch (e) {
+    if (typeof e === "string") {
+      throw new Error(e);
+    } else if (e instanceof Error) {
+      throw e;
+    } else {
+      throw new Error(JSON.stringify(e));
+    }
+  } finally {
+    if (toolbar) {
+      toolbar.style.display = "";
+    }
+    if (params.hideWindow) {
       await appWindow.show();
     }
   }

@@ -9,7 +9,8 @@ type Settings = {
     measureUnit: number
     measureUnitSet: { start: { x: number, y: number }, end: { x: number, y: number } }
     captureImage?: {
-        path: string;
+        path?: string; // path or buffer が入る
+        buffer?: ArrayBuffer; // path or buffer が入る
         sourceWidth: number;
         sourceHeight: number;
         cropX: number;
@@ -220,7 +221,8 @@ class AppStateStore {
     }
 
     public setCaptureImage(value?: {
-        path: string;
+        path?: string;
+        buffer?: ArrayBuffer,
         sourceWidth: number;
         sourceHeight: number;
         cropX: number;

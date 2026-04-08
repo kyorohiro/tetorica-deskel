@@ -3,7 +3,8 @@ import * as THREE from "three";
 import { convertFileSrc } from "@tauri-apps/api/core";
 
 export type ScreenCaptureImage = {
-  path: string;
+  path?: string;
+  buffer?: ArrayBuffer;
   sourceWidth: number;
   sourceHeight: number;
   cropX: number;
@@ -115,7 +116,9 @@ export default function ScreenCaptureCanvas({ image, className }: Props) {
 
     const loader = new THREE.TextureLoader();
     loader.load(
-      convertFileSrc(image.path),
+      image.path ?
+        convertFileSrc(image.path) :
+        URL.createObjectURL(new Blob([image.buffer!], { type: "image/png" })),
       (loadedTexture) => {
         if (disposed) {
           loadedTexture.dispose();

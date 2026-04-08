@@ -1,6 +1,91 @@
 mod color_analysis;
 mod color_pallet;
 mod screen_capture;
+use std::io::Cursor;
+use tauri::ipc::Response;
+use image::ImageFormat;
+
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            capture_and_crop_to_downloads,
+            analyze_region_colors,
+            check_screen_capture_permission,
+            request_screen_capture_permission,
+            open_privacy_settings,
+            can_capture_foreign_window,
+            capture_and_crop_bytes,
+            probe_screen_capture_permission,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+
+
+// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+#[tauri::command]
+fn greet(name: &str) -> String {
+    format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+#[tauri::command]
+fn capture_and_crop_to_downloads(
+    app: tauri::AppHandle,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+    path: &str,
+) -> Result<String, String> {
+    crate::screen_capture::capture_and_crop_to_downloads(app, x, y, width, height, path)
+}
+
+
+
+#[tauri::command]
+fn capture_and_crop_bytes(
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> Result<Response, String> {
+    let capture_result = crate::screen_capture::capture_and_crop(x, y, width, height)?;
+
+    let mut buf = Vec::new();
+    let mut cursor = Cursor::new(&mut buf);
+
+    capture_result
+        .image
+        .write_to(&mut cursor, ImageFormat::Png)
+        .map_err(|e| e.to_string())?;
+
+    Ok(Response::new(buf))
+}
+
+//
+//
+//
+#[tauri::command]
+async fn analyze_region_colors(
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+    quantize_step: Option<u8>,
+    top_n: Option<usize>,
+) -> Result<crate::color_analysis::ColorAnalysisResult, String> {
+    crate::color_analysis::analyze_region_colors(x, y, width, height, quantize_step, top_n).await
+}
+
 
 #[cfg(target_os = "macos")]
 use core_foundation::{
@@ -22,59 +107,6 @@ use core_graphics::{
 
 #[cfg(target_os = "macos")]
 use std::ffi::c_void;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
-fn capture_and_crop_to_downloads(
-    app: tauri::AppHandle,
-    x: i32,
-    y: i32,
-    width: u32,
-    height: u32,
-    path: &str,
-) -> Result<String, String> {
-    crate::screen_capture::capture_and_crop_to_downloads(app, x, y, width, height, path)
-}
-
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![
-            greet,
-            capture_and_crop_to_downloads,
-            analyze_region_colors,
-            check_screen_capture_permission,
-            request_screen_capture_permission,
-            open_privacy_settings,
-            can_capture_foreign_window,
-            probe_screen_capture_permission,
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
-}
-
-#[tauri::command]
-async fn analyze_region_colors(
-    x: i32,
-    y: i32,
-    width: u32,
-    height: u32,
-    quantize_step: Option<u8>,
-    top_n: Option<usize>,
-) -> Result<crate::color_analysis::ColorAnalysisResult, String> {
-    crate::color_analysis::analyze_region_colors(x, y, width, height, quantize_step, top_n).await
-}
 
 #[cfg(target_os = "macos")]
 #[link(name = "CoreGraphics", kind = "framework")]

@@ -12,6 +12,8 @@ import { drawClipRect, drawClipQuad2, findNearestQuadPointIndex } from "./deskel
 import { useAppState, appState } from "./state";
 
 import {
+  calcCaptureAndCropParams,
+  captureAndCrop,
   captureAndCropToAnalysis,
   captureAndCropToDownloads,
   ColorCount,
@@ -128,24 +130,14 @@ const AppDeslel = forwardRef<
     });
     if (uAppState.tool == "capture") {
       try {
-        //
-        // ensureScreenCapturePermission() の コメントを確認してね
-        //if (!await await ensureScreenCapturePermission()) {
-        //  return
-        //}
-        const ret = await captureAndCropToDownloads({
-          path: undefined,
-          targetRect: selectedRect,
-          hideWindow: true,
-        });
-        // 実験的にコントラスト分析を追加
-
-        console.log("raw path", ret.path);
-        console.log("converted", convertFileSrc(ret.path));
-        console.log("captureMode", captureMode);
-        if (captureMode == "saveAndContrast" && ret.path) {
+        if (captureMode == "saveAndContrast") {
+          const ret = await captureAndCrop({
+            targetRect: selectedRect,
+            hideWindow: true,
+          })
           appState.setCaptureImage({
-            path: ret.path,
+            //path: ret.path,
+            buffer: ret.pngBuffer,
             sourceWidth: ret.viewWidth,
             sourceHeight: ret.viewHeight,
             cropX: ret.x,
@@ -153,8 +145,24 @@ const AppDeslel = forwardRef<
             cropWidth: ret.width,
             cropHeight: ret.height,
           });
+        } else {
+          //
+          // ensureScreenCapturePermission() の コメントを確認してね
+          //if (!await await ensureScreenCapturePermission()) {
+          //  return
+          //}
+          const ret = await captureAndCropToDownloads({
+            path: undefined,
+            targetRect: selectedRect,
+            hideWindow: true,
+          });
+          // 実験的にコントラスト分析を追加
+
+          console.log("raw path", ret.path);
+          console.log("converted", convertFileSrc(ret.path));
+          console.log("captureMode", captureMode);
+          showToast(ret.path ? `Captured: ${ret.path}` : "Capture failed");
         }
-        showToast(ret.path ? `Captured: ${ret.path}` : "Capture failed");
       } catch (e) {
         if (e instanceof Error) {
           showToast(e.message);
@@ -568,7 +576,7 @@ const AppDeslel = forwardRef<
               title="save and contrast"
               aria-label="save and contrast"
             >
-              Save & Contrast
+              Contrast
             </button>
 
           </div>
