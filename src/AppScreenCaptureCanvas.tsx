@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { CaptureMode } from "./state";
 
 export type ScreenCaptureImage = {
   path?: string;
@@ -16,7 +17,7 @@ export type ScreenCaptureImage = {
 type Props = {
   image: ScreenCaptureImage | null | undefined;
   className?: string;
-  mode: "none" | "lightness" | undefined
+  mode: CaptureMode;
 };
 
 const vertexShader = `
@@ -28,38 +29,102 @@ void main() {
 }
 `;
 
-const fragmentShaderLightness = `
+const fragmentShader = `
 uniform sampler2D uTexture;
+uniform int uMode;
 varying vec2 vUv;
+
+vec3 applyLightness(vec3 c) {
+  float gray = dot(c, vec3(0.299, 0.587, 0.114));
+  return vec3(gray);
+}
+
+vec3 applyProtan(vec3 c) {
+  mat3 m = mat3(
+    0.152, 1.053, -0.205,
+    0.115, 0.786,  0.099,
+   -0.004, -0.048, 1.052
+  );
+  return clamp(m * c, 0.0, 1.0);
+}
+
+vec3 applyDeutan(vec3 c) {
+  mat3 m = mat3(
+    0.367, 0.861, -0.228,
+    0.280, 0.673,  0.047,
+   -0.012, 0.043,  0.969
+  );
+  return clamp(m * c, 0.0, 1.0);
+}
+
+vec3 applyTritan(vec3 c) {
+  mat3 m = mat3(
+    1.255, -0.076, -0.179,
+   -0.078,  0.931,  0.148,
+    0.005,  0.691,  0.304
+  );
+  return clamp(m * c, 0.0, 1.0);
+}
 
 void main() {
   vec4 color = texture2D(uTexture, vUv);
-  float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-  gl_FragColor = vec4(vec3(gray), color.a);
+  vec3 rgb = color.rgb;
+
+  if (uMode == 1) {
+    rgb = applyLightness(rgb);
+  } else if (uMode == 2) {
+    rgb = applyProtan(rgb);
+  } else if (uMode == 3) {
+    rgb = applyDeutan(rgb);
+  } else if (uMode == 4) {
+    rgb = applyTritan(rgb);
+  }
+
+  gl_FragColor = vec4(rgb, color.a);
 }
 `;
 
-const fragmentShaderNone = `
-uniform sampler2D uTexture;
-varying vec2 vUv;
-
-void main() {
-  vec4 color = texture2D(uTexture, vUv);
-  gl_FragColor = vec4(color.r, color.g,color.b, color.a);
-}
-`;
+const modeToInt = (mode: CaptureMode): number => {
+  switch (mode) {
+    case "lightness":
+      return 1;
+    case "protan":
+      return 2;
+    case "deutan":
+      return 3;
+    case "tritan":
+      return 4;
+    case "none":
+    default:
+      return 0;
+  }
+};
 
 export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
+  const materialRef = useRef<THREE.ShaderMaterial | null>(null);
+  const textureRef = useRef<THREE.Texture | null>(null);
+  const geometryRef = useRef<THREE.PlaneGeometry | null>(null);
+  const meshRef = useRef<THREE.Mesh | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+
+  const renderNow = () => {
+    if (!rendererRef.current || !sceneRef.current || !cameraRef.current) return;
+    rendererRef.current.render(sceneRef.current, cameraRef.current);
+  };
 
   useEffect(() => {
     const root = rootRef.current;
     if (!root || !image) return;
 
     let disposed = false;
-    let texture: THREE.Texture | null = null;
 
     const scene = new THREE.Scene();
+    sceneRef.current = scene;
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -67,6 +132,7 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     root.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
     const camera = new THREE.OrthographicCamera(
       0,
@@ -77,72 +143,88 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
       1000
     );
     camera.position.z = 1;
+    cameraRef.current = camera;
 
     const geometry = new THREE.PlaneGeometry(1, 1);
+    geometryRef.current = geometry;
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uTexture: { value: null },
+        uMode: { value: modeToInt(mode) },
       },
       vertexShader,
-      fragmentShader: mode == "none" ? fragmentShaderNone : fragmentShaderLightness,
+      fragmentShader,
       transparent: true,
     });
+    materialRef.current = material;
 
     const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-
     mesh.position.set(
       image.cropX + image.cropWidth / 2,
       image.sourceHeight - image.cropY - image.cropHeight / 2,
       0
     );
     mesh.scale.set(image.cropWidth, image.cropHeight, 1);
+    scene.add(mesh);
+    meshRef.current = mesh;
 
     const updateRendererSize = () => {
-      const w = root.clientWidth || 1;
-      const h = root.clientHeight || 1;
-      renderer.setSize(w, h);
+      if (!rootRef.current || !rendererRef.current || !cameraRef.current || !image) return;
+
+      const w = rootRef.current.clientWidth || 1;
+      const h = rootRef.current.clientHeight || 1;
+      rendererRef.current.setSize(w, h);
 
       const sourceAspect = image.sourceWidth / image.sourceHeight;
       const rootAspect = w / h;
 
       if (rootAspect > sourceAspect) {
         const viewWidth = image.sourceHeight * rootAspect;
-        camera.left = 0;
-        camera.right = viewWidth;
-        camera.top = image.sourceHeight;
-        camera.bottom = 0;
+        cameraRef.current.left = 0;
+        cameraRef.current.right = viewWidth;
+        cameraRef.current.top = image.sourceHeight;
+        cameraRef.current.bottom = 0;
       } else {
         const viewHeight = image.sourceWidth / rootAspect;
-        camera.left = 0;
-        camera.right = image.sourceWidth;
-        camera.top = viewHeight;
-        camera.bottom = 0;
+        cameraRef.current.left = 0;
+        cameraRef.current.right = image.sourceWidth;
+        cameraRef.current.top = viewHeight;
+        cameraRef.current.bottom = 0;
       }
 
-      camera.updateProjectionMatrix();
-      renderer.render(scene, camera);
+      cameraRef.current.updateProjectionMatrix();
+      renderNow();
     };
 
     const loader = new THREE.TextureLoader();
+
+    let imageUrl: string;
+    if (image.path) {
+      imageUrl = convertFileSrc(image.path);
+    } else {
+      imageUrl = URL.createObjectURL(new Blob([image.buffer!], { type: "image/png" }));
+      blobUrlRef.current = imageUrl;
+    }
+
     loader.load(
-      image.path ?
-        convertFileSrc(image.path) :
-        URL.createObjectURL(new Blob([image.buffer!], { type: "image/png" })),
+      imageUrl,
       (loadedTexture) => {
         if (disposed) {
           loadedTexture.dispose();
           return;
         }
 
-        texture = loadedTexture;
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.generateMipmaps = false;
-        texture.colorSpace = texture.colorSpace = THREE.NoColorSpace;//THREE.SRGBColorSpace;
+        textureRef.current = loadedTexture;
+        loadedTexture.minFilter = THREE.LinearFilter;
+        loadedTexture.magFilter = THREE.LinearFilter;
+        loadedTexture.generateMipmaps = false;
+        loadedTexture.colorSpace =THREE.NoColorSpace;;//THREE.SRGBColorSpace;
 
-        material.uniforms.uTexture.value = texture;
+        if (materialRef.current) {
+          materialRef.current.uniforms.uTexture.value = loadedTexture;
+        }
+
         updateRendererSize();
       },
       undefined,
@@ -157,17 +239,46 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
     return () => {
       disposed = true;
       window.removeEventListener("resize", onResize);
-      texture?.dispose();
-      geometry.dispose();
-      material.dispose();
-      renderer.dispose();
+
+      if (meshRef.current && sceneRef.current) {
+        sceneRef.current.remove(meshRef.current);
+      }
+
+      textureRef.current?.dispose();
+      geometryRef.current?.dispose();
+      materialRef.current?.dispose();
+      rendererRef.current?.dispose();
+
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
 
       if (renderer.domElement.parentNode === root) {
         root.removeChild(renderer.domElement);
       }
+
+      textureRef.current = null;
+      geometryRef.current = null;
+      materialRef.current = null;
+      meshRef.current = null;
+      cameraRef.current = null;
+      sceneRef.current = null;
+      rendererRef.current = null;
     };
-  }, [image, mode]);
+  }, [image]);
 
-  return (<div ref={rootRef} className={className ?? "fixed inset-0 z-0 select-none w-full h-full"} ></div>);
+  useEffect(() => {
+    if (!materialRef.current) return;
+
+    materialRef.current.uniforms.uMode.value = modeToInt(mode);
+    renderNow();
+  }, [mode]);
+
+  return (
+    <div
+      ref={rootRef}
+      className={className ?? "fixed inset-0 z-0 select-none w-full h-full"}
+    />
+  );
 }
-

@@ -1,5 +1,13 @@
 import { useSyncExternalStore } from "react"
 
+type CaptureMode = 
+    | "none"
+    | "lightness"
+    | "protan"
+    | "deutan"
+    | "tritan"
+    | undefined;
+
 type Settings = {
     grid: number
     opacity: number
@@ -18,7 +26,7 @@ type Settings = {
         cropWidth: number;
         cropHeight: number;
     } | null | undefined
-    captureMode?: "none" | "lightness";
+    captureMode?: CaptureMode;
 }
 
 type ToolMode = "measure" | "draw" | "color" | "capture"
@@ -254,6 +262,7 @@ function useAppState() {
 export type {
     Settings,
     AppState,
+    CaptureMode
 }
 
 export {
