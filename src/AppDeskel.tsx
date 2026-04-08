@@ -44,6 +44,7 @@ const AppDeslel = forwardRef<
       colors: ColorCount[],
       colors01: ColorCount[],
     ) => Promise<void>;
+    onBeforeCapture?: () => Promise<void>;
   }
 >(function (props, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -133,6 +134,7 @@ const AppDeslel = forwardRef<
         const ret = await captureAndCropToDownloads({
           path: undefined,
           targetRect: selectedRect,
+          hideWindow: true,
         });
         // 実験的にコントラスト分析を追加
 
@@ -163,6 +165,9 @@ const AppDeslel = forwardRef<
         //if (!await await ensureScreenCapturePermission()) {
         //  return
         //}
+        if (props.onBeforeCapture) {
+          await props.onBeforeCapture();
+        }
         const ret = await captureAndCropToAnalysis({
           targetRect: selectedRect,
         });

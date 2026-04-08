@@ -40,13 +40,13 @@ export async function captureAndCropToAnalysis(params: { targetRect?: TargetRect
   console.log("> captureAndCropToAnaluze", params);
   const appWindow = getCurrentWindow()
 
-  const caputureRect = await calcCaptureAndCropParams({targetRect:params.targetRect});
-  const toolbar = document.getElementById("toolbar")
+  const caputureRect = await calcCaptureAndCropParams({ targetRect: params.targetRect });
+  //const toolbar = document.getElementById("toolbar")
   try {
-    if (toolbar != null) {
-      toolbar.style.display = "none";
-    }
-    await sleep(300);
+    //if (toolbar != null) {
+    //  toolbar.style.display = "none";
+    //}
+    //await sleep(300);
     // 
     // mac だと 透明にしてゴーストが残ることがあるので Window を非表示にする
     //
@@ -73,19 +73,19 @@ export async function captureAndCropToAnalysis(params: { targetRect?: TargetRect
     });
     console.log(">> result", result);
     return result;
-  }  catch(e) {
+  } catch (e) {
     console.log(e);
     if (typeof e === "string") {
       throw new Error(e);
-    } else if ( e instanceof Error) {
+    } else if (e instanceof Error) {
       throw e;
     } else {
       throw new Error(JSON.stringify(e));
     }
   } finally {
-    if (toolbar) {
-      toolbar.style.display = ""
-    }
+    //if (toolbar) {
+    //  toolbar.style.display = ""
+    //}
     await appWindow.show()
   }
   //appWindow.setDecorations(true);
@@ -232,6 +232,7 @@ export async function calcCaptureAndCropParams(params: {
 export async function captureAndCropToDownloads(params: {
   path?: string | null;
   targetRect?: TargetRect | null;
+  hideWindow?: boolean;
 }): Promise<ScreenCaptureImage> {
   console.log("> captureAndCropToDownloads", params);
 
@@ -245,12 +246,26 @@ export async function captureAndCropToDownloads(params: {
 
   const toolbar = document.getElementById("toolbar");
 
+  const appWindow = getCurrentWindow()
   try {
-    if (toolbar) {
-      toolbar.style.display = "none";
-    }
 
-    await sleep(300);
+    if (params.hideWindow) {
+      // 
+      // mac だと 透明にしてゴーストが残ることがあるので Window を非表示にする
+      //
+      await appWindow.hide()
+
+      // visibleがfalseになるまで待つ
+      for (let i = 0; i < 10; i++) {
+        const visible = await appWindow.isVisible()
+        if (!visible) break
+        await new Promise(r => setTimeout(r, 16))
+      }
+
+      // 念のため1フレーム
+      //await waitNextFrame(1)
+      await sleep(25);
+    }
 
     const path = await invoke<string>("capture_and_crop_to_downloads", {
       x: captureRect.x,
@@ -285,6 +300,12 @@ export async function captureAndCropToDownloads(params: {
   } finally {
     if (toolbar) {
       toolbar.style.display = "";
+    }
+    if (params.hideWindow) {
+      // 
+      // mac だと 透明にしてゴーストが残ることがあるので Window を非表示にする
+      //
+      await appWindow.show();
     }
   }
 }
