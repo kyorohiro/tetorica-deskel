@@ -24,6 +24,7 @@ import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
 //import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
+
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
   setVisible: (visible: boolean) => void;
@@ -31,6 +32,8 @@ type AppDeskelHandle = {
 };
 
 type AppDeskelPoint = { x: number; y: number };
+
+type QuadMode = "off" | "view" | "apply";
 
 const AppDeslel = forwardRef<
   AppDeskelHandle,
@@ -51,11 +54,11 @@ const AppDeslel = forwardRef<
   const draggingRef = useRef(false);
   const [, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
-  const [perspectiveOnOff, setPerspectiveOnOff] = useState<boolean>(false);
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
   );
   const [isMac, setIsMac] = useState(false);
+  const [quadMode, setQuadMode] = useState<QuadMode>("off");
 
   const dialog = useDialog();
   const uAppState = useAppState();
@@ -192,7 +195,7 @@ const AppDeslel = forwardRef<
           measureUnit: uAppState.measureUnit,
         });
         //
-        if (clipQuadRef.current && clipQuadRef.current.length == 4 && perspectiveOnOff) {
+        if (clipQuadRef.current && clipQuadRef.current.length == 4 && quadMode != "off") {
           drawClipQuad2({
             canvas,
             ctx,
@@ -221,7 +224,7 @@ const AppDeslel = forwardRef<
       } else if (measureMode == "setVanishingPoint" && current) {
         //vanishingRectRef.current = { x: current.x, y: current.y };
       }
-      if (clipQuadRef.current && clipQuadRef.current.length == 4 && perspectiveOnOff) {
+      if (clipQuadRef.current && clipQuadRef.current.length == 4 && quadMode != "off") {
         drawClipQuad2({
           canvas,
           ctx,
@@ -232,7 +235,7 @@ const AppDeslel = forwardRef<
     } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
     }
-  }, [uAppState.tool, measureMode, uAppState.color, perspectiveOnOff]);
+  }, [uAppState.tool, measureMode, uAppState.color, quadMode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -347,7 +350,7 @@ const AppDeslel = forwardRef<
             title="line measure"
             aria-label="line measure"
           >
-            Line Measure
+            Line
           </button>
           <button
             className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "chain"
@@ -361,7 +364,7 @@ const AppDeslel = forwardRef<
             title="chain measure"
             aria-label="chain measure"
           >
-            Chain Measure
+            Chain
           </button>
 
           <button
@@ -378,26 +381,46 @@ const AppDeslel = forwardRef<
           >
             Set Unit
           </button>
-          <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${perspectiveOnOff == true
-              ? "border-amber-500 bg-amber-950 text-amber-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 active:bg-slate-700"
-              }`}
-            onClick={() => {
-              console.log("set vanishing point click");
-              setPerspectiveOnOff(!perspectiveOnOff);
-              if (!perspectiveOnOff) {
-                dialog.showConfirmDialog({
-                  title: "Set Vanishing Point",
-                  body: "now creating", //"Click on the canvas to set the vanishing point for perspective measurement. This will be used as the reference point for perspective measurements.",
-                });
-              }
-            }}
-            title="set vanishing point"
-            aria-label="set vanishing point"
-          >
-            Perspective {perspectiveOnOff ? "ON" : "OFF"}
-          </button>
+          {
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 rounded-2xl border border-slate-700 bg-slate-900 p-1">
+                <span
+                  className="
+                    inline-flex items-center
+                    rounded-l-xl rounded-r-none
+                    bg-slate-800/80
+                    px-3 py-2
+                    text-xs font-medium uppercase tracking-wide
+                    text-slate-400
+                    select-none
+                  "
+                >
+                  Quad
+                </span>
+
+                {(["off", "view", "apply"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    className={`rounded-xl px-3 py-2 text-sm ${quadMode === mode
+                      ? "border border-amber-500 bg-amber-950 text-amber-300"
+                      : "text-slate-100 hover:bg-slate-800"
+                      }`}
+                    onClick={() => {
+                      setQuadMode(mode);
+                      if (mode === "apply") {
+                        dialog.showConfirmDialog({
+                          title: "Quad Apply",
+                          body: "now creating",
+                        });
+                      }
+                    }}
+                  >
+                    {mode === "off" ? "Off" : mode === "view" ? "View" : "Apply"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          }
         </div>
       }
       {
