@@ -92,53 +92,60 @@ export async function captureAndCropToAnalysis(params: { targetRect?: TargetRect
 }
 
 
-// targetRect :  window/canvas 内の CSS px 座標
-export async function captureAndCropToDownloads(params: {
-  path?: string | null;
-  targetRect?: TargetRect | null;
-}) {
-  console.log("> captureAndCropToDownloads", params);
-  const caputureRect = await calcCaptureAndCropParams({targetRect:params.targetRect});
+export type ScreenCaptureImage = {
+  path: string;
 
-  const toolbar = document.getElementById("toolbar");
+  // 表示用: window / canvas 内の CSS px 座標
+  viewWidth: number;
+  viewHeight: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 
-  try {
-    if (toolbar) {
-      toolbar.style.display = "none";
-    }
+  // デバッグ用: Rust に渡した実キャプチャ座標
+  captureX: number;
+  captureY: number;
+  captureWidth: number;
+  captureHeight: number;
+};
 
-    await sleep(300);
 
-
-    const path = await invoke<string>("capture_and_crop_to_downloads", {
-      x: caputureRect.x,
-      y: caputureRect.y,
-      width: caputureRect.width,
-      height: caputureRect.height,
-      path: params.path ?? "",
-    });
-
-    return path;
-  } catch(e) {
-    console.log(e);
-    if (typeof e === "string") {
-      throw new Error(e);
-    } else if ( e instanceof Error) {
-      throw e;
-    } else {
-      throw new Error(JSON.stringify(e));
-    }
-  } finally {
-    if (toolbar) {
-      toolbar.style.display = "";
-    }
-  }
+function getDefaultTargetRect(): TargetRect {
+  return {
+    x: 0,
+    y: 0,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
 }
 
-// targetRect :  window/canvas 内の CSS px 座標
+function calcScreenCaptureViewRect(params: {
+  targetRect?: TargetRect | null;
+}): {
+  viewWidth: number;
+  viewHeight: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} {
+  const target = params.targetRect ?? getDefaultTargetRect();
+
+  return {
+    viewWidth: window.innerWidth,
+    viewHeight: window.innerHeight,
+    x: target.x,
+    y: target.y,
+    width: target.width,
+    height: target.height,
+  };
+}
+
+// targetRect : window/canvas 内の CSS px 座標
 export async function calcCaptureAndCropParams(params: {
   targetRect?: TargetRect | null;
-}): Promise<{x:number, y:number, width:number, height:number}> {
+}): Promise<{ x: number; y: number; width: number; height: number }> {
   console.log("> calcCaptureAndCropParams", params);
 
   const appWindow = getCurrentWindow();
@@ -166,13 +173,12 @@ export async function calcCaptureAndCropParams(params: {
   let titlebarHeightForCapture = titlebarHeightCss;
 
   if (isWindows) {
-    // 現状のあなたの実測ルールを維持
+    // 現状の実測ルールを維持
     titlebarHeightForCapture = titlebarHeightCss * scale;
     scale = 1.0;
   }
 
   if (isMac) {
-    // custom title bar が outer / inner 差に出ないケース向け
     const latestOuterPos = await appWindow.outerPosition();
     const latestInnerPos = await appWindow.innerPosition();
 
@@ -187,6 +193,7 @@ export async function calcCaptureAndCropParams(params: {
     outerPos,
     outerSize,
     scale,
+    scaleFactor,
     os,
     titlebarHeightCss,
     titlebarHeightForCapture,
@@ -196,7 +203,9 @@ export async function calcCaptureAndCropParams(params: {
   const targetX = target ? target.x * scaleFactor : 0;
   const targetY = target ? target.y * scaleFactor : 0;
   const targetWidth = target ? target.width * scaleFactor : innerSize.width;
-  const targetHeight = target ? target.height * scaleFactor : (innerSize.height - titlebarHeightForCapture);
+  const targetHeight = target
+    ? target.height * scaleFactor
+    : innerSize.height - titlebarHeightForCapture;
 
   const captureX = Math.round((innerPos.x + targetX) / scale);
   const captureY = Math.round((innerPos.y + titlebarHeightForCapture + targetY) / scale);
@@ -217,4 +226,65 @@ export async function calcCaptureAndCropParams(params: {
     width: captureWidth,
     height: captureHeight,
   };
+}
+
+// targetRect : window/canvas 内の CSS px 座標
+export async function captureAndCropToDownloads(params: {
+  path?: string | null;
+  targetRect?: TargetRect | null;
+}): Promise<ScreenCaptureImage> {
+  console.log("> captureAndCropToDownloads", params);
+
+  const captureRect = await calcCaptureAndCropParams({
+    targetRect: params.targetRect,
+  });
+
+  const viewRect = calcScreenCaptureViewRect({
+    targetRect: params.targetRect,
+  });
+
+  const toolbar = document.getElementById("toolbar");
+
+  try {
+    if (toolbar) {
+      toolbar.style.display = "none";
+    }
+
+    await sleep(300);
+
+    const path = await invoke<string>("capture_and_crop_to_downloads", {
+      x: captureRect.x,
+      y: captureRect.y,
+      width: captureRect.width,
+      height: captureRect.height,
+      path: params.path ?? "",
+    });
+
+    return {
+      path,
+      viewWidth: viewRect.viewWidth,
+      viewHeight: viewRect.viewHeight,
+      x: viewRect.x,
+      y: viewRect.y,
+      width: viewRect.width,
+      height: viewRect.height,
+      captureX: captureRect.x,
+      captureY: captureRect.y,
+      captureWidth: captureRect.width,
+      captureHeight: captureRect.height,
+    };
+  } catch (e) {
+    console.log(e);
+    if (typeof e === "string") {
+      throw new Error(e);
+    } else if (e instanceof Error) {
+      throw e;
+    } else {
+      throw new Error(JSON.stringify(e));
+    }
+  } finally {
+    if (toolbar) {
+      toolbar.style.display = "";
+    }
+  }
 }

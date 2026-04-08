@@ -132,7 +132,7 @@ const AppDeslel = forwardRef<
           path: undefined,
           targetRect: selectedRect,
         });
-        showToast(ret);
+        showToast(ret.path ? `Captured: ${ret.path}` : "Capture failed");
       } catch (e) {
         if (e instanceof Error) {
           showToast(e.message);
