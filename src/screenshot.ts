@@ -183,7 +183,7 @@ export async function calcCaptureAndCropParams(params: {
     const latestInnerPos = await appWindow.innerPosition();
 
     if (latestOuterPos.y === latestInnerPos.y) {
-      titlebarHeightForCapture = 30 * scale;
+      titlebarHeightForCapture = 28 * scale;
     }
   }
 

@@ -60,6 +60,8 @@ const AppDeslel = forwardRef<
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
   );
+  const [captureMode, setCaptureMode] = useState<"save" | "saveAndContrast">("save");
+
   const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
   const [isMac, setIsMac] = useState(false);
   const [quadMode, setQuadMode] = useState<QuadMode>("off");
@@ -138,17 +140,20 @@ const AppDeslel = forwardRef<
         });
         // 実験的にコントラスト分析を追加
 
-        //console.log("raw path", ret.path);
-        //console.log("converted", convertFileSrc(ret.path));
-        appState.setCaptureImage({
-          path: ret.path,
-          sourceWidth: ret.viewWidth,
-          sourceHeight: ret.viewHeight,
-          cropX: ret.x,
-          cropY: ret.y,
-          cropWidth: ret.width,
-          cropHeight: ret.height,
-        });
+        console.log("raw path", ret.path);
+        console.log("converted", convertFileSrc(ret.path));
+        console.log("captureMode", captureMode);
+        if (captureMode == "saveAndContrast" && ret.path) {
+          appState.setCaptureImage({
+            path: ret.path,
+            sourceWidth: ret.viewWidth,
+            sourceHeight: ret.viewHeight,
+            cropX: ret.x,
+            cropY: ret.y,
+            cropWidth: ret.width,
+            cropHeight: ret.height,
+          });
+        }
         showToast(ret.path ? `Captured: ${ret.path}` : "Capture failed");
       } catch (e) {
         if (e instanceof Error) {
@@ -332,7 +337,7 @@ const AppDeslel = forwardRef<
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mouseup", onMouseUp);
     };
-  }, [redraw, measureMode, uAppState]);
+  }, [redraw, measureMode, uAppState, captureMode]);
 
   useImperativeHandle(
     ref,
@@ -485,7 +490,9 @@ const AppDeslel = forwardRef<
 
         {/* 開閉タブ */}
       </div>
-
+      {
+        // color menu
+      }
       <div
         className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(uAppState.tool === "capture" || uAppState.tool === "color") && isMac
           ? "flex"
@@ -507,6 +514,67 @@ const AppDeslel = forwardRef<
         >
           ?
         </button>
+      </div>
+      {
+        // capture sub menu
+      }
+      {/* Measure Sub Toolbar */}
+      <div
+        className={`fixed bottom-4 right-4 z-[9999] flex items-end gap-2 ${uAppState.tool === "capture" ? "flex" : "hidden"
+          }`}
+      >
+        {/* 展開パネル */}
+        {/* 開閉タブ */}
+        <button
+          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-sm text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
+          onClick={() => setMeasureToolbarOpen((v) => !v)}
+          title="toggle measure toolbar"
+          aria-label="toggle measure toolbar"
+        >
+          {measureToolbarOpen ? ">" : "<"}
+        </button>
+        <div
+          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${measureToolbarOpen
+            ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
+            : "max-w-0 opacity-0 translate-x-2 border border-transparent"
+            }`}
+        >
+          <div className="flex flex-col gap-2 p-2 sm:flex-row sm:flex-wrap">
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "save"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
+                console.log("save click");
+                setCaptureMode("save");
+                appState.setCaptureImage(undefined);
+              }}
+              title="save"
+              aria-label="save"
+            >
+              Save
+            </button>
+
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "saveAndContrast"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
+                console.log("save and contrast click");
+                setCaptureMode("saveAndContrast");
+              }}
+              title="save and contrast"
+              aria-label="save and contrast"
+            >
+              Save & Contrast
+            </button>
+
+          </div>
+        </div>
+
+        {/* 開閉タブ */}
       </div>
     </>
   );

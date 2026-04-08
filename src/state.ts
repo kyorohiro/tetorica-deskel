@@ -219,7 +219,7 @@ class AppStateStore {
         this.setState({ measureUnit: value })
     }
 
-    public setCaptureImage(value: {
+    public setCaptureImage(value?: {
         path: string;
         sourceWidth: number;
         sourceHeight: number;
