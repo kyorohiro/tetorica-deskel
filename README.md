@@ -230,8 +230,9 @@ mv /tmp/butler/butler ~/bin/butler
 ``` 
 % sh deploy_mac.sh
 % ~/bin/butler login
-% ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.11.5_aarch64.dmg kyorohiro/tetorica-deskel:mac
-% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.11.5_x64.dmg kyorohiro/tetorica-deskel:mac
+% ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.11.5_aarch64.dmg kyorohiro/tetorica-deskel:mac-apple-silicon
+
+% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.11.5_x64.dmg kyorohiro/tetorica-deskel:mac-intel
 ```
 
 
