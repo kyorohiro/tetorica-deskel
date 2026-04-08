@@ -57,6 +57,7 @@ const AppDeslel = forwardRef<
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
   );
+  const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
   const [isMac, setIsMac] = useState(false);
   const [quadMode, setQuadMode] = useState<QuadMode>("off");
 
@@ -330,123 +331,163 @@ const AppDeslel = forwardRef<
       <div ref={rootRef}>
         <canvas key="deskel-default" id="deskel" ref={canvasRef} />
       </div>
-      {
-        // Measure Sub Toolbar
-      }
-      {
-        <div
-          className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${uAppState.tool == "measure" ? "block" : "hidden"
-            }`}
-        >
-          <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "line"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-              }`}
-            onClick={() => {
-              console.log("chain measure line click");
-              setMeasureMode("line");
-            }}
-            title="line measure"
-            aria-label="line measure"
-          >
-            Line
-          </button>
-          <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "chain"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-              }`}
-            onClick={() => {
-              console.log("chain measure click");
-              setMeasureMode("chain");
-            }}
-            title="chain measure"
-            aria-label="chain measure"
-          >
-            Chain
-          </button>
 
-          <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode == "setUnit"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-              }`}
-            onClick={() => {
-              console.log("set unit click");
-              setMeasureMode("setUnit");
-            }}
-            title="set unit"
-            aria-label="set unit"
-          >
-            Set Unit
-          </button>
+      {/* Measure Sub Toolbar */}
+      <div
+        className={`fixed bottom-4 right-4 z-[9999] flex items-end gap-2 ${uAppState.tool === "measure" ? "flex" : "hidden"
+          }`}
+      >
+        {/* 展開パネル */}
+                {/* 開閉タブ */}
+        <button
+          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-sm text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
+          onClick={() => setMeasureToolbarOpen((v) => !v)}
+          title="toggle measure toolbar"
+          aria-label="toggle measure toolbar"
+        >
+          {measureToolbarOpen ? ">" : "<"}
+        </button>
+        <div
+          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${measureToolbarOpen
+            ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
+            : "max-w-0 opacity-0 translate-x-2 border border-transparent"
+            }`}
+
+        //className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${measureToolbarOpen
+        //    ? "max-w-xs opacity-100 translate-x-0 border border-slate-800"
+        //    : "max-w-0 opacity-0 translate-x-2 border border-transparent"
+        //  }`}
+
+        >
+          
           {
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 rounded-2xl border border-slate-700 bg-slate-900 p-1">
-                <span
-                  className="
-                    inline-flex items-center
-                    rounded-l-xl rounded-r-none
-                    bg-slate-800/80
-                    px-3 py-2
-                    text-xs font-medium uppercase tracking-wide
-                    text-slate-400
-                    select-none
-                  "
-                >
-                  Quad
-                </span>
+            //<div className="flex flex-col gap-2 p-2">
+            // whitespace-nowrap
+            //           <div className="flex flex-row flex-wrap gap-2 p-2 ">
 
-                {(["off", "view", "apply"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    className={`rounded-xl px-3 py-2 text-sm ${quadMode === mode
-                      ? "border border-amber-500 bg-amber-950 text-amber-300"
-                      : "text-slate-100 hover:bg-slate-800"
-                      }`}
-                    onClick={() => {
-                      setQuadMode(mode);
-                      if (mode === "apply") {
-                        dialog.showConfirmDialog({
-                          title: "Quad Apply",
-                          body: "now creating",
-                        });
-                      }
-                    }}
-                  >
-                    {mode === "off" ? "Off" : mode === "view" ? "View" : "Apply"}
-                  </button>
-                ))}
-              </div>
-            </div>
           }
-        </div>
-      }
-      {
-        <div
-          className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(uAppState.tool === "capture" || uAppState.tool === "color") && isMac
-            ? "flex"
-            : "hidden"
-            }`}
-        >
-          <button
-            className="
-        rounded-lg bg-black/60 px-3 py-2 text-sm text-white
-        transition-opacity duration-200
-        opacity-80
+          <div className="flex flex-col gap-2 p-2 sm:flex-row sm:flex-wrap">
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode === "line"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
+                console.log("line measure click");
+                setMeasureMode("line");
+              }}
+              title="line measure"
+              aria-label="line measure"
+            >
+              Line
+            </button>
+
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode === "chain"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
+                console.log("chain measure click");
+                setMeasureMode("chain");
+              }}
+              title="chain measure"
+              aria-label="chain measure"
+            >
+              Chain
+            </button>
+
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode === "setUnit"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
+                console.log("set unit click");
+                setMeasureMode("setUnit");
+              }}
+              title="set unit"
+              aria-label="set unit"
+            >
+              Set Unit
+            </button>
+
+  <div className="flex items-center gap-2">
+  <div
+    className="
+      flex flex-col gap-1
+      rounded-2xl border border-slate-700 bg-slate-900 p-1
+      sm:flex-row sm:items-center
+    "
+  >
+    <span
+      className="
+        inline-flex items-center justify-center
+        rounded-xl
+        bg-slate-800/80
+        px-3 py-2
+        text-xs font-medium uppercase tracking-wide
+        text-slate-400
+        select-none
+        sm:rounded-l-xl sm:rounded-r-none
       "
-            onClick={() => {
-              console.log("CheckMac");
-              void handleHelpMac();
-            }}
-            title="Screen capture help"
-            aria-label="Screen capture help"
-          >
-            ?
-          </button>
+    >
+      Quad
+    </span>
+
+    <div className="flex flex-col gap-1 sm:flex-row">
+      {(["off", "view", "apply"] as const).map((mode) => (
+        <button
+          key={mode}
+          className={`rounded-xl px-3 py-2 text-sm ${
+            quadMode === mode
+              ? "border border-amber-500 bg-amber-950 text-amber-300"
+              : "text-slate-100 hover:bg-slate-800"
+          }`}
+          onClick={() => {
+            setQuadMode(mode);
+            if (mode === "apply") {
+              dialog.showConfirmDialog({
+                title: "Quad Apply",
+                body: "now creating",
+              });
+            }
+          }}
+        >
+          {mode === "off" ? "Off" : mode === "view" ? "View" : "Apply"}
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
+          </div>
         </div>
-      }
+
+        {/* 開閉タブ */}
+      </div>
+
+      <div
+        className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(uAppState.tool === "capture" || uAppState.tool === "color") && isMac
+          ? "flex"
+          : "hidden"
+          }`}
+      >
+        <button
+          className="
+          rounded-lg bg-black/60 px-3 py-2 text-sm text-white
+          transition-opacity duration-200
+          opacity-80
+        "
+          onClick={() => {
+            console.log("CheckMac");
+            void handleHelpMac();
+          }}
+          title="Screen capture help"
+          aria-label="Screen capture help"
+        >
+          ?
+        </button>
+      </div>
     </>
   );
 });
