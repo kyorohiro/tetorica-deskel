@@ -140,7 +140,7 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
         texture.generateMipmaps = false;
-        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.colorSpace = texture.colorSpace = THREE.NoColorSpace;//THREE.SRGBColorSpace;
 
         material.uniforms.uTexture.value = texture;
         updateRendererSize();
