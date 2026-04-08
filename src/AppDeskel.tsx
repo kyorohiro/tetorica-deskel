@@ -9,13 +9,13 @@ import {
 import { draw, resizeCanvas } from "./deskel";
 import { drawMeasure } from "./deskelMeasure";
 import { drawClipRect, drawClipQuad2, findNearestQuadPointIndex } from "./deskelClipRect";
-import { useAppState, appState } from "./state";
+import { useAppState, appState, CaptureMode } from "./state";
 
 import {
   //calcCaptureAndCropParams,
   captureAndCrop,
   captureAndCropToAnalysis,
-  captureAndCropToDownloads,
+  //captureAndCropToDownloads,
   ColorCount,
 } from "./screenshot";
 import { ChainMeasure } from "./deskelChainMesure";
@@ -25,7 +25,7 @@ import { platform } from "@tauri-apps/plugin-os";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
-import { convertFileSrc } from "@tauri-apps/api/core";
+//import { convertFileSrc } from "@tauri-apps/api/core";
 //import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
 
@@ -62,9 +62,10 @@ const AppDeslel = forwardRef<
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
   );
-  const [captureMode, setCaptureMode] = useState<"save" | "saveAndContrast">("save");
+  const [captureMode, setCaptureMode] = useState<CaptureMode>("none");
 
   const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
+  const [captureToolbarOpen, setCaptureToolbarOpen] = useState(true);
   const [isMac, setIsMac] = useState(false);
   const [quadMode, setQuadMode] = useState<QuadMode>("off");
 
@@ -516,61 +517,104 @@ const AppDeslel = forwardRef<
         {/* 開閉タブ */}
         <button
           className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-sm text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
-          onClick={() => setMeasureToolbarOpen((v) => !v)}
+          onClick={() => setCaptureToolbarOpen((v) => !v)}
           title="toggle measure toolbar"
           aria-label="toggle measure toolbar"
         >
-          {measureToolbarOpen ? ">" : "<"}
+          {captureToolbarOpen ? ">" : "<"}
         </button>
         <div
-          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${measureToolbarOpen
-            ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
-            : "max-w-0 opacity-0 translate-x-2 border border-transparent"
+          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${captureToolbarOpen
+              ? "max-w-[1200px] translate-x-0 border border-slate-800 opacity-100"
+              : "max-w-0 translate-x-2 border border-transparent opacity-0"
             }`}
         >
           <div className="flex flex-col gap-2 p-2 sm:flex-row sm:flex-wrap">
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "save"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "none"
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
-                console.log("save click");
-                setCaptureMode("save");
+                setCaptureMode("none");
                 appState.setCaptureMode("none");
               }}
-              title="save"
-              aria-label="save"
+              title="none"
+              aria-label="none"
             >
               None
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "saveAndContrast"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "lightness"
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
-                console.log("save and contrast click");
-                setCaptureMode("saveAndContrast");
+                setCaptureMode("lightness");
                 appState.setCaptureMode("lightness");
               }}
-              title="save and contrast"
-              aria-label="save and contrast"
+              title="grayscale value check"
+              aria-label="grayscale value check"
             >
-              Contrast
+              Value
             </button>
+
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "protan"
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
-                console.log("save and contrast click");
+                setCaptureMode("protan");
+                appState.setCaptureMode("protan");
+              }}
+              title="protan preview"
+              aria-label="protan preview"
+            >
+              Protan
+            </button>
+
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "deutan"
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
+                setCaptureMode("deutan");
+                appState.setCaptureMode("deutan");
+              }}
+              title="deutan preview"
+              aria-label="deutan preview"
+            >
+              Deutan
+            </button>
+
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "tritan"
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
+                setCaptureMode("tritan");
+                appState.setCaptureMode("tritan");
+              }}
+              title="tritan preview"
+              aria-label="tritan preview"
+            >
+              Tritan
+            </button>
+
+            <button
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                }`}
+              onClick={() => {
                 appState.setCaptureImage(undefined);
               }}
-              title="save and contrast"
-              aria-label="save and contrast"
+              title="clear capture image"
+              aria-label="clear capture image"
             >
               Clear
             </button>

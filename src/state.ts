@@ -242,7 +242,7 @@ class AppStateStore {
         this.setState({ captureImage: value })
     }
 
-    public setCaptureMode(value: "none" | "lightness"): void {
+    public setCaptureMode(value: CaptureMode): void {
         this.setState({ captureMode: value })
     }
 

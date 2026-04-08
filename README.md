@@ -92,6 +92,10 @@ tested mac book air and usb c monitor
 
 ![デモ画像](docs/demo07.gif)
 
+* Protan / Deutan / Tritan preview
+
+![デモ画像](docs/demo09.gif)
+
 
 ---
 
