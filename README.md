@@ -203,3 +203,28 @@ Great artwork really enhances the visuals.
 # itch.io pages
 
 - https://kyorohiro.itch.io/tetorica-deskel
+
+
+
+# Memo How to release 
+
+https://itch.io/docs/itch/integrating/platforms/macos.html
+
+## install butler
+```
+mkdir -p ~/bin
+curl -L https://broth.itch.zone/butler/darwin-amd64/LATEST/archive/default -o /tmp/butler.zip
+unzip -o /tmp/butler.zip -d /tmp/butler
+chmod +x /tmp/butler/butler
+mv /tmp/butler/butler ~/bin/butler
+```
+
+``` 
+% npm run tauri build
+% npm run tauri build -- --target x86_64-apple-darwin
+% ~/bin/butler login
+% ~/bin/butler push src-tauri/target/release/bundle/macos kyorohiro/tetorica-deskel:mac
+% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/macos kyorohiro/tetorica-deskel:mac
+
+```
+
