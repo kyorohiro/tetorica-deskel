@@ -546,7 +546,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "saveAndContrast"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -561,7 +561,7 @@ const AppDeslel = forwardRef<
               Contrast
             </button>
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "saveAndContrast"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
