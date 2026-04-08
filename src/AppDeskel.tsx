@@ -350,7 +350,7 @@ const AppDeslel = forwardRef<
 
       {/* Measure Sub Toolbar */}
       <div
-        className={`fixed bottom-4 right-4 z-[9999] flex items-end gap-2 ${uAppState.tool === "measure" ? "flex" : "hidden"
+        className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${uAppState.tool === "measure" ? "flex" : "hidden"
           }`}
       >
         {/* 展開パネル */}
@@ -484,7 +484,7 @@ const AppDeslel = forwardRef<
         // color menu
       }
       <div
-        className={`fixed top-4 right-4 z-[9999] items-center gap-2 ${(uAppState.tool === "capture" || uAppState.tool === "color") && isMac
+        className={`fixed top-4 right-4 z-9999 items-center gap-2 ${(uAppState.tool === "capture" || uAppState.tool === "color") && isMac
           ? "flex"
           : "hidden"
           }`}
@@ -510,7 +510,7 @@ const AppDeslel = forwardRef<
       }
       {/* Measure Sub Toolbar */}
       <div
-        className={`fixed bottom-4 right-4 z-[9999] flex items-end gap-2 ${uAppState.tool === "capture" ? "flex" : "hidden"
+        className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${uAppState.tool === "capture" ? "flex" : "hidden"
           }`}
       >
         {/* 展開パネル */}

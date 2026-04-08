@@ -554,7 +554,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       }
       {
         <div
-          className={`fixed bottom-4 right-4 z-[9999] flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool == "color" ? "block" : "hidden"
+          className={`fixed bottom-4 right-4 z-9999 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur pointer-events-auto ${state.tool == "color" ? "block" : "hidden"
             }`}
         >
           <button

@@ -74,12 +74,13 @@ export default function App() {
         <ScreenCaptureCanvas image={state.captureImage} mode={state.captureMode} />
       </div>
 
+
       <div className="absolute inset-0 z-20">
-        <AppColorAnalysis ref={colorAnalysisRef} />
+        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
       </div>
 
-      <div className="absolute inset-0 z-30">
-        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
+      <div className={`absolute inset-0 z-30 ${state.tool === "color" ? "pointer-events-none" : "pointer-events-none"}`}>
+        <AppColorAnalysis ref={colorAnalysisRef} />
       </div>
 
       <div
