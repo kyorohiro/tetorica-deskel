@@ -260,16 +260,16 @@ function findNearestQuadPoint(
     type: QuadHitType;
     point: Point;
   }> = [
-    { index: 0, type: "vertex", point: points[0] },
-    { index: 1, type: "vertex", point: points[1] },
-    { index: 2, type: "vertex", point: points[2] },
-    { index: 3, type: "vertex", point: points[3] },
+      { index: 0, type: "vertex", point: points[0] },
+      { index: 1, type: "vertex", point: points[1] },
+      { index: 2, type: "vertex", point: points[2] },
+      { index: 3, type: "vertex", point: points[3] },
 
-    { index: -1, type: "mid01", point: midpoint(points[0], points[1]) },
-    { index: -1, type: "mid12", point: midpoint(points[1], points[2]) },
-    { index: -1, type: "mid23", point: midpoint(points[2], points[3]) },
-    { index: -1, type: "mid30", point: midpoint(points[3], points[0]) },
-  ];
+      { index: -1, type: "mid01", point: midpoint(points[0], points[1]) },
+      { index: -1, type: "mid12", point: midpoint(points[1], points[2]) },
+      { index: -1, type: "mid23", point: midpoint(points[2], points[3]) },
+      { index: -1, type: "mid30", point: midpoint(points[3], points[0]) },
+    ];
 
   const center = getLineIntersection(points[0], points[2], points[1], points[3]);
   if (center) {
@@ -478,9 +478,9 @@ function drawClipQuad2(params: {
     ctx.lineWidth = 1.5;
 
     // 欲しい分割
-    const fractions = [3/4, 1 / 4, 1 / 2, 1 / 3, 2 / 3, 
-      //
-      1/8, 3/8, 5/8, 7/8];
+    const fractions = [3 / 4, 1 / 4, 1 / 2, 1 / 3, 2 / 3,
+    //
+    1 / 8, 3 / 8, 5 / 8, 7 / 8];
 
     // 横方向の分割線（上辺AB → 下辺DC に向かう）
     for (const v of fractions) {
@@ -498,13 +498,13 @@ function drawClipQuad2(params: {
       //
       ctx.strokeStyle = mainColor;
       //
-      if(v== 1/3 || v == 2/3) {
+      if (v == 1 / 3 || v == 2 / 3) {
         ctx.lineWidth = 1.2;
         ctx.setLineDash([5, 10]);
-      } else if(v ==1/4 || v == 3/4) {
+      } else if (v == 1 / 4 || v == 3 / 4) {
         ctx.lineWidth = 1.5;
         ctx.setLineDash([2, 1]);
-      } else if(v == 1/8 || v == 3/8 || v == 5/8 || v == 7/8) {
+      } else if (v == 1 / 8 || v == 3 / 8 || v == 5 / 8 || v == 7 / 8) {
         ctx.lineWidth = 0.8;
         ctx.setLineDash([2, 1]);
       }
@@ -531,15 +531,15 @@ function drawClipQuad2(params: {
       });
       //
       ctx.strokeStyle = mainColor;
-      if(u== 1/3 || u == 2/3) {
+      if (u == 1 / 3 || u == 2 / 3) {
         ctx.lineWidth = 1.2;
         ctx.setLineDash([5, 10]);
-      } else if(u ==1/4 || u == 3/4) {
+      } else if (u == 1 / 4 || u == 3 / 4) {
         ctx.lineWidth = 1.5;
         ctx.setLineDash([2, 1]);
-      } else if(u == 1/8 || u == 3/8 || u == 5/8 || u == 7/8) {
+      } else if (u == 1 / 8 || u == 3 / 8 || u == 5 / 8 || u == 7 / 8) {
         ctx.lineWidth = 0.8;
-        ctx.setLineDash([2,1]);
+        ctx.setLineDash([2, 1]);
       }
 
       drawProjectedLine({
@@ -547,7 +547,7 @@ function drawClipQuad2(params: {
         h,
         from: { u, v: 0 },
         to: { u, v: 1 },
-      });    
+      });
     }
     ctx.setLineDash([5, 0]);
 
@@ -600,6 +600,18 @@ function drawClipQuad2(params: {
     ctx.fillStyle = mainColor;
     ctx.beginPath();
     ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  let centerPoint = getLineIntersection(points[0],  points[2], points[1], points[3]);
+  if (centerPoint) {
+    ctx.fillStyle = shadowColor;
+    ctx.beginPath();
+    ctx.arc(centerPoint.x, centerPoint.y, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = mainColor;
+    ctx.beginPath();
+    ctx.arc(centerPoint.x, centerPoint.y, 3, 0, Math.PI * 2);
     ctx.fill();
   }
 }
