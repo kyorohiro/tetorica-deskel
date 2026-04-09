@@ -27,6 +27,7 @@ type Settings = {
         cropHeight: number;
     } | null | undefined
     captureMode?: CaptureMode;
+    
 }
 
 type ToolMode = "measure" | "draw" | "color" | "capture"

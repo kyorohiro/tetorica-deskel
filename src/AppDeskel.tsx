@@ -510,13 +510,13 @@ const AppDeslel = forwardRef<
       }
       {/* Measure Sub Toolbar */}
       <div
-        className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${uAppState.tool === "capture" ? "flex" : "hidden"
+        className={`fixed bottom-4 right-4 z-9999 flex items-end p-1 m-1 gap-1 ${uAppState.tool === "capture" ? "flex" : "hidden"
           }`}
       >
         {/* 展開パネル */}
         {/* 開閉タブ */}
         <button
-          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
+          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-2 py-2 m-0.5 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
           onClick={() => setCaptureToolbarOpen((v) => !v)}
           title="toggle measure toolbar"
           aria-label="toggle measure toolbar"
@@ -529,9 +529,9 @@ const AppDeslel = forwardRef<
               : "max-w-0 translate-x-2 border border-transparent opacity-0"
             }`}
         >
-          <div className="flex flex-col gap-2 p-2 sm:flex-row sm:flex-wrap">
+          <div className="flex flex-col gap-1 p-2 sm:flex-row sm:flex-wrap">
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "none"
+              className={`flex items-center gap-1 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "none"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -546,7 +546,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "lightness"
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "lightness"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -561,7 +561,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "protan"
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs  transition-colors outline-none ${captureMode === "protan"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -576,7 +576,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "deutan"
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "deutan"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -591,7 +591,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "tritan"
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "tritan"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -606,7 +606,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${false
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}

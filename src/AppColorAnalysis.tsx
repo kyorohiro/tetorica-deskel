@@ -554,11 +554,11 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       }
       {
         <div
-          className={`fixed bottom-4 right-4 z-9999 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur pointer-events-auto ${state.tool == "color" ? "block" : "hidden"
+          className={`fixed bottom-4 right-4 z-9999 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-1 shadow-xl backdrop-blur pointer-events-auto ${state.tool == "color" ? "block" : "hidden"
             }`}
         >
           <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${colorAnalysisMode == "hue-saturation"
+            className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${colorAnalysisMode == "hue-saturation"
               ? "border-emerald-500 bg-emerald-950 text-emerald-300"
               : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
@@ -574,7 +574,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
             Saturation
           </button>
           <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${colorAnalysisMode == "hue-lightness"
+            className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${colorAnalysisMode == "hue-lightness"
               ? "border-emerald-500 bg-emerald-950 text-emerald-300"
               : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
@@ -590,7 +590,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
           </button>
           {}
           <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+            className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
               ? "border-emerald-500 bg-emerald-950 text-emerald-300"
               : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}
@@ -602,7 +602,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
             Export
           </button>
           <button
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+            className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
               ? "border-emerald-500 bg-emerald-950 text-emerald-300"
               : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
               }`}

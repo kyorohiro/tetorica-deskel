@@ -288,7 +288,7 @@ function AppSimpleDrawCanvas() {
 
                                 <div className={`fixed bottom-4 right-4 z-30 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool === "draw" ? "block" : "hidden"}`}>
                                     <button
-                                        className={`rounded-2xl border px-3 py-3 text-sm ${tool === "pen"
+                                        className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "pen"
                                             ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                                             : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
                                             }`}
@@ -296,10 +296,10 @@ function AppSimpleDrawCanvas() {
                                         title="ペン"
                                         aria-label="ペン"
                                     >
-                                        <Pencil size={18} />
+                                        <Pencil size={12} />
                                     </button>
                                     <button
-                                        className={`rounded-2xl border px-3 py-3 text-sm ${tool === "line"
+                                        className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "line"
                                             ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                                             : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
                                             }`}
@@ -307,10 +307,10 @@ function AppSimpleDrawCanvas() {
                                         title="line"
                                         aria-label="line"
                                     >
-                                        <PenLine size={18} />
+                                        <PenLine size={12} />
                                     </button>
                                     <button
-                                        className={`rounded-2xl border px-3 py-3 text-sm ${tool === "eraser"
+                                        className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "eraser"
                                             ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                                             : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
                                             }`}
@@ -318,11 +318,11 @@ function AppSimpleDrawCanvas() {
                                         title="消しゴム"
                                         aria-label="消しゴム"
                                     >
-                                        <Eraser size={18} />
+                                        <Eraser size={12} />
                                     </button>
 
                                     <label
-                                        className="flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950 px-3 py-3 text-sm"
+                                        className="flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950 px-2 py-1 m-0.5 text-xs "
                                         title="色"
                                         aria-label="色"
                                     >
@@ -339,22 +339,22 @@ function AppSimpleDrawCanvas() {
                                     </label>
 
                                     <button
-                                        className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-slate-100 hover:bg-slate-800 disabled:opacity-40"
+                                        className="rounded-2xl border border-slate-700 bg-slate-900 px-2 py-1 m-0.5 text-xs  text-slate-100 hover:bg-slate-800 disabled:opacity-40"
                                         onClick={undo}
                                         disabled={strokes.length === 0}
                                         title="1つ戻す"
                                         aria-label="1つ戻す"
                                     >
-                                        <Undo2 size={18} />
+                                        <Undo2 size={12} />
                                     </button>
 
                                     <button
-                                        className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-slate-100 hover:bg-slate-800"
+                                        className="rounded-2xl border border-slate-700 bg-slate-900 px-2 py-1 m-0.5 text-xs  text-slate-100 hover:bg-slate-800"
                                         onClick={clearAll}
                                         title="クリア"
                                         aria-label="クリア"
                                     >
-                                        <Trash2 size={18} />
+                                        <Trash2 size={12} />
                                     </button>
                                 </div>
                             </div>
