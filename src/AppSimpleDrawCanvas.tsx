@@ -121,6 +121,7 @@ function AppSimpleDrawCanvas() {
     const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 760 });
     //const [currentPoint, setCurrentPoint] = useState<Point | null>(null);
     //const [startPoint, setStartPoint] = useState<Point | null>(null);
+    const [drawToolbarOpen, setDrawToolbarOpen] = useState<boolean>(true);
 
     const state = useAppState();
 
@@ -203,7 +204,7 @@ function AppSimpleDrawCanvas() {
             if (prev.tool === "line" && prev.points.length >= 1) {
                 return {
                     ...prev,
-                    points: [ prev.points[0], p ]
+                    points: [prev.points[0], p]
                 }
             } else {
                 return {
@@ -287,6 +288,20 @@ function AppSimpleDrawCanvas() {
                                 </div>
 
                                 <div className={`fixed bottom-4 right-4 z-30 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 shadow-xl backdrop-blur ${state.tool === "draw" ? "block" : "hidden"}`}>
+                                    <button
+                                        className="rounded-2xl border border-slate-700 bg-slate-900/90 px-2 py-2 m-0.5 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
+                                        onClick={() => setDrawToolbarOpen((v) => !v)}
+                                        title="toggle measure toolbar"
+                                        aria-label="toggle measure toolbar"
+                                    >
+                                        {drawToolbarOpen ? ">" : "<"}
+                                    </button>
+                                    <div
+                                        className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${drawToolbarOpen
+                                            ? "max-w-[1200px] translate-x-0 border border-slate-800 opacity-100"
+                                            : "max-w-0 translate-x-2 border border-transparent opacity-0"
+                                            }`}
+                                    ></div>
                                     <button
                                         className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "pen"
                                             ? "border-emerald-500 bg-emerald-950 text-emerald-300"
