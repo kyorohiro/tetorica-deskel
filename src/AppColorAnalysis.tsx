@@ -6,7 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { ColorCount } from "./screenshot";
+import { ColorCount } from "./nativeScreenshot";
 import { useAppState } from "./state";
 import { Download, BrushCleaning } from "lucide-react";
 import { useDialog } from "./useDialog";

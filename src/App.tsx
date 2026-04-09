@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react"
 import { showToolbar, initToolbar } from "./toolbar"
 import { updateWindowTitle } from "./window";
-import { setupShortcuts } from "./shortcut";
+import { setupShortcuts } from "./nativeShortcut";
 
 import "./style.css"
 import { AppToolbar } from "./AppToolbar";
@@ -9,7 +9,7 @@ import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { AppSimpleDrawCanvas } from "./AppSimpleDrawCanvas";
-import { ColorCount } from "./screenshot";
+import { ColorCount } from "./nativeScreenshot";
 import { useAppState } from "./state";
 import ScreenCaptureCanvas from "./AppScreenCaptureCanvas";
 import { getAppWindow } from "./native";

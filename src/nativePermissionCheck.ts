@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api/core";
-//import { open } from '@tauri-apps/plugin-shell';
 
 const hasPermission = async (): Promise<boolean> => {
   const hasPermission = await invoke<boolean>("check_screen_capture_permission");

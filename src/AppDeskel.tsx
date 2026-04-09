@@ -17,12 +17,12 @@ import {
   captureAndCropToAnalysis,
   //captureAndCropToDownloads,
   ColorCount,
-} from "./screenshot";
+} from "./nativeScreenshot";
 import { ChainMeasure } from "./deskelChainMesure";
 
 import { showToast } from "./toast";
 import { useDialog } from "./useDialog";
-import { openPrivacySettings } from "./permissionCheck";
+import { openPrivacySettings } from "./nativePermissionCheck";
 import { getRectFromPoints } from "./utils";
 import { getTaurPlatformInfo } from "./native";
 //import { convertFileSrc } from "@tauri-apps/api/core";

@@ -1,6 +1,5 @@
-//import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appState } from "./state";
-import { TOGGLE_CLICK_SHORTCUT } from "./shortcut";
+import { TOGGLE_CLICK_SHORTCUT } from "./nativeShortcut";
 import { showToolbar, hideToolbarSoon } from "./toolbar";
 import { getAppWindow } from "./native";
 
