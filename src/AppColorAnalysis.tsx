@@ -10,10 +10,9 @@ import { ColorCount } from "./nativeScreenshot";
 import { useAppState } from "./state";
 import { Download, BrushCleaning } from "lucide-react";
 import { useDialog } from "./useDialog";
-import { save } from "@tauri-apps/plugin-dialog";
-import { writeFile } from "@tauri-apps/plugin-fs";
 import { showToast } from "./toast";
 import { createSwatchesFile } from "procreate-swatches";
+import { saveDialog, writeFileForNative } from "./native";
 
 type AppColorAnalysisMode = "hue-saturation" | "hue-lightness";
 
@@ -49,7 +48,7 @@ async function exportProcreateSwatches(
     "uint8array"
   ) as Uint8Array;
 
-  const path = await save({
+  const path = await saveDialog({
     title: "Save Procreate Palette",
     defaultPath: `${paletteName}.swatches`,
     filters: [{ name: "Procreate Swatches", extensions: ["swatches"] }],
@@ -58,7 +57,7 @@ async function exportProcreateSwatches(
   if (!path) return;
 
   console.log("> data", data);
-  await writeFile(path, data);
+  await writeFileForNative(path, data);
   showToast(`> saved Procreate palette: ${path}`);
 }
 
@@ -96,7 +95,7 @@ async function exportPalettePng(colors: ColorCount[]) {
     }, "image/png");
   });
 
-  const path = await save({
+  const path = await saveDialog({
     title: "Save Palette PNG",
     defaultPath: "palette.png",
     filters: [{ name: "PNG Image", extensions: ["png"] }],
@@ -105,7 +104,7 @@ async function exportPalettePng(colors: ColorCount[]) {
   if (!path) return;
 
   const bytes = new Uint8Array(await blob.arrayBuffer());
-  await writeFile(path, bytes);
+  await writeFileForNative(path, bytes);
 
   console.log("> saved png:", path);
   showToast(`> saved png: ${path}`);
@@ -126,7 +125,7 @@ async function exportPaletteCsv(colors: ColorCount[]) {
   ];
 
   const csvText = lines.join("\n");
-  const path = await save({
+  const path = await saveDialog({
     title: "Save Palette CSV",
     defaultPath: "palette.csv",
     filters: [{ name: "CSV", extensions: ["csv"] }],
@@ -135,7 +134,7 @@ async function exportPaletteCsv(colors: ColorCount[]) {
   if (!path) return;
 
   const bytes = new TextEncoder().encode(csvText);
-  await writeFile(path, bytes);
+  await writeFileForNative(path, bytes);
 
   console.log("> saved csv:", path);
   showToast(`> saved csv: ${path}`);
@@ -306,47 +305,12 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       ctx.arc(centerX, centerY, maxRadius * ratio, 0, Math.PI * 2);
       ctx.stroke();
     }
-    // 十字ガイド
-    /*
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY - maxRadius);
-    ctx.lineTo(centerX, centerY + maxRadius);
-    ctx.moveTo(centerX - maxRadius, centerY);
-    ctx.lineTo(centerX + maxRadius, centerY);
-    ctx.stroke();
-    */
 
     // 外周リング
     ctx.strokeStyle = "rgba(255,255,255,0.28)";
     ctx.beginPath();
     ctx.arc(centerX, centerY, maxRadius, 0, Math.PI * 2);
     ctx.stroke();
-
-
-    // heatmap
-    /*
-    for (const color of colors) {
-      const angleDeg = color.hue_angle - 90;
-      const angleRad = (angleDeg * Math.PI) / 180;
-
-      const radius = Math.max(0, Math.min(1, color.hsv_saturation)) * maxRadius;
-      const x = centerX + Math.cos(angleRad) * radius;
-      const y = centerY + Math.sin(angleRad) * radius;
-
-      //const heatRadius = Math.max(10, Math.min(40, 10 + color.ratio * 200));
-      const t = Math.sqrt(color.ratio);
-      const heatRadius = Math.max(10, Math.min(40, 10 + t * 30));
-      const alpha = Math.max(0.08, Math.min(0.35, color.ratio * 3.0));
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.beginPath();
-      ctx.arc(x, y, heatRadius, 0, Math.PI * 2);
-      ctx.fillStyle = color.hex;
-      ctx.fill();
-      ctx.restore();
-    }
-    */
 
     // 色点を描く
     for (const color of colors) {

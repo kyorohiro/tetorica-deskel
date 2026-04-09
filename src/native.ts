@@ -1,3 +1,5 @@
+import type { SaveDialogOptions } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 import type { Platform } from "@tauri-apps/plugin-os";
 
 function isTauri() {
@@ -14,7 +16,7 @@ async function getAppWindow() {
     return getCurrentWindow();
 }
 
-async function getTaurPlatformInfo(): Promise<Platform|null> {
+async function getTaurPlatformInfo(): Promise<Platform | null> {
     // PWA / 通常ブラウザでは Tauri API を触らない
     if (!("__TAURI_INTERNALS__" in window)) {
         return null;
@@ -24,8 +26,23 @@ async function getTaurPlatformInfo(): Promise<Platform|null> {
     return p;
 }
 
+async function saveDialog(options?: SaveDialogOptions): Promise<string | null> {
+    // PWA / 通常ブラウザでは Tauri API を触らない
+    if (!("__TAURI_INTERNALS__" in window)) {
+        return null;
+    }
+    const { save } = await import("@tauri-apps/plugin-dialog");
+    return await save(options);
+}
+
+async function writeFileForNative(path: string | URL, data: Uint8Array<ArrayBufferLike> | ReadableStream<Uint8Array<ArrayBufferLike>>) {
+    await writeFile(path,  data);
+}
+
 export {
     getAppWindow,
     getTaurPlatformInfo,
-    isTauri
+    isTauri,
+    saveDialog,
+    writeFileForNative
 }
