@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
 import { showToast } from "./toast";
+import { Menu, MousePointerClick, Pin } from "lucide-react";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
@@ -18,7 +19,7 @@ export function AppToolbar(props: {
     }, [appState.getState()])
     return (
         <>
-            <div className="absolute left-3 top-1 z-20 flex items-center gap-2"  style={{zIndex: 99999}}>
+            <div className="absolute left-3 top-1 z-20 flex items-center gap-2" style={{ zIndex: 99999 }}>
                 <button
                     onClick={() => setVisible(v => !v)}
                     className={`
@@ -27,66 +28,110 @@ export function AppToolbar(props: {
                     opacity-80"
                     `}
                 >
-                    menu
+                    <Menu size={12} />
                 </button>
                 {
                     // ${!visible ? "opacity-100" : "opacity-0"}
                     //menu shortcut
                 }
+                {
+                    // click through -
+                }
                 <div
-                    onClick={() => setVisible(v => !v)}
                     className={`
-                    rounded-lg bg-black/60 px-1 py-1 text-sm text-white
-                    transition-opacity duration-200
-                    flex items-center justify-center
-                    ${!visible ? "opacity-80" : "opacity-0"}
-                `}
+                        rounded-lg bg-black/60 px-1 py-1 text-sm text-white
+                        transition-opacity duration-200
+                        flex items-center justify-center
+                        ${!visible ? "opacity-80" : "opacity-0"}
+                    `}
                 >
-                    <label className="flex cursor-pointer flex-col items-center justify-center text-center">
-                        <input
-                            type="checkbox"
-                            checked={uAppState.clickThrough}
-                            className="peer sr-only"
-                            onChange={async (e) => {
-                                const next = e.target.checked
-                                //appState.setAlwaysOnTop(next)
-                                const info = await setClickThrough(next)
-                                showToast(info);
-                            }}
-                        />
-                        <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
-                        <span className="mt-0 text-sm text-white">
+                    <div
+                        className="group relative inline-flex"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <label className="flex cursor-pointer flex-row items-center justify-center gap-1 text-center">
+                            <input
+                                type="checkbox"
+                                checked={uAppState.clickThrough}
+                                className="peer sr-only"
+                                onChange={async (e) => {
+                                    const next = e.target.checked;
+                                    const info = await setClickThrough(next);
+                                    showToast(info);
+                                }}
+                            />
+
+                            <span className="inline-flex">
+                                <MousePointerClick size={12} />
+                            </span>
+
+                            <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
+                        </label>
+
+                        <div
+                            className="
+                                pointer-events-none absolute left-1/2 top-full z-50 mt-2
+                                -translate-x-1/2 whitespace-nowrap rounded bg-slate-900
+                                px-2 py-1 text-xs text-white opacity-0 shadow-md
+                                transition-opacity group-hover:opacity-100
+                            "
+                        >
                             click through
-                        </span>
-                    </label>
+                        </div>
+                    </div>
                 </div>
+                {
+                    // -click through
+                }
+                {
+                    // always on top -
+                }
                 <div
-                    onClick={() => setVisible(v => !v)}
                     className={`
-                    rounded-lg bg-black/60 px-1 py-1 text-sm text-white
-                    transition-opacity duration-200
-                    flex items-center justify-center
-                    ${!visible ? "opacity-80" : "opacity-0"}
-                `}
-                style={{zIndex: 99999}}
+                        rounded-lg bg-black/60 px-1 py-1 text-sm text-white
+                        transition-opacity duration-200
+                        flex items-center justify-center
+                        ${!visible ? "opacity-80" : "opacity-0"}
+                    `}
                 >
-                    <label className="flex cursor-pointer flex-col items-center justify-center text-center">
-                        <input
-                            type="checkbox"
-                            checked={uAppState.alwaysOnTop}
-                            className="peer sr-only"
-                            onChange={async (e) => {
-                                const next = e.target.checked
-                                //appState.setAlwaysOnTop(next)
-                                await setAlwaysOnTop(next);
-                            }}
-                        />
-                        <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
-                        <span className="mt-0 text-sm text-white">
+                    <div
+                        className="group relative inline-flex"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <label className="flex cursor-pointer flex-row items-center justify-center gap-1 text-center">
+                            <input
+                                type="checkbox"
+                                checked={uAppState.alwaysOnTop}
+                                className="peer sr-only"
+                                onChange={async (e) => {
+                                    const next = e.target.checked
+                                    //appState.setAlwaysOnTop(next)
+                                    await setAlwaysOnTop(next);
+                                }}
+                            />
+
+                            <span className="inline-flex">
+                                <Pin size={12} />
+                            </span>
+
+                            <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
+                        </label>
+
+                        <div
+                            className="
+                                pointer-events-none absolute left-1/2 top-full z-50 mt-2
+                                -translate-x-1/2 whitespace-nowrap rounded bg-slate-900
+                                px-2 py-1 text-xs text-white opacity-0 shadow-md
+                                transition-opacity group-hover:opacity-100
+                            "
+                        >
                             always on top
-                        </span>
-                    </label>
+                        </div>
+                    </div>
                 </div>
+                {
+                    // -always on top
+                }
             </div>
 
             <div
@@ -100,7 +145,7 @@ export function AppToolbar(props: {
                     space-y-2
                     ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
                 `}
-                style={{zIndex: 99999}}
+                style={{ zIndex: 99999 }}
             >
                 <label className="flex items-center m-0 text-xs">
                     Pen
@@ -114,8 +159,8 @@ export function AppToolbar(props: {
                             }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
                                         ${uAppState.tool === "measure"
-                                        ? "border-sky-400 bg-sky-700 text-white"
-                                        : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                                    ? "border-sky-400 bg-sky-700 text-white"
+                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
                         >
                             Measure
                         </button>
