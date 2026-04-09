@@ -21,10 +21,10 @@ import {
 import { ChainMeasure } from "./deskelChainMesure";
 
 import { showToast } from "./toast";
-import { platform } from "@tauri-apps/plugin-os";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./permissionCheck";
 import { getRectFromPoints } from "./utils";
+import { getTaurPlatformInfo } from "./native";
 //import { convertFileSrc } from "@tauri-apps/api/core";
 //import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
@@ -85,7 +85,7 @@ const AppDeslel = forwardRef<
 
     void (async () => {
       try {
-        const p = await platform();
+        const p = await getTaurPlatformInfo();
         if (mounted) {
           setIsMac(p === "macos");
         }
