@@ -25,7 +25,6 @@ import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./nativePermissionCheck";
 import { getRectFromPoints } from "./utils";
 import { getTaurPlatformInfo } from "./native";
-//import { convertFileSrc } from "@tauri-apps/api/core";
 //import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
 

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { CaptureMode } from "./state";
 import { useDialog } from "./useDialog";
 
@@ -273,52 +272,48 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
 
 
       let imageUrl: string;
-      if (image.path) {
-        imageUrl = convertFileSrc(image.path);
-      } else {
-        const bytes = normalizeToBytes(image.buffer);
-        //showError("buffer info", JSON.stringify({
-        //  byteLength: bytes.byteLength,
-        //  headerHex: bytesToHex(bytes, 16),
-        //}));
-        const blob = new Blob([bytes as any], { type: "image/png" });
-        imageUrl = URL.createObjectURL(blob);
-        blobUrlRef.current = imageUrl;
-        //imageUrl = URL.createObjectURL(new Blob([image.buffer!], { type: "image/png" }));
-        //blobUrlRef.current = imageUrl;
+      const bytes = normalizeToBytes(image.buffer);
+      //showError("buffer info", JSON.stringify({
+      //  byteLength: bytes.byteLength,
+      //  headerHex: bytesToHex(bytes, 16),
+      //}));
+      const blob = new Blob([bytes as any], { type: "image/png" });
+      imageUrl = URL.createObjectURL(blob);
+      blobUrlRef.current = imageUrl;
+      //imageUrl = URL.createObjectURL(new Blob([image.buffer!], { type: "image/png" }));
+      //blobUrlRef.current = imageUrl;
 
-        createImageBitmap(blob, {
-          imageOrientation: "flipY",
+      createImageBitmap(blob, {
+        imageOrientation: "flipY",
+      })
+        .then((bitmap) => {
+          if (disposed) {
+            bitmap.close();
+            return;
+          }
+
+          const texture = new THREE.Texture(bitmap);
+          texture.flipY = false;
+          texture.needsUpdate = true;
+          texture.minFilter = THREE.LinearFilter;
+          texture.magFilter = THREE.LinearFilter;
+          texture.generateMipmaps = false;
+          texture.colorSpace = THREE.SRGBColorSpace;
+
+          textureRef.current = texture;
+
+          if (materialRef.current) {
+            materialRef.current.uniforms.uTexture.value = texture;
+          }
+
+          updateRendererSize();
         })
-          .then((bitmap) => {
-            if (disposed) {
-              bitmap.close();
-              return;
-            }
-
-            const texture = new THREE.Texture(bitmap);
-            texture.flipY = false;
-            texture.needsUpdate = true;
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            texture.generateMipmaps = false;
-            texture.colorSpace = THREE.SRGBColorSpace;
-
-            textureRef.current = texture;
-
-            if (materialRef.current) {
-              materialRef.current.uniforms.uTexture.value = texture;
-            }
-
-            updateRendererSize();
-          })
-          .catch((e) => {
-            showError(
-              "image decode error",
-              e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e)
-            );
-          });
-      }
+        .catch((e) => {
+          showError(
+            "image decode error",
+            e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e)
+          );
+        });
       /*
       loader.load(
         imageUrl,
