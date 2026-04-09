@@ -1,15 +1,22 @@
-import { getCurrentWindow } from "@tauri-apps/api/window";
+//import { getCurrentWindow } from "@tauri-apps/api/window";
 import { appState } from "./state";
 import { TOGGLE_CLICK_SHORTCUT } from "./shortcut";
 import { showToolbar, hideToolbarSoon } from "./toolbar";
+import { getAppWindow } from "./native";
 
-const win = getCurrentWindow();
-function updateWindowTitle(): string {
+//const win = getCurrentWindow();
+
+ async function updateWindowTitle(): Promise<string> {
   console.log("> updateWindowTitle", appState.getState().clickThrough);
   const title = appState.getState().clickThrough
     ? `Back to normal: ${TOGGLE_CLICK_SHORTCUT}`
     : "Tetorica Deskel";
   console.log(title);
+
+  const win = await getAppWindow();
+  if(!win) {
+    return "";
+  }
   win.setTitle(title);
   const customTitleBar = document.getElementById("custom-title-bar-value")
   if (customTitleBar != null) {
@@ -20,6 +27,10 @@ function updateWindowTitle(): string {
 
 async function setAlwaysOnTop(value: boolean): Promise<void> {
   console.log(">  setAlwaysOnTop ", value);
+  const win = await getAppWindow();
+  if(!win) {
+    return;
+  }
   appState.setAlwaysOnTop(value);
   await win.setAlwaysOnTop(value);
 
@@ -36,6 +47,10 @@ async function toggleAlwaysOnTop(): Promise<void> {
 
 async function setClickThrough(value: boolean): Promise<string> {
   console.log(">  setClickThrough ", value)
+  const win = await getAppWindow();
+  if(!win) {
+    return ""; 
+  }
   appState.setClickThrough(value);
   await win.setIgnoreCursorEvents(value);
   if(value) {
@@ -51,7 +66,7 @@ async function setClickThrough(value: boolean): Promise<string> {
   } else {
     showToolbar();
   }
-  return updateWindowTitle();
+  return await updateWindowTitle();
 }
 
 async function toggleClickCursorThrough(): Promise<void> {

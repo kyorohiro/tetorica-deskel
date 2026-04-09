@@ -13,6 +13,7 @@ import { AppSimpleDrawCanvas } from "./AppSimpleDrawCanvas";
 import { ColorCount } from "./screenshot";
 import { useAppState } from "./state";
 import ScreenCaptureCanvas from "./AppScreenCaptureCanvas";
+import { getAppWindow } from "./native";
 
 export default function App() {
   const deskelRef = useRef<AppDeskelHandle | null>(null);
@@ -23,7 +24,9 @@ export default function App() {
     console.log(">> win.onResized NEW !", payload)
     deskelRef.current?.redraw({ isResizeCanvas: true });
     showToolbar()
-    updateWindowTitle()
+    updateWindowTitle().catch((e)=>{
+      console.log(e);
+    })
   }, [])
 
   const onColorAnalysis = async (colors: ColorCount[], colors01: ColorCount[]): Promise<void> => {
@@ -39,30 +42,35 @@ export default function App() {
   };
 
   useEffect(() => {
-    const win = getCurrentWindow()
-    let disposed = false
-    let off: undefined | (() => void)
+    let disposed = false;
+    let off: undefined | (() => void);
 
-    const setup = async () => {
-      const unlisten = await win.onResized(handleResize)
-
-      if (disposed) {
-        unlisten()
-        return
+    const setupTauriOnly = async () => {
+      const win = await getAppWindow();
+      if (!win) {
+        return;
       }
 
-      off = unlisten
-    }
+      const unlisten = await win.onResized(handleResize);
 
-    setup()
+      if (disposed) {
+        unlisten();
+        return;
+      }
+
+      off = unlisten;
+    };
+
+    setupTauriOnly();
     setupShortcuts();
     initToolbar();
     showToolbar();
+
     return () => {
-      disposed = true
-      off?.()
-    }
-  }, [handleResize])
+      disposed = true;
+      off?.();
+    };
+  }, [handleResize]);
 
   const onChangeStateForToolbar = useCallback(() => {
     deskelRef.current?.redraw();
