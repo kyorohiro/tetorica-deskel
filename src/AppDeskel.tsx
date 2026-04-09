@@ -356,7 +356,7 @@ const AppDeslel = forwardRef<
         {/* 展開パネル */}
         {/* 開閉タブ */}
         <button
-          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-sm text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
+          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
           onClick={() => setMeasureToolbarOpen((v) => !v)}
           title="toggle measure toolbar"
           aria-label="toggle measure toolbar"
@@ -382,9 +382,9 @@ const AppDeslel = forwardRef<
             //           <div className="flex flex-row flex-wrap gap-2 p-2 ">
 
           }
-          <div className="flex flex-col gap-2 p-2 sm:flex-row sm:flex-wrap">
+          <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode === "line"
+              className={`flex items-center justify-center gap-1 rounded-2xl border px-2 py-1 m-0.5 text-xs transition-colors outline-none ${measureMode === "line"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -399,7 +399,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode === "chain"
+              className={`flex items-center justify-center gap-2 rounded-2xl border px-2 py-1 m-0.5 text-xs transition-colors outline-none ${measureMode === "chain"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -414,7 +414,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${measureMode === "setUnit"
+              className={`flex items-center justify-center gap-2 rounded-2xl border px-2 py-1 m-0.5 text-xs transition-colors outline-none ${measureMode === "setUnit"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -438,15 +438,15 @@ const AppDeslel = forwardRef<
               >
                 <span
                   className="
-        inline-flex items-center justify-center
-        rounded-xl
-        bg-slate-800/80
-        px-3 py-2
-        text-xs font-medium uppercase tracking-wide
-        text-slate-400
-        select-none
-        sm:rounded-l-xl sm:rounded-r-none
-      "
+                    inline-flex items-center justify-center
+                    rounded-xl
+                    bg-slate-800/80
+                    px-2 py-1 m-0.5 
+                    text-xs font-medium uppercase tracking-wide
+                    text-slate-400
+                    select-none
+                    sm:rounded-l-xl sm:rounded-r-none
+                  "
                 >
                   Quad
                 </span>
@@ -455,7 +455,7 @@ const AppDeslel = forwardRef<
                   {(["off", "view", "apply"] as const).map((mode) => (
                     <button
                       key={mode}
-                      className={`rounded-xl px-3 py-2 text-sm ${quadMode === mode
+                      className={`rounded-xl px-2 py-1 m-0.5 text-xs ${quadMode === mode
                         ? "border border-amber-500 bg-amber-950 text-amber-300"
                         : "text-slate-100 hover:bg-slate-800"
                         }`}
@@ -491,7 +491,7 @@ const AppDeslel = forwardRef<
       >
         <button
           className="
-          rounded-lg bg-black/60 px-3 py-2 text-sm text-white
+          rounded-lg bg-black/60 px-3 py-2 text-xs text-white
           transition-opacity duration-200
           opacity-80
         "
@@ -516,7 +516,7 @@ const AppDeslel = forwardRef<
         {/* 展開パネル */}
         {/* 開閉タブ */}
         <button
-          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-sm text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
+          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
           onClick={() => setCaptureToolbarOpen((v) => !v)}
           title="toggle measure toolbar"
           aria-label="toggle measure toolbar"
@@ -531,7 +531,7 @@ const AppDeslel = forwardRef<
         >
           <div className="flex flex-col gap-2 p-2 sm:flex-row sm:flex-wrap">
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "none"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "none"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -546,7 +546,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "lightness"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "lightness"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -561,7 +561,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "protan"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "protan"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -576,7 +576,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "deutan"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "deutan"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -591,7 +591,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${captureMode === "tritan"
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${captureMode === "tritan"
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
@@ -606,7 +606,7 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-sm transition-colors outline-none ${false
+              className={`flex items-center gap-2 rounded-2xl border px-3 py-3 text-xs transition-colors outline-none ${false
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
