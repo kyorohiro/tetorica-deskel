@@ -111,7 +111,7 @@ class ChainMeasure {
         }
 
         if (showLength) {
-            this.drawLengthLabel(ctx, color);
+            this.drawLengthLabel(ctx, color, "12px sans-serif", options?.currentPoint?? undefined);
         }
 
         ctx.restore();
@@ -366,11 +366,12 @@ class ChainMeasure {
         ctx: CanvasRenderingContext2D,
         color: string,
         font = "12px sans-serif",
+        currentPoint?: ChainPoint
     ) {
         if (this.chains.length < 2) return;
 
         const last = this.chains[this.chains.length - 1];
-        const length = this.getLength();
+        const length = this.getLength(currentPoint);
         const { shadowColor, mainColor } = this.getStrokeColors(color ?? "#00ff88");
 
 
