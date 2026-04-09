@@ -250,7 +250,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   }, [showSelectDialog]);
 
   const redraw = useCallback((props?: { colors: ColorCount[], colors01: ColorCount[], colorAnalysisMode: AppColorAnalysisMode }) => {
-    console.log("> redraw", props);
+    //console.log("> redraw", props);
     const canvas = canvasRef.current;
     if (!canvas) return;
 
