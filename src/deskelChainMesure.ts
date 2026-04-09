@@ -15,6 +15,7 @@ type DrawOptions = {
     majorScale?: number;
     showMarkers?: boolean;
     markerRadius?: number;
+    currentPoint?: ChainPoint;
 };
 
 class ChainMeasure {
@@ -88,8 +89,8 @@ class ChainMeasure {
 
         ctx.save();
 
-        this.drawPolyline(ctx, shadowColor, 4);
-        this.drawPolyline(ctx, mainColor, 1);
+        this.drawPolyline(ctx, shadowColor, 4, options?.currentPoint);
+        this.drawPolyline(ctx, mainColor, 1, options?.currentPoint);
 
         if (showNormals) {
             this.drawNormals(ctx, {
@@ -105,6 +106,7 @@ class ChainMeasure {
             this.drawMarkersAtRatios(ctx, [1 / 2, 1 / 3, 2 / 3], {
                 color,
                 radius: markerRadius,
+                currentPoint:  options?.currentPoint,
             });
         }
 
@@ -147,6 +149,7 @@ class ChainMeasure {
         ctx: CanvasRenderingContext2D,
         color: string,
         lineWidth: number,
+        currentPoint?: ChainPoint,
     ) {
         if (this.chains.length < 2) return;
 
@@ -156,11 +159,16 @@ class ChainMeasure {
         ctx.beginPath();
         ctx.moveTo(this.chains[0].x, this.chains[0].y);
 
+        if(currentPoint) {
+            this.chains.push(currentPoint);
+        }
         for (let i = 1; i < this.chains.length; i++) {
             const p = this.chains[i];
             ctx.lineTo(p.x, p.y);
         }
-
+        if(currentPoint) {
+            this.chains.pop()
+        }
         ctx.stroke();
         ctx.restore();
     }
@@ -241,11 +249,12 @@ class ChainMeasure {
         options?: {
             color?: string;
             radius?: number;
+            currentPoint?: ChainPoint;
         },
     ) {
         if (this.chains.length < 2) return;
 
-        const totalLength = this.getLength();
+        const totalLength = this.getLength(options?.currentPoint);
         if (totalLength <= 0) return;
 
         const radius = options?.radius ?? 2;

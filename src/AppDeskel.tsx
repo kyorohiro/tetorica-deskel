@@ -224,6 +224,7 @@ const AppDeslel = forwardRef<
         chainMesureRef.current.draw(ctx, {
           color: uAppState.color,
           lineWidth: 1,
+          currentPoint: current ?? undefined,
         });
       } else if (measureMode == "setUnit") {
         drawMeasure({
