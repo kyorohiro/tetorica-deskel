@@ -1,4 +1,9 @@
 import type { Platform } from "@tauri-apps/plugin-os";
+
+function isTauri() {
+    return ("__TAURI_INTERNALS__" in window);
+}
+
 async function getAppWindow() {
     // PWA / 通常ブラウザでは Tauri API を触らない
     if (!("__TAURI_INTERNALS__" in window)) {
@@ -21,5 +26,6 @@ async function getTaurPlatformInfo(): Promise<Platform|null> {
 
 export {
     getAppWindow,
-    getTaurPlatformInfo
+    getTaurPlatformInfo,
+    isTauri
 }
