@@ -8,7 +8,7 @@ import {
 } from "react";
 import { draw, resizeCanvas } from "./deskel";
 import { drawMeasure } from "./deskelMeasure";
-import { drawClipRect, drawClipQuad2, findNearestQuadPointIndex } from "./deskelClipRect";
+import { drawClipRect, drawClipQuad2, findNearestQuadPointIndex, findNearestQuadPoint } from "./deskelClipRect";
 import { useAppState, appState, CaptureMode } from "./state";
 
 import {
@@ -56,6 +56,7 @@ const AppDeslel = forwardRef<
   const currentRef = useRef<AppDeskelPoint | null>(null);
   const clipQuadRef = useRef<AppDeskelPoint[]>([{ x: 200, y: 200 }, { x: 300, y: 200 }, { x: 300, y: 300 }, { x: 200, y: 300 }]); // 台形を定義して、射系変換の基準点とする
   const clipQuadDraggingPointIndexRef = useRef<number>(-1);
+  const draggedCenterQuadRef = useRef<AppDeskelPoint>(undefined);
   const draggingRef = useRef(false);
   const [, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
@@ -272,9 +273,15 @@ const AppDeslel = forwardRef<
       chainMesureRef.current.update(p);
       redraw();
       //
-      const pointIndex = findNearestQuadPointIndex(p, clipQuadRef.current, 14);
+      const pointSet = findNearestQuadPoint(p, clipQuadRef.current, 14);
+      if(pointSet.type == "center") {
+        // 中央が選択
+        draggedCenterQuadRef.current = {...p};
+      }
+      const pointIndex = pointSet.index;
+      //findNearestQuadPointIndex(p, clipQuadRef.current, 14);
       clipQuadDraggingPointIndexRef.current = pointIndex;
-      console.log(">> pointIndex:", pointIndex);
+      //console.log(">> pointIndex:", pointIndex);
     };
 
     const onMouseMove = (e: MouseEvent) => {
@@ -291,6 +298,15 @@ const AppDeslel = forwardRef<
       if (clipQuadDraggingPointIndexRef.current != -1) {
         const index = clipQuadDraggingPointIndexRef.current;
         clipQuadRef.current[index] = { ...currentRef.current };
+      }
+      if(draggedCenterQuadRef.current) {
+        let _dx = currentRef.current.x - draggedCenterQuadRef.current.x;
+        let _dy = currentRef.current.y - draggedCenterQuadRef.current.y;
+        for(let i=0;i<clipQuadRef.current.length;i++) {
+          clipQuadRef.current[i].x += _dx
+          clipQuadRef.current[i].y += _dy
+        }
+        draggedCenterQuadRef.current = {...currentRef.current}
       }
       redraw();
     };
@@ -314,6 +330,7 @@ const AppDeslel = forwardRef<
       }
 
       clipQuadDraggingPointIndexRef.current = -1;
+      draggedCenterQuadRef.current = undefined;
       await onPointerUp();
     };
 

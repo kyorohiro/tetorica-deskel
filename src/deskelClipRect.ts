@@ -199,6 +199,108 @@ function findNearestQuadPointIndex(
 }
 
 
+type QuadHitType =
+  | "vertex"
+  | "center"
+  | "mid01"
+  | "mid12"
+  | "mid23"
+  | "mid30";
+
+type QuadHitResult = {
+  index: number; // vertex のときだけ 0-3、それ以外は -1
+  type: QuadHitType | null;
+  point: Point | null;
+};
+
+function midpoint(a: Point, b: Point): Point {
+  return {
+    x: (a.x + b.x) / 2,
+    y: (a.y + b.y) / 2,
+  };
+}
+
+// 直線 AB と 直線 CD の交点
+// 平行に近い場合は null
+function getLineIntersection(a: Point, b: Point, c: Point, d: Point): Point | null {
+  const x1 = a.x;
+  const y1 = a.y;
+  const x2 = b.x;
+  const y2 = b.y;
+  const x3 = c.x;
+  const y3 = c.y;
+  const x4 = d.x;
+  const y4 = d.y;
+
+  const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+  if (Math.abs(denom) < 1e-8) {
+    return null;
+  }
+
+  const px =
+    ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denom;
+  const py =
+    ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denom;
+
+  return { x: px, y: py };
+}
+
+function findNearestQuadPoint(
+  p: Point,
+  points: Point[],
+  threshold = 12
+): QuadHitResult {
+  if (points.length < 4) {
+    return { index: -1, type: null, point: null };
+  }
+
+  const candidates: Array<{
+    index: number;
+    type: QuadHitType;
+    point: Point;
+  }> = [
+    { index: 0, type: "vertex", point: points[0] },
+    { index: 1, type: "vertex", point: points[1] },
+    { index: 2, type: "vertex", point: points[2] },
+    { index: 3, type: "vertex", point: points[3] },
+
+    { index: -1, type: "mid01", point: midpoint(points[0], points[1]) },
+    { index: -1, type: "mid12", point: midpoint(points[1], points[2]) },
+    { index: -1, type: "mid23", point: midpoint(points[2], points[3]) },
+    { index: -1, type: "mid30", point: midpoint(points[3], points[0]) },
+  ];
+
+  const center = getLineIntersection(points[0], points[2], points[1], points[3]);
+  if (center) {
+    candidates.push({
+      index: -1,
+      type: "center",
+      point: center,
+    });
+  }
+
+  let nearest: QuadHitResult = {
+    index: -1,
+    type: null,
+    point: null,
+  };
+  let minDist = Infinity;
+
+  for (const candidate of candidates) {
+    const d = calcDistance(p, candidate.point);
+    if (d < minDist) {
+      minDist = d;
+      nearest = {
+        index: candidate.index,
+        type: candidate.type,
+        point: candidate.point,
+      };
+    }
+  }
+
+  return minDist <= threshold ? nearest : { index: -1, type: null, point: null };
+}
 
 ///
 /// 台形
@@ -506,6 +608,7 @@ export {
   drawPoint,
   drawClipQuad,
   findNearestQuadPointIndex,
+  findNearestQuadPoint,
   createSquareToQuadHomography,
   projectPoint,
   drawProjectedLine,
