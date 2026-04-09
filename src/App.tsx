@@ -50,7 +50,7 @@ export default function App() {
       if (!win) {
         return;
       }
-
+      await setupShortcuts();
       const unlisten = await win.onResized(handleResize);
 
       if (disposed) {
@@ -62,7 +62,7 @@ export default function App() {
     };
 
     setupTauriOnly();
-    setupShortcuts();
+    
     initToolbar();
     showToolbar();
 
