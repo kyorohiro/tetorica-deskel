@@ -320,8 +320,11 @@ const AppDeslel = forwardRef<
         const dx = currentRef.current.x - startRef.current.x;
         const dy = currentRef.current.y - startRef.current.y;
         const len = Math.sqrt(dx * dx + dy * dy);
+        if(len <= 5 ) {
+          showToast(`Must be 5px or more.`);
+          return
+        }
         appState.setMeasureUnit(len / 5);
-        //uAppState.measureUnit = len / 5;
         uAppState.measureUnitSet = {
           start: { ...startRef.current },
           end: { ...currentRef.current },
