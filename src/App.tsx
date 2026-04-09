@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef } from "react"
 import { showToolbar, initToolbar } from "./toolbar"
-import { getCurrentWindow } from "@tauri-apps/api/window"
 import { updateWindowTitle } from "./window";
 import { setupShortcuts } from "./shortcut";
 
