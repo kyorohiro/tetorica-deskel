@@ -386,20 +386,7 @@ const AppDeslel = forwardRef<
             ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
             : "max-w-0 opacity-0 translate-x-2 border border-transparent"
             }`}
-
-        //className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${measureToolbarOpen
-        //    ? "max-w-xs opacity-100 translate-x-0 border border-slate-800"
-        //    : "max-w-0 opacity-0 translate-x-2 border border-transparent"
-        //  }`}
-
         >
-
-          {
-            //<div className="flex flex-col gap-2 p-2">
-            // whitespace-nowrap
-            //           <div className="flex flex-row flex-wrap gap-2 p-2 ">
-
-          }
           <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
             <button
               className={`flex items-center justify-center gap-1 rounded-2xl border px-2 py-1 m-0.5 text-xs transition-colors outline-none ${measureMode === "line"

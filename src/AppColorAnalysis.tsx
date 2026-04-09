@@ -153,6 +153,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const state = useAppState();
   const colorsRef = useRef<{ colors: ColorCount[], colors01: ColorCount[] }>({ colors: [], colors01: [] });
   const [colorAnalysisMode, setColorAnalysisMode] = useState<AppColorAnalysisMode>("hue-saturation");
+  const [colorToolbarOpen, setColorToolbarOpen] = useState(true);
 
   const { showSelectDialog } = useDialog();
   const setVisible = useCallback((visible: boolean) => {
@@ -523,7 +524,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   useImperativeHandle(
     ref,
     () => ({
-      redraw:(props?: { colors: ColorCount[], colors01: ColorCount[] }) => {
+      redraw: (props?: { colors: ColorCount[], colors01: ColorCount[] }) => {
         console.log("> AppColorAnalysis imperative redraw", props);
         redraw({ colors: props?.colors || [], colors01: props?.colors01 || [], colorAnalysisMode })
       },
@@ -554,65 +555,87 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       }
       {
         <div
-          className={`fixed bottom-4 right-4 z-9999 flex flex-wrap items-center justify-end gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-1 shadow-xl backdrop-blur pointer-events-auto ${state.tool == "color" ? "block" : "hidden"
+          className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2  pointer-events-auto ${state.tool === "color" ? "flex" : "hidden"
             }`}
         >
           <button
-            className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${colorAnalysisMode == "hue-saturation"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-              }`}
+            className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
             onClick={() => {
-              console.log("chain measure line click");
-              setColorAnalysisMode("hue-saturation");
-              redraw({colors: colorsRef.current.colors, colors01: colorsRef.current.colors01, colorAnalysisMode: "hue-saturation"});
+              console.log(">>>> colorToolbarOpen---", colorToolbarOpen)
+             setColorToolbarOpen(!colorToolbarOpen)
+            }}
+            title="toggle measure toolbar"
+            aria-label="toggle measure toolbar"
+          >
+            {colorToolbarOpen ? ">" : "<"}
+          </button>
+          <div
+            className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${colorToolbarOpen
+              ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
+              : "max-w-0 opacity-0 translate-x-2 border border-transparent"
+              }`}
+          >
+            <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
+              {/* 開閉タブ */}
 
-            }}
-            title="Save"
-            aria-label="Save"
-          >
-            Saturation
-          </button>
-          <button
-            className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${colorAnalysisMode == "hue-lightness"
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-              }`}
-            onClick={() => {
-              console.log("chain measure click");
-              setColorAnalysisMode("hue-lightness");
-              redraw({colors: colorsRef.current.colors, colors01: colorsRef.current.colors01, colorAnalysisMode: "hue-lightness"});
-            }}
-            title="Save"
-            aria-label="Save"
-          >
-            Lightness
-          </button>
-          {}
-          <button
-            className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-              }`}
-            onClick={handleExport}
-            title="Save"
-            aria-label="Save"
-          >
-            <Download className="w-4 h-4" />
-            Export
-          </button>
-          <button
-            className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
-              ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-              : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-              }`}
-            onClick={handleClear}
-            title="Clear"
-            aria-label="Clear"
-          >
-            <BrushCleaning className="w-4 h-4" />
-            Clear
-          </button>
+              <button
+                className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${colorAnalysisMode == "hue-saturation"
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                  }`}
+                onClick={() => {
+                  console.log("chain measure line click");
+                  setColorAnalysisMode("hue-saturation");
+                  redraw({ colors: colorsRef.current.colors, colors01: colorsRef.current.colors01, colorAnalysisMode: "hue-saturation" });
+
+                }}
+                title="Save"
+                aria-label="Save"
+              >
+                Saturation
+              </button>
+              <button
+                className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${colorAnalysisMode == "hue-lightness"
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                  }`}
+                onClick={() => {
+                  console.log("chain measure click");
+                  setColorAnalysisMode("hue-lightness");
+                  redraw({ colors: colorsRef.current.colors, colors01: colorsRef.current.colors01, colorAnalysisMode: "hue-lightness" });
+                }}
+                title="Save"
+                aria-label="Save"
+              >
+                Lightness
+              </button>
+              { }
+              <button
+                className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                  }`}
+                onClick={handleExport}
+                title="Save"
+                aria-label="Save"
+              >
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+              <button
+                className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
+                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                  }`}
+                onClick={handleClear}
+                title="Clear"
+                aria-label="Clear"
+              >
+                <BrushCleaning className="w-4 h-4" />
+                Clear
+              </button>
+            </div>
+          </div>
         </div>
       }
     </>
