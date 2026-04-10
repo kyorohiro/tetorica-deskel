@@ -167,7 +167,8 @@ export function AppToolbar(props: {
                                     checked={uAppState.target == "screen"}
                                     className="peer sr-only"
                                     onChange={async (e) => {
-                                        //const next = e.target.checked
+                                        console.log(e)
+;                                        //const next = e.target.checked
                                         //appState.setAlwaysOnTop(next)
                                         if(uAppState.target == "screen") {
                                             appState.setTarget("image");
