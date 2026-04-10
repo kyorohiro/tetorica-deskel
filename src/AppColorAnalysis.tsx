@@ -48,17 +48,37 @@ async function exportProcreateSwatches(
     "uint8array"
   ) as Uint8Array;
 
-  const path = await saveDialog({
-    title: "Save Procreate Palette",
-    defaultPath: `${paletteName}.swatches`,
-    filters: [{ name: "Procreate Swatches", extensions: ["swatches"] }],
-  });
+  if ("__TAURI_INTERNALS__" in window) {
+    const path = await saveDialog({
+      title: "Save Procreate Palette",
+      defaultPath: `${paletteName}.swatches`,
+      filters: [{ name: "Procreate Swatches", extensions: ["swatches"] }],
+    });
 
-  if (!path) return;
+    if (!path) return;
 
-  console.log("> data", data);
-  await writeFileForNative(path, data);
-  showToast(`> saved Procreate palette: ${path}`);
+    console.log("> data", data);
+    await writeFileForNative(path, data);
+    showToast(`> saved Procreate palette: ${path}`);
+  } else {
+    // Web / PWA fallback
+    const blob = new Blob([data as any], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${paletteName}.swatches`;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      console.log("> downloaded png:", `${paletteName}.swatches`);
+      showToast(`downloaded png: ${paletteName}.swatches`);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
 }
 
 async function exportPalettePng(colors: ColorCount[]) {
@@ -144,19 +164,39 @@ async function exportPaletteCsv(colors: ColorCount[]) {
   ];
 
   const csvText = lines.join("\n");
-  const path = await saveDialog({
-    title: "Save Palette CSV",
-    defaultPath: "palette.csv",
-    filters: [{ name: "CSV", extensions: ["csv"] }],
-  });
+  if ("__TAURI_INTERNALS__" in window) {
+    const path = await saveDialog({
+      title: "Save Palette CSV",
+      defaultPath: "palette.csv",
+      filters: [{ name: "CSV", extensions: ["csv"] }],
+    });
 
-  if (!path) return;
+    if (!path) return;
 
-  const bytes = new TextEncoder().encode(csvText);
-  await writeFileForNative(path, bytes);
+    const bytes = new TextEncoder().encode(csvText);
+    await writeFileForNative(path, bytes);
 
-  console.log("> saved csv:", path);
-  showToast(`> saved csv: ${path}`);
+    console.log("> saved csv:", path);
+    showToast(`> saved csv: ${path}`);
+  } else {
+    // Web / PWA fallback
+    const blob = new Blob([csvText as any], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `palette.csv`;
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      console.log("> downloaded png:", `palette.csv`);
+      showToast(`downloaded csv: palette.csv`);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
 }
 
 type AppColorAnalysisHandle = {
