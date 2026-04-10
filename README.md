@@ -96,6 +96,12 @@ tested mac book air and usb c monitor
 
 ![デモ画像](docs/demo09.gif)
 
+* For Web
+
+![デモ画像](docs/demo_web_01.gif)
+
+![デモ画像](docs/demo_web_02.gif)
+
 
 ---
 
@@ -238,3 +244,8 @@ mv /tmp/butler/butler ~/bin/butler
 ```
 
 
+```
+npm run build:itch
+cd dist
+zip -r ../web-build.zip .
+```
