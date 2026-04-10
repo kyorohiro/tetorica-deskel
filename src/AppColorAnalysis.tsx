@@ -95,19 +95,38 @@ async function exportPalettePng(colors: ColorCount[]) {
     }, "image/png");
   });
 
-  const path = await saveDialog({
-    title: "Save Palette PNG",
-    defaultPath: "palette.png",
-    filters: [{ name: "PNG Image", extensions: ["png"] }],
-  });
+  if ("__TAURI_INTERNALS__" in window) {
+    const path = await saveDialog({
+      title: "Save Palette PNG",
+      defaultPath: "palette.png",
+      filters: [{ name: "PNG Image", extensions: ["png"] }],
+    });
 
-  if (!path) return;
+    if (!path) return;
 
-  const bytes = new Uint8Array(await blob.arrayBuffer());
-  await writeFileForNative(path, bytes);
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    await writeFileForNative(path, bytes);
 
-  console.log("> saved png:", path);
-  showToast(`> saved png: ${path}`);
+    console.log("> saved png:", path);
+    showToast(`> saved png: ${path}`);
+  } else {
+    // Web / PWA fallback
+    const url = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "palette.png";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      console.log("> downloaded png:", "palette.png");
+      showToast(`downloaded png: ${"palette.png"}`);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
 }
 
 async function exportPaletteCsv(colors: ColorCount[]) {
@@ -526,7 +545,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
             className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
             onClick={() => {
               console.log(">>>> colorToolbarOpen---", colorToolbarOpen)
-             setColorToolbarOpen(!colorToolbarOpen)
+              setColorToolbarOpen(!colorToolbarOpen)
             }}
             title="toggle measure toolbar"
             aria-label="toggle measure toolbar"

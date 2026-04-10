@@ -143,6 +143,7 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
             ref,
             () => ({
                 addImage: async (data: Blob) => {
+                    console.log("> addImage ", data);
                     const image = await createImageBitmap(data);
                     imageRef.current?.close?.();
                     imageRef.current = image;

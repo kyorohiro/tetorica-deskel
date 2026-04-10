@@ -10,9 +10,9 @@ import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { AppSimpleDrawCanvas } from "./AppSimpleDrawCanvas";
 import { ColorCount } from "./nativeScreenshot";
-import { useAppState } from "./state";
+import { useAppState, appState } from "./state";
 import ScreenCaptureCanvas from "./AppScreenCaptureCanvas";
-import { getAppWindow } from "./native";
+import { getAppWindow, isTauri } from "./native";
 import { AppBackgroundImageCanvas, AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 
 export default function App() {
@@ -20,6 +20,13 @@ export default function App() {
   const colorAnalysisRef = useRef<AppColorAnalysisHandle | null>(null);
   const appBackgroundImageCanvasRef = useRef<AppBackgroundImageCanvasHandle|null>(null);
   const state = useAppState();
+
+  useEffect(()=>{
+    if(!isTauri()) {
+      // Taruiでないなら image だけ
+      appState.setTarget("image");
+    }
+  },[]);
 
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)

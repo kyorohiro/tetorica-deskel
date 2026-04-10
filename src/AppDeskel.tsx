@@ -179,6 +179,7 @@ const AppDeslel = forwardRef<
           });
         }
       } catch (e) {
+        console.log(e);
         if (e instanceof Error) {
           showToast(e.message);
         } else {
