@@ -19,20 +19,27 @@ function getCanvasPoint(
     };
 }
 
+type CropImageResult = {
+  blob: Blob;
+  width: number;
+  height: number;
+};
+
 type AppBackgroundImageCanvasHandle = {
-    addImage: (data: Blob) => Promise<void>;
-    clear: () => Promise<void>;
-    getCropImage: (
-        x: number,
-        y: number,
-        width: number,
-        height: number
-    ) => Promise<Blob | null>;
+  addImage: (data: Blob) => Promise<void>;
+  clear: () => Promise<void>;
+  getCropImage: (rect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => Promise<CropImageResult | null>;
 };
 
 const INITIAL_FIT_RATIO = 0.7;
 
 const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
+
     function (_, ref) {
         const canvasRef = useRef<HTMLCanvasElement | null>(null);
         const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -40,7 +47,13 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
 
         const cssSizeRef = useRef({ width: 0, height: 0 });
         const dprRef = useRef(1);
-
+        const lastDrawRef = useRef({
+            x: 0,
+            y: 0,
+            drawWidth: 0,
+            drawHeight: 0,
+            drawScale: 1,
+        });
         const redrawAll = useCallback(() => {
             const canvas = canvasRef.current;
             if (!canvas) return;
@@ -63,6 +76,8 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
             const image = imageRef.current;
             if (!image) return;
 
+
+            //ctx.drawImage(image, x, y, drawWidth, drawHeight);
             const fitScale = Math.min(
                 width / image.width,
                 height / image.height,
@@ -74,7 +89,14 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
             const drawHeight = image.height * drawScale;
             const x = (width - drawWidth) / 2;
             const y = (height - drawHeight) / 2;
-            console.log(">>", { x, y, drawWidth, drawHeight, drawScale });
+
+            lastDrawRef.current = {
+                x,
+                y,
+                drawWidth,
+                drawHeight,
+                drawScale,
+            };
 
             ctx.drawImage(image, x, y, drawWidth, drawHeight);
         }, []);
@@ -131,49 +153,85 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
                     imageRef.current = null;
                     redrawAll();
                 },
-                getCropImage: async (x: number, y: number, width: number, height: number) => {
-                    const canvas = canvasRef.current;
-                    if (!canvas) return null;
+                getCropImage: async (rect) => {
+                    const image = imageRef.current;
+                    if (!image) return null;
 
-                    const cropWidth = Math.max(1, Math.floor(width));
-                    const cropHeight = Math.max(1, Math.floor(height));
-                    if (cropWidth <= 0 || cropHeight <= 0) {
+                    const draw = lastDrawRef.current;
+                    if (draw.drawWidth <= 0 || draw.drawHeight <= 0 || draw.drawScale <= 0) {
                         return null;
                     }
 
-                    const dpr = window.devicePixelRatio || 1;
+                    // 選択矩形を、表示中画像の範囲に合わせて画像座標へ逆変換
+                    const imageLeft = draw.x;
+                    const imageTop = draw.y;
+                    const imageRight = draw.x + draw.drawWidth;
+                    const imageBottom = draw.y + draw.drawHeight;
 
-                    // 入力は CSS pixel 基準
-                    const sx = Math.floor(x * dpr);
-                    const sy = Math.floor(y * dpr);
-                    const sw = Math.floor(cropWidth * dpr);
-                    const sh = Math.floor(cropHeight * dpr);
+                    const selLeft = rect.x;
+                    const selTop = rect.y;
+                    const selRight = rect.x + rect.width;
+                    const selBottom = rect.y + rect.height;
+
+                    // 画像の表示範囲と交差した部分だけ使う
+                    const clippedLeft = Math.max(selLeft, imageLeft);
+                    const clippedTop = Math.max(selTop, imageTop);
+                    const clippedRight = Math.min(selRight, imageRight);
+                    const clippedBottom = Math.min(selBottom, imageBottom);
+
+                    const clippedWidth = clippedRight - clippedLeft;
+                    const clippedHeight = clippedBottom - clippedTop;
+
+                    if (clippedWidth <= 0 || clippedHeight <= 0) {
+                        return null;
+                    }
+
+                    // CSS px -> 元画像 px
+                    const srcX = Math.max(0, Math.floor((clippedLeft - draw.x) / draw.drawScale));
+                    const srcY = Math.max(0, Math.floor((clippedTop - draw.y) / draw.drawScale));
+                    const srcWidth = Math.min(
+                        image.width - srcX,
+                        Math.ceil(clippedWidth / draw.drawScale)
+                    );
+                    const srcHeight = Math.min(
+                        image.height - srcY,
+                        Math.ceil(clippedHeight / draw.drawScale)
+                    );
+
+                    if (srcWidth <= 0 || srcHeight <= 0) {
+                        return null;
+                    }
 
                     const outCanvas = document.createElement("canvas");
-                    outCanvas.width = sw;
-                    outCanvas.height = sh;
+                    outCanvas.width = srcWidth;
+                    outCanvas.height = srcHeight;
 
                     const outCtx = outCanvas.getContext("2d");
                     if (!outCtx) return null;
 
-                    // 元 canvas の指定領域を切り出す
                     outCtx.drawImage(
-                        canvas,
-                        sx,
-                        sy,
-                        sw,
-                        sh,
+                        image,
+                        srcX,
+                        srcY,
+                        srcWidth,
+                        srcHeight,
                         0,
                         0,
-                        sw,
-                        sh
+                        srcWidth,
+                        srcHeight
                     );
 
-                    return await new Promise<Blob | null>((resolve) => {
-                        outCanvas.toBlob((blob) => {
-                            resolve(blob);
-                        }, "image/png");
+                    const blob = await new Promise<Blob | null>((resolve) => {
+                        outCanvas.toBlob((b) => resolve(b), "image/png");
                     });
+
+                    if (!blob) return null;
+
+                    return {
+                        blob,
+                        width: srcWidth,
+                        height: srcHeight,
+                    };
                 },
             }),
             [redrawAll, resizeCanvas]

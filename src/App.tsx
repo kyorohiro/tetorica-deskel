@@ -90,7 +90,7 @@ export default function App() {
 
 
       <div className="absolute inset-0 z-20">
-        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} />
+        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef}/>
       </div>
 
       <div className={`absolute inset-0 z-30 ${state.tool === "color" ? "pointer-events-none" : "pointer-events-none"}`}>

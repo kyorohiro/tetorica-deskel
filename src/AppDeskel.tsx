@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  RefObject,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -25,6 +26,7 @@ import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./nativePermissionCheck";
 import { getRectFromPoints } from "./utils";
 import { getTaurPlatformInfo } from "./native";
+import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 //import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
 
@@ -46,6 +48,7 @@ const AppDeslel = forwardRef<
       colors01: ColorCount[],
     ) => Promise<void>;
     onBeforeCapture?: () => Promise<void>;
+    appBackgroundImageCanvasRef: RefObject<AppBackgroundImageCanvasHandle | null>;
   }
 >(function (props, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -131,20 +134,49 @@ const AppDeslel = forwardRef<
     });
     if (uAppState.tool == "capture") {
       try {
-        const ret = await captureAndCrop({
-          targetRect: selectedRect,
-          hideWindow: true,
-        })
-        appState.setCaptureImage({
-          //path: ret.path,
-          buffer: ret.pngBuffer,
-          sourceWidth: ret.viewWidth,
-          sourceHeight: ret.viewHeight,
-          cropX: ret.x,
-          cropY: ret.y,
-          cropWidth: ret.width,
-          cropHeight: ret.height,
-        });
+        if (uAppState.target == "image" && props.appBackgroundImageCanvasRef) {
+          const result = await props.appBackgroundImageCanvasRef.current?.getCropImage({
+            x: selectedRect.x,
+            y: selectedRect.y,
+            width: selectedRect.width,
+            height: selectedRect.height,
+          });
+
+          if (!result) {
+            showToast("Failed to crop image.");
+            return;
+          }
+
+          const arrayBuffer = await result.blob.arrayBuffer();
+          const pngBuffer = new Uint8Array(arrayBuffer);
+
+          appState.setCaptureImage({
+            buffer: pngBuffer as any,
+
+            // captureAndCrop と合わせて「view 上の選択矩形」をそのまま持たせる
+            sourceWidth: window.innerWidth,
+            sourceHeight: window.innerHeight,
+            cropX: selectedRect.x,
+            cropY: selectedRect.y,
+            cropWidth: selectedRect.width,
+            cropHeight: selectedRect.height,
+          });
+        } else {
+          const ret = await captureAndCrop({
+            targetRect: selectedRect,
+            hideWindow: true,
+          });
+
+          appState.setCaptureImage({
+            buffer: ret.pngBuffer,
+            sourceWidth: ret.viewWidth,
+            sourceHeight: ret.viewHeight,
+            cropX: ret.x,
+            cropY: ret.y,
+            cropWidth: ret.width,
+            cropHeight: ret.height,
+          });
+        }
       } catch (e) {
         if (e instanceof Error) {
           showToast(e.message);
