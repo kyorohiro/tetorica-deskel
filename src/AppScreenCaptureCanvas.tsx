@@ -148,7 +148,6 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
   const geometryRef = useRef<THREE.PlaneGeometry | null>(null);
   const meshRef = useRef<THREE.Mesh | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-  
   const dialog = useDialog();
   const showError = (title: string, body: string) => {
     console.error(title, body);
@@ -168,7 +167,6 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
   };
 
   useEffect(() => {
-    console.log(">>>AppScreenCaputreCanvas.useEffect ppp")
     try {
       const root = rootRef.current;
       if (!root || !image) return;
@@ -179,12 +177,10 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
       sceneRef.current = scene;
 
       const renderer = new THREE.WebGLRenderer({
-        //antialias: true,
-        antialias: false,
+        antialias: true,
         alpha: true,
       });
       //
-      /*
       renderer.debug.checkShaderErrors = true;
       renderer.debug.onShaderError = (gl, program, glVertexShader, glFragmentShader) => {
         const programLog = gl.getProgramInfoLog(program) || "";
@@ -205,12 +201,8 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
           ].join("\n")
         );
       };
-      */
       //
-      const isMobile = window.innerWidth < 768;
-      renderer.setPixelRatio(isMobile ? 0.5 : Math.min(window.devicePixelRatio || 1, 2));
-
-      //renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       root.appendChild(renderer.domElement);
       rendererRef.current = renderer;
 
@@ -238,7 +230,6 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
         transparent: true,
       });
       materialRef.current = material;
-      
 
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(
@@ -282,9 +273,15 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
 
       let imageUrl: string;
       const bytes = normalizeToBytes(image.buffer);
+      //showError("buffer info", JSON.stringify({
+      //  byteLength: bytes.byteLength,
+      //  headerHex: bytesToHex(bytes, 16),
+      //}));
       const blob = new Blob([bytes as any], { type: "image/png" });
       imageUrl = URL.createObjectURL(blob);
       blobUrlRef.current = imageUrl;
+      //imageUrl = URL.createObjectURL(new Blob([image.buffer!], { type: "image/png" }));
+      //blobUrlRef.current = imageUrl;
 
       createImageBitmap(blob, {
         imageOrientation: "flipY",
@@ -317,6 +314,50 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
             e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e)
           );
         });
+      /*
+      loader.load(
+        imageUrl,
+        (loadedTexture) => {
+          if (disposed) {
+            loadedTexture.dispose();
+            return;
+          }
+
+          textureRef.current = loadedTexture;
+          loadedTexture.minFilter = THREE.LinearFilter;
+          loadedTexture.magFilter = THREE.LinearFilter;
+          loadedTexture.generateMipmaps = false;
+          loadedTexture.colorSpace = THREE.SRGBColorSpace; //THREE.NoColorSpace;;//
+
+          if (materialRef.current) {
+            materialRef.current.uniforms.uTexture.value = loadedTexture;
+          }
+
+          updateRendererSize();
+        },
+        undefined,
+        (err) => {
+          console.error("texture load error", {
+            imageUrl,
+            err,
+            //type: err?.type,
+            //target: err?.target,
+            //currentTarget: err?.currentTarget,
+          });
+
+          showError(
+            "texture load error",
+            JSON.stringify(
+              {
+                imageUrl,
+                type: (err as Event | undefined)?.type ?? null,
+              },
+              null,
+              2
+            )
+          );
+        }
+      );*/
 
       const onResize = () => updateRendererSize();
       window.addEventListener("resize", onResize);
