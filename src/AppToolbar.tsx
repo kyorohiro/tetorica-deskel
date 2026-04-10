@@ -2,7 +2,7 @@ import { RefObject, useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
 import { showToast } from "./toast";
-import { Menu, MousePointerClick, Pin, Image,  Monitor} from "lucide-react";
+import { Menu, MousePointerClick, Pin, Image, Monitor } from "lucide-react";
 import { isTauri } from "./native";
 import { useDialog } from "./useDialog";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
@@ -11,37 +11,61 @@ export function AppToolbar(props: {
     onChangeState?: () => void
     appBackgroundImageCanvasRef: RefObject<AppBackgroundImageCanvasHandle | null>;
 }) {
-    const [visible, setVisible] = useState(false)
+    const [visible, setVisible] = useState(false);
+    const [hasBackgroundImage, setHasBackgroundImage] = useState(false);
+    const [menuPinned, setMenuPinned] = useState(false);
     const uAppState = useAppState();
     const dialog = useDialog();
 
+    const closeMenuIfNeeded = () => {
+        if (!menuPinned) {
+            setVisible(false);
+        }
+    };
     useEffect(() => {
-        console.log(">> useEffect [grid, opacity]", [appState.getState()])
+        console.log(">> useEffect [grid, opacity]", [appState.getState()]);
         saveSettings(appState.getState());
         if (props.onChangeState) {
             props.onChangeState();
         }
-    }, [appState.getState()])
+    }, [appState.getState()]);
+
+    useEffect(() => {
+        setHasBackgroundImage(!!props.appBackgroundImageCanvasRef.current?.hasImage());
+    }, [props.appBackgroundImageCanvasRef]);
+
+    const syncBackgroundImageState = () => {
+        setHasBackgroundImage(!!props.appBackgroundImageCanvasRef.current?.hasImage());
+        props.onChangeState?.();
+    };
+
+    const handleImportImage = async () => {
+        const ret = await dialog.showFileDialog({});
+        if (props.appBackgroundImageCanvasRef?.current) {
+            if (ret?.files && ret.files.length > 0) {
+                await props.appBackgroundImageCanvasRef.current.addImage(ret.files[0]);
+                syncBackgroundImageState();
+            }
+        }
+    };
+
+    const handleClearImage = async () => {
+        if (props.appBackgroundImageCanvasRef?.current) {
+            props.appBackgroundImageCanvasRef.current.clear();
+            syncBackgroundImageState();
+        }
+    };
+
     return (
         <>
             <div className="absolute left-3 top-1 z-20 flex items-center gap-2" style={{ zIndex: 99999 }}>
                 <button
                     onClick={() => setVisible(v => !v)}
-                    className={`
-                    rounded-lg bg-black/60 px-3 py-2 text-sm text-white
-                    transition-opacity duration-200
-                    opacity-80"
-                    `}
+                    className="rounded-lg bg-black/60 px-3 py-2 text-sm text-white transition-opacity duration-200 opacity-80"
                 >
                     <Menu size={12} />
                 </button>
-                {
-                    // ${!visible ? "opacity-100" : "opacity-0"}
-                    //menu shortcut
-                }
-                {
-                    // click through -
-                }
+
                 {isTauri() &&
                     <div
                         className={`
@@ -74,25 +98,13 @@ export function AppToolbar(props: {
                                 <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
                             </label>
 
-                            <div
-                                className="
-                                pointer-events-none absolute left-1/2 top-full z-50 mt-2
-                                -translate-x-1/2 whitespace-nowrap rounded bg-slate-900
-                                px-2 py-1 text-xs text-white opacity-0 shadow-md
-                                transition-opacity group-hover:opacity-100
-                            "
-                            >
+                            <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
                                 click through
                             </div>
                         </div>
                     </div>
                 }
-                {
-                    // -click through
-                }
-                {
-                    // always on top -
-                }
+
                 {isTauri() &&
                     <div
                         className={`
@@ -112,8 +124,7 @@ export function AppToolbar(props: {
                                     checked={uAppState.alwaysOnTop}
                                     className="peer sr-only"
                                     onChange={async (e) => {
-                                        const next = e.target.checked
-                                        //appState.setAlwaysOnTop(next)
+                                        const next = e.target.checked;
                                         await setAlwaysOnTop(next);
                                     }}
                                 />
@@ -125,25 +136,13 @@ export function AppToolbar(props: {
                                 <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
                             </label>
 
-                            <div
-                                className="
-                                pointer-events-none absolute left-1/2 top-full z-50 mt-2
-                                -translate-x-1/2 whitespace-nowrap rounded bg-slate-900
-                                px-2 py-1 text-xs text-white opacity-0 shadow-md
-                                transition-opacity group-hover:opacity-100
-                            "
-                            >
+                            <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
                                 always on top
                             </div>
                         </div>
                     </div>
                 }
-                {
-                    // -always on top
-                }
-                {
-                    // target image or screen-
-                }
+
                 {isTauri() &&
                     <div
                         className={`
@@ -158,7 +157,6 @@ export function AppToolbar(props: {
                             onClick={(e) => e.stopPropagation()}
                         >
                             <label className="flex cursor-pointer flex-row items-center justify-center gap-1 text-center">
-
                                 <span className="inline-flex">
                                     <Image size={12} />
                                 </span>
@@ -166,16 +164,12 @@ export function AppToolbar(props: {
                                     type="checkbox"
                                     checked={uAppState.target == "screen"}
                                     className="peer sr-only"
-                                    onChange={async (e) => {
-                                        console.log(e)
-;                                        //const next = e.target.checked
-                                        //appState.setAlwaysOnTop(next)
-                                        if(uAppState.target == "screen") {
+                                    onChange={async () => {
+                                        if (uAppState.target == "screen") {
                                             appState.setTarget("image");
                                         } else {
                                             appState.setTarget("screen");
                                         }
-
                                     }}
                                 />
                                 <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
@@ -183,24 +177,13 @@ export function AppToolbar(props: {
                                 <span className="inline-flex">
                                     <Monitor size={12} />
                                 </span>
-
                             </label>
 
-                            <div
-                                className="
-                                pointer-events-none absolute left-1/2 top-full z-50 mt-2
-                                -translate-x-1/2 whitespace-nowrap rounded bg-slate-900
-                                px-2 py-1 text-xs text-white opacity-0 shadow-md
-                                transition-opacity group-hover:opacity-100
-                            "
-                            >
+                            <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
                                 analusis target : monitor or imported image
                             </div>
                         </div>
                     </div>
-                }
-                {
-                    // -target image or screen
                 }
             </div>
 
@@ -217,6 +200,25 @@ export function AppToolbar(props: {
                 `}
                 style={{ zIndex: 99999 }}
             >
+                <label className="flex items-center justify-between gap-3 px-3 py-1 text-xs">
+    <span>Menu Pin</span>
+    <button
+        type="button"
+        onClick={() => setMenuPinned(v => !v)}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            menuPinned ? "bg-blue-600" : "bg-slate-600"
+        }`}
+        aria-pressed={menuPinned}
+        title="keep menu open"
+    >
+        <span
+            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                menuPinned ? "translate-x-5" : "translate-x-1"
+            }`}
+        />
+    </button>
+</label>
+                {}
                 <label className="flex items-center m-0 text-xs">
                     Pen
                 </label>
@@ -224,11 +226,11 @@ export function AppToolbar(props: {
                     <div className="flex flex-wrap items-center gap-2">
                         <button
                             onClick={() => {
-                                appState.setTool("measure")
-                                setVisible(false);
+                                appState.setTool("measure");
+                                closeMenuIfNeeded();
                             }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                        ${uAppState.tool === "measure"
+                                ${uAppState.tool === "measure"
                                     ? "border-sky-400 bg-sky-700 text-white"
                                     : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
                         >
@@ -237,11 +239,11 @@ export function AppToolbar(props: {
 
                         <button
                             onClick={() => {
-                                appState.setTool("draw")
-                                setVisible(false);
+                                appState.setTool("draw");
+                                closeMenuIfNeeded();
                             }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                            ${uAppState.tool === "draw"
+                                ${uAppState.tool === "draw"
                                     ? "border-sky-400 bg-sky-700 text-white"
                                     : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
                         >
@@ -250,23 +252,24 @@ export function AppToolbar(props: {
 
                         <button
                             onClick={() => {
-                                appState.setTool("capture")
-                                setVisible(false);
+                                appState.setTool("capture");
+                                closeMenuIfNeeded();
                             }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                            ${uAppState.tool === "capture"
+                                ${uAppState.tool === "capture"
                                     ? "border-sky-400 bg-sky-700 text-white"
                                     : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
                         >
                             Caputure
                         </button>
+
                         <button
                             onClick={() => {
-                                appState.setTool("color")
-                                setVisible(false);
+                                appState.setTool("color");
+                                closeMenuIfNeeded();
                             }}
                             className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                            ${uAppState.tool === "color"
+                                ${uAppState.tool === "color"
                                     ? "border-sky-400 bg-sky-700 text-white"
                                     : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
                         >
@@ -274,6 +277,7 @@ export function AppToolbar(props: {
                         </button>
                     </div>
                 </div>
+
                 <label className="flex items-center m-0 text-xs">
                     Grid
                 </label>
@@ -281,15 +285,21 @@ export function AppToolbar(props: {
                     <div className="toolbar-row">
                         <label className="flex items-center gap-1.5 text-xs">
                             color
-                            <input id="color" type="color" value="#00ff88" onChange={() => {
-                                const color = document.getElementById("color") as HTMLInputElement;
-                                appState.getState().color = color.value;
-                                if (props.onChangeState) {
-                                    props.onChangeState();
-                                }
-                            }} />
+                            <input
+                                id="color"
+                                type="color"
+                                value="#00ff88"
+                                onChange={() => {
+                                    const color = document.getElementById("color") as HTMLInputElement;
+                                    appState.getState().color = color.value;
+                                    if (props.onChangeState) {
+                                        props.onChangeState();
+                                    }
+                                }}
+                            />
                         </label>
                     </div>
+
                     <label className="flex items-center gap-1.5 text-xs">
                         grid
                         <input
@@ -324,76 +334,62 @@ export function AppToolbar(props: {
                         />
                     </label>
                 </div>
-                {
-                    //
-                }
+
                 <label className="flex items-center m-0 text-xs">
                     Import
                 </label>
                 <div className="px-3">
                     <div className="flex flex-wrap items-center gap-2">
                         <button
-                            onClick={async () => {
-                                console.log(">> showFileDlalog")
-                                const ret = await dialog.showFileDialog({})
-                                console.log(">> props.appBackgroundImageCanvasHandle", props.appBackgroundImageCanvasRef)
-                                if (props.appBackgroundImageCanvasRef?.current) {
-                                    console.log(">> ret?.files.length", ret?.files)
-                                    if (ret?.files && ret?.files.length > 0) {
-                                        props.appBackgroundImageCanvasRef.current.addImage(ret?.files[0]);
-                                    }
-                                }
-                                console.log(ret);
-                            }}
-                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                        ${uAppState.tool === "measure"
-                                    ? "border-sky-400 bg-sky-700 text-white"
-                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                            onClick={handleImportImage}
+                            className="rounded-lg border px-3 py-1 text-sm shadow transition border-slate-500 bg-slate-800 text-white hover:bg-slate-700"
                         >
                             Image
                         </button>
-                        <button
-                            onClick={async () => {
-                                console.log(">> Clear")
-                                if (props.appBackgroundImageCanvasRef?.current) {
-                                    props.appBackgroundImageCanvasRef.current.clear();
 
-                                }
-                            }}
-                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                        ${uAppState.tool === "measure"
-                                    ? "border-sky-400 bg-sky-700 text-white"
-                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        <button
+                            onClick={handleClearImage}
+                            className="rounded-lg border px-3 py-1 text-sm shadow transition border-slate-500 bg-slate-800 text-white hover:bg-slate-700"
                         >
                             Clear
                         </button>
                     </div>
                 </div>
-                <div className="px-3">
-                    <div>
-                    </div>
-                </div>
-                {
-                    //
-                }
+
                 <label className="flex items-center m-0 text-xs">
                     Snapshot
                 </label>
                 <div className="px-3">
-                    <div>
-                    </div>
+                    <div></div>
                 </div>
-                {
-                    //
-                }
+
                 <label className="flex items-center m-0 text-xs">
                     Color Check
                 </label>
                 <div className="px-3">
-                    <div>
-                    </div>
+                    <div></div>
                 </div>
             </div>
+
+            {!hasBackgroundImage && !isTauri() && (
+                <div className="fixed inset-0 z-[99998] flex items-center justify-center pointer-events-none">
+                    <div className="pointer-events-auto flex flex-col items-center gap-3 rounded-2xl border border-slate-700 bg-slate-900/85 px-6 py-5 text-white shadow-2xl backdrop-blur">
+                        <div className="text-center">
+                            <div className="text-base font-semibold">Import Image</div>
+                            <div className="mt-1 text-sm text-slate-300">
+                                Please import an image to start in browser mode
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleImportImage}
+                            className="rounded-xl border border-sky-400 bg-sky-700 px-5 py-2 text-sm font-medium text-white shadow transition hover:bg-sky-600"
+                        >
+                            Import Image
+                        </button>
+                    </div>
+                </div>
+            )}
         </>
-    )
+    );
 }

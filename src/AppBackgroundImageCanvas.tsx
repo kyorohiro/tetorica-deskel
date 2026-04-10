@@ -26,6 +26,7 @@ type CropImageResult = {
 };
 
 type AppBackgroundImageCanvasHandle = {
+  hasImage: () => boolean;
   addImage: (data: Blob) => Promise<void>;
   clear: () => Promise<void>;
   getCropImage: (rect: {
@@ -142,6 +143,7 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
         useImperativeHandle(
             ref,
             () => ({
+                hasImage: () => imageRef.current != undefined && imageRef.current != null,
                 addImage: async (data: Blob) => {
                     console.log("> addImage ", data);
                     const image = await createImageBitmap(data);
