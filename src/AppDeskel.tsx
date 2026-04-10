@@ -273,9 +273,9 @@ const AppDeslel = forwardRef<
       redraw();
       //
       const pointSet = findNearestQuadPoint(p, clipQuadRef.current, 14);
-      if(pointSet.type == "center") {
+      if (pointSet.type == "center") {
         // 中央が選択
-        draggedCenterQuadRef.current = {...p};
+        draggedCenterQuadRef.current = { ...p };
       }
       const pointIndex = pointSet.index;
       //findNearestQuadPointIndex(p, clipQuadRef.current, 14);
@@ -298,14 +298,14 @@ const AppDeslel = forwardRef<
         const index = clipQuadDraggingPointIndexRef.current;
         clipQuadRef.current[index] = { ...currentRef.current };
       }
-      if(draggedCenterQuadRef.current) {
+      if (draggedCenterQuadRef.current) {
         let _dx = currentRef.current.x - draggedCenterQuadRef.current.x;
         let _dy = currentRef.current.y - draggedCenterQuadRef.current.y;
-        for(let i=0;i<clipQuadRef.current.length;i++) {
+        for (let i = 0; i < clipQuadRef.current.length; i++) {
           clipQuadRef.current[i].x += _dx
           clipQuadRef.current[i].y += _dy
         }
-        draggedCenterQuadRef.current = {...currentRef.current}
+        draggedCenterQuadRef.current = { ...currentRef.current }
       }
       redraw();
     };
@@ -319,7 +319,7 @@ const AppDeslel = forwardRef<
         const dx = currentRef.current.x - startRef.current.x;
         const dy = currentRef.current.y - startRef.current.y;
         const len = Math.sqrt(dx * dx + dy * dy);
-        if(len <= 5 ) {
+        if (len <= 5) {
           showToast(`Must be 5px or more.`);
           return
         }
@@ -349,6 +349,18 @@ const AppDeslel = forwardRef<
     };
   }, [redraw, measureMode, uAppState, captureMode]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      redraw({ isResizeCanvas: true });
+    };
+
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [redraw]);
   useImperativeHandle(
     ref,
     () => ({
@@ -532,15 +544,15 @@ const AppDeslel = forwardRef<
         </button>
         <div
           className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${captureToolbarOpen
-              ? "max-w-[1200px] translate-x-0 border border-slate-800 opacity-100"
-              : "max-w-0 translate-x-2 border border-transparent opacity-0"
+            ? "max-w-[1200px] translate-x-0 border border-slate-800 opacity-100"
+            : "max-w-0 translate-x-2 border border-transparent opacity-0"
             }`}
         >
           <div className="flex flex-col gap-1 p-2 sm:flex-row sm:flex-wrap">
             <button
               className={`flex items-center gap-1 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "none"
-                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
                 setCaptureMode("none");
@@ -554,8 +566,8 @@ const AppDeslel = forwardRef<
 
             <button
               className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "lightness"
-                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
                 setCaptureMode("lightness");
@@ -569,8 +581,8 @@ const AppDeslel = forwardRef<
 
             <button
               className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs  transition-colors outline-none ${captureMode === "protan"
-                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
                 setCaptureMode("protan");
@@ -584,8 +596,8 @@ const AppDeslel = forwardRef<
 
             <button
               className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "deutan"
-                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
                 setCaptureMode("deutan");
@@ -599,8 +611,8 @@ const AppDeslel = forwardRef<
 
             <button
               className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "tritan"
-                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
                 setCaptureMode("tritan");
@@ -614,8 +626,8 @@ const AppDeslel = forwardRef<
 
             <button
               className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
-                  ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                  : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
                 appState.setCaptureImage(undefined);

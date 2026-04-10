@@ -79,9 +79,11 @@ export default function App() {
 
   return (
     <div id="app" className="relative w-screen h-screen">
+      {
       <div className="" >
         <AppBackgroundImageCanvas ref={appBackgroundImageCanvasRef} />
       </div>
+      }
       <div className="absolute inset-0 z-10">
         <ScreenCaptureCanvas image={state.captureImage} mode={state.captureMode} />
       </div>

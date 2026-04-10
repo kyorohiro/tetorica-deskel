@@ -1,157 +1,145 @@
 import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
+    forwardRef,
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useRef,
 } from "react";
 
 function getCanvasPoint(
-  canvas: HTMLCanvasElement,
-  clientX: number,
-  clientY: number
+    canvas: HTMLCanvasElement,
+    clientX: number,
+    clientY: number
 ): { x: number; y: number } {
-  const rect = canvas.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect();
 
-  return {
-    x: clientX - rect.left,
-    y: clientY - rect.top,
-  };
+    return {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+    };
 }
 
 type AppBackgroundImageCanvasHandle = {
-  addImage: (data: Blob) => Promise<void>;
-  clear: () => Promise<void>;
+    addImage: (data: Blob) => Promise<void>;
+    clear: () => Promise<void>;
 };
 
+const INITIAL_FIT_RATIO = 0.7;
+
 const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
-  function (_, ref) {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const wrapRef = useRef<HTMLDivElement | null>(null);
+    function (_, ref) {
+        const canvasRef = useRef<HTMLCanvasElement | null>(null);
+        const wrapRef = useRef<HTMLDivElement | null>(null);
+        const imageRef = useRef<ImageBitmap | null>(null);
 
-    const [canvasSize, setCanvasSize] = useState({ width: 1200, height: 760 });
+        const cssSizeRef = useRef({ width: 0, height: 0 });
+        const dprRef = useRef(1);
 
-    // 読み込んだ画像を保持
-    const imageRef = useRef<ImageBitmap | null>(null);
+        const redrawAll = useCallback(() => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
 
-    const redrawAll = useCallback(() => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
 
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+            const { width, height } = cssSizeRef.current;
+            const dpr = dprRef.current;
 
-      const rect = canvas.getBoundingClientRect();
+            if (width <= 0 || height <= 0) return;
 
-      ctx.clearRect(0, 0, rect.width, rect.height);
+            // 内部ピクセル全体を消す
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      const image = imageRef.current;
-      if (!image) {
-        return;
-      }
+            // CSSピクセル基準に戻す
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // 元画像サイズのまま中央表示
-      const drawWidth = image.width;
-      const drawHeight = image.height;
-      const x = (rect.width - drawWidth) / 2;
-      const y = (rect.height - drawHeight) / 2;
+            const image = imageRef.current;
+            if (!image) return;
 
-      ctx.drawImage(image, x, y, drawWidth, drawHeight);
-    }, []);
+            const fitScale = Math.min(
+                width / image.width,
+                height / image.height,
+                1
+            );
 
-    const resizeCanvas = useCallback(() => {
-      const canvas = canvasRef.current;
-      const wrap = wrapRef.current;
-      if (!canvas || !wrap) return;
+            const drawScale = fitScale * INITIAL_FIT_RATIO;
+            const drawWidth = image.width * drawScale;
+            const drawHeight = image.height * drawScale;
+            const x = (width - drawWidth) / 2;
+            const y = (height - drawHeight) / 2;
+            console.log(">>", { x, y, drawWidth, drawHeight, drawScale });
 
-      const dpr = window.devicePixelRatio || 1;
-      const rect = wrap.getBoundingClientRect();
-      const width = Math.floor(rect.width);
-      const height = Math.floor(rect.height);
+            ctx.drawImage(image, x, y, drawWidth, drawHeight);
+        }, []);
 
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
+        const resizeCanvas = useCallback(() => {
+            const canvas = canvasRef.current;
+            const wrap = wrapRef.current;
+            if (!canvas || !wrap) return;
 
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
+            const rect = wrap.getBoundingClientRect();
+            const cssWidth = Math.max(1, Math.floor(rect.width));
+            const cssHeight = Math.max(1, Math.floor(rect.height));
+            const dpr = window.devicePixelRatio || 1;
 
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+            dprRef.current = dpr;
+            cssSizeRef.current = { width: cssWidth, height: cssHeight };
 
-      // CSSピクセル基準で描けるようにする
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            // CSS表示サイズを明示固定
+            canvas.style.width = `${cssWidth}px`;
+            canvas.style.height = `${cssHeight}px`;
 
-      setCanvasSize({ width, height });
-      redrawAll();
-    }, [redrawAll]);
+            // 内部解像度
+            canvas.width = Math.floor(cssWidth * dpr);
+            canvas.height = Math.floor(cssHeight * dpr);
 
-    useEffect(() => {
-      resizeCanvas();
-      window.addEventListener("resize", resizeCanvas);
-      return () => window.removeEventListener("resize", resizeCanvas);
-    }, [resizeCanvas]);
+            redrawAll();
+        }, [redrawAll]);
 
-    useEffect(() => {
-      redrawAll();
-    }, [canvasSize, redrawAll]);
+        useEffect(() => {
+            const onResize = () => {
+                resizeCanvas();
+            };
 
-    useImperativeHandle(
-      ref,
-      () => ({
-        addImage: async (data: Blob) => {
-          console.log("> Canvas.addImage", data);
-          const image = await createImageBitmap(data);
+            onResize();
+            window.addEventListener("resize", onResize);
 
-          // 前の ImageBitmap を解放
-          imageRef.current?.close?.();
-          imageRef.current = image;
+            return () => {
+                window.removeEventListener("resize", onResize);
+            };
+        }, [resizeCanvas]);
 
-          redrawAll();
-        },
-        clear: async () => {
-          console.log("> Canvas.clear");
-          imageRef.current?.close?.();
-          imageRef.current = null;
-          redrawAll();
-        }
-      }),
-      [redrawAll]
-    );
+        useImperativeHandle(
+            ref,
+            () => ({
+                addImage: async (data: Blob) => {
+                    const image = await createImageBitmap(data);
+                    imageRef.current?.close?.();
+                    imageRef.current = image;
+                    resizeCanvas();
+                },
+                clear: async () => {
+                    imageRef.current?.close?.();
+                    imageRef.current = null;
+                    redrawAll();
+                },
+            }),
+            [redrawAll, resizeCanvas]
+        );
 
-    return (
-      <div
-        className="fixed inset-0 z-0 select-none"
-        style={{
-          userSelect: "none",
-          WebkitUserSelect: "none",
-          WebkitTouchCallout: "none",
-        }}
-      >
-        <div className="h-screen w-screen text-slate-50">
-          <div className="flex h-full w-full flex-col">
-            <div className="flex-1 p-0">
-              <div className="h-full w-full rounded-2xl border border-slate-800 shadow-xl">
-                <div className="flex h-full w-full flex-col space-y-0 p-0">
-                  <div
-                    ref={wrapRef}
-                    className="min-h-0 flex-1 rounded-2xl border border-slate-800 p-0 m-1"
-                  >
+        return (
+            <div className="fixed inset-0 z-0">
+                <div ref={wrapRef} className="absolute inset-0 overflow-hidden">
                     <canvas
-                      ref={canvasRef}
-                      className="block h-full w-full touch-none rounded-xl"
+                        ref={canvasRef}
+                        className="block"
                     />
-                  </div>
                 </div>
-              </div>
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+        );
+    }
 );
 
 export { AppBackgroundImageCanvas, getCanvasPoint };
-
 export type { AppBackgroundImageCanvasHandle };
