@@ -12,7 +12,7 @@ import { Download, BrushCleaning } from "lucide-react";
 import { useDialog } from "./useDialog";
 import { showToast } from "./toast";
 import { createSwatchesFile } from "procreate-swatches";
-import { saveDialog, writeFileForNative } from "./native";
+import { isTauri, saveDialog, writeFileForNative } from "./native";
 
 type AppColorAnalysisMode = "hue-saturation" | "hue-lightness";
 
@@ -225,10 +225,11 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const handleExport = useCallback(async () => {
     console.log("> handleExport");
 
+
     const selectedColorType = await showSelectDialog({
       title: "Export Palette",
       message: "Choose a palette source.",
-      options: [
+      options: isTauri() ? [
         {
           value: "color-count",
           label: "Color (Count)",
@@ -238,6 +239,12 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
           value: "color-clustering",
           label: "Color (Clustering)",
           description: "Export colors based on clustering results.",
+        },
+      ] : [
+        {
+          value: "color-count",
+          label: "Color (Count)",
+          description: "Export colors based on appearance frequency.",
         },
       ],
       cancelText: "Cancel",
