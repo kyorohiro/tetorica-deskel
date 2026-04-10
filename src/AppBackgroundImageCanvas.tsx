@@ -22,6 +22,12 @@ function getCanvasPoint(
 type AppBackgroundImageCanvasHandle = {
     addImage: (data: Blob) => Promise<void>;
     clear: () => Promise<void>;
+    getCropImage: (
+        x: number,
+        y: number,
+        width: number,
+        height: number
+    ) => Promise<Blob | null>;
 };
 
 const INITIAL_FIT_RATIO = 0.7;
@@ -110,6 +116,7 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
             };
         }, [resizeCanvas]);
 
+
         useImperativeHandle(
             ref,
             () => ({
@@ -123,6 +130,50 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
                     imageRef.current?.close?.();
                     imageRef.current = null;
                     redrawAll();
+                },
+                getCropImage: async (x: number, y: number, width: number, height: number) => {
+                    const canvas = canvasRef.current;
+                    if (!canvas) return null;
+
+                    const cropWidth = Math.max(1, Math.floor(width));
+                    const cropHeight = Math.max(1, Math.floor(height));
+                    if (cropWidth <= 0 || cropHeight <= 0) {
+                        return null;
+                    }
+
+                    const dpr = window.devicePixelRatio || 1;
+
+                    // 入力は CSS pixel 基準
+                    const sx = Math.floor(x * dpr);
+                    const sy = Math.floor(y * dpr);
+                    const sw = Math.floor(cropWidth * dpr);
+                    const sh = Math.floor(cropHeight * dpr);
+
+                    const outCanvas = document.createElement("canvas");
+                    outCanvas.width = sw;
+                    outCanvas.height = sh;
+
+                    const outCtx = outCanvas.getContext("2d");
+                    if (!outCtx) return null;
+
+                    // 元 canvas の指定領域を切り出す
+                    outCtx.drawImage(
+                        canvas,
+                        sx,
+                        sy,
+                        sw,
+                        sh,
+                        0,
+                        0,
+                        sw,
+                        sh
+                    );
+
+                    return await new Promise<Blob | null>((resolve) => {
+                        outCanvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, "image/png");
+                    });
                 },
             }),
             [redrawAll, resizeCanvas]
