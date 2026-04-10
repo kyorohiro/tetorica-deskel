@@ -1,15 +1,19 @@
-import { useEffect, useState } from "react"
+import { RefObject, useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
 import { showToast } from "./toast";
 import { Menu, MousePointerClick, Pin } from "lucide-react";
 import { isTauri } from "./native";
+import { useDialog } from "./useDialog";
+import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
+    appBackgroundImageCanvasRef: RefObject<AppBackgroundImageCanvasHandle | null>;
 }) {
     const [visible, setVisible] = useState(false)
     const uAppState = useAppState();
+    const dialog = useDialog();
 
     useEffect(() => {
         console.log(">> useEffect [grid, opacity]", [appState.getState()])
@@ -193,7 +197,7 @@ export function AppToolbar(props: {
                                     ? "border-sky-400 bg-sky-700 text-white"
                                     : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
                         >
-                            ScreenCaputure
+                            Caputure
                         </button>
                         <button
                             onClick={() => {
@@ -210,7 +214,7 @@ export function AppToolbar(props: {
                     </div>
                 </div>
                 <label className="flex items-center m-0 text-xs">
-                    Design Scale
+                    Grid
                 </label>
                 <div className="px-3">
                     <div className="toolbar-row">
@@ -258,6 +262,55 @@ export function AppToolbar(props: {
                             onChange={(e) => appState.setRotation(Number(e.target.value))}
                         />
                     </label>
+                </div>
+                {
+                    //
+                }
+                <label className="flex items-center m-0 text-xs">
+                    Import
+                </label>
+                <div className="px-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            onClick={async () => {
+                                console.log(">> showFileDlalog")
+                                const ret = await dialog.showFileDialog({})
+                                console.log(">> props.appBackgroundImageCanvasHandle", props.appBackgroundImageCanvasRef)
+                                if (props.appBackgroundImageCanvasRef?.current) {
+                                    console.log(">> ret?.files.length", ret?.files)
+                                    if (ret?.files && ret?.files.length > 0) {
+                                        props.appBackgroundImageCanvasRef.current.addImage(ret?.files[0]);
+                                    }
+                                }
+                                console.log(ret);
+                            }}
+                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                                        ${uAppState.tool === "measure"
+                                    ? "border-sky-400 bg-sky-700 text-white"
+                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        >
+                            Image
+                        </button>
+                        <button
+                            onClick={async () => {
+                                console.log(">> Clear")
+                                if (props.appBackgroundImageCanvasRef?.current) {
+                                    props.appBackgroundImageCanvasRef.current.clear();
+
+                                }
+                            }}
+                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                                        ${uAppState.tool === "measure"
+                                    ? "border-sky-400 bg-sky-700 text-white"
+                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        >
+                            Clear
+                        </button>
+                    </div>
+                </div>
+                <div className="px-3">
+                    <div>
+                    </div>
                 </div>
                 {
                     //

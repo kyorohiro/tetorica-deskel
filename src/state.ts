@@ -176,7 +176,8 @@ class AppStateStore {
             prev.opacity !== this._state.opacity ||
             prev.lineWidth !== this._state.lineWidth ||
             prev.color !== this._state.color ||
-            prev.rotation !== this._state.rotation
+            prev.rotation !== this._state.rotation ||
+            prev.measureUnit != this._state.measureUnit
 
         if (settingsChanged) {
             saveSettings({

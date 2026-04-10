@@ -13,10 +13,12 @@ import { ColorCount } from "./nativeScreenshot";
 import { useAppState } from "./state";
 import ScreenCaptureCanvas from "./AppScreenCaptureCanvas";
 import { getAppWindow } from "./native";
+import { AppBackgroundImageCanvas, AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 
 export default function App() {
   const deskelRef = useRef<AppDeskelHandle | null>(null);
   const colorAnalysisRef = useRef<AppColorAnalysisHandle | null>(null);
+  const appBackgroundImageCanvasRef = useRef<AppBackgroundImageCanvasHandle|null>(null);
   const state = useAppState();
 
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
@@ -77,6 +79,9 @@ export default function App() {
 
   return (
     <div id="app" className="relative w-screen h-screen">
+      <div className="" >
+        <AppBackgroundImageCanvas ref={appBackgroundImageCanvasRef} />
+      </div>
       <div className="absolute inset-0 z-10">
         <ScreenCaptureCanvas image={state.captureImage} mode={state.captureMode} />
       </div>
@@ -98,7 +103,7 @@ export default function App() {
       </div>
 
       <div className="absolute top-0 left-0 z-50">
-        <AppToolbar onChangeState={onChangeStateForToolbar} />
+        <AppToolbar onChangeState={onChangeStateForToolbar} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef}/>
       </div>
     </div>
   );
