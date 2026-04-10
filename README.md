@@ -12,14 +12,14 @@ https://kyorohiro.github.io/tetorica-deskel/
 
 ## ✨ What is this?
 
-Tetorica Deskel is a drawing overlay tool for PC.   
+Tetorica Deskel is a drawing overlay tool for PC and Web(limited functionality)..   
 It runs on Windows and macOS. It works on top of other windows.   
 It offers a design scale, measuring lines, color analysis, drawing guides, and palette creation.   
     
 ---
 
 Japanese:    
-Tetorica Deskel は PC向けのデスケルアプリです。Windows と Mac で動作します。他のウィンドウに重ねて利用できます。   
+Tetorica Deskel は PC向けのデスケルアプリです。Windows と Mac と Wec で動作します。他のウィンドウに重ねて利用できます。   
 デザインスケール、はかり棒、色相分析、補助線、パレット作成などの機能を備えています。   
    
 ---
