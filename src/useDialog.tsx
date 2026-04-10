@@ -222,10 +222,9 @@ const SelectDialog: React.FC<{
                         onClick={() => !opt.disabled && onSelect(opt.value)}
                         className={`
                             w-full text-left px-3 py-2 rounded-xl border text-xs
-                            ${
-                                opt.disabled
-                                    ? "border-slate-700 text-slate-500 cursor-not-allowed"
-                                    : "border-slate-600 hover:bg-slate-800 cursor-pointer"
+                            ${opt.disabled
+                                ? "border-slate-700 text-slate-500 cursor-not-allowed"
+                                : "border-slate-600 hover:bg-slate-800 cursor-pointer"
                             }
                         `}
                     >
@@ -254,6 +253,169 @@ const SelectDialog: React.FC<{
     );
 };
 
+type FileDialogOptions = {
+    title?: string;
+    message?: React.ReactNode;
+    accept?: string;
+    multiple?: boolean;
+    okText?: string;
+    cancelText?: string;
+};
+
+type FileDialogResult = {
+    files: File[];
+};
+
+const FileDialog: React.FC<{
+    options: FileDialogOptions;
+    onSubmit: (files: File[]) => void;
+    onCancel: () => void;
+}> = ({ options, onSubmit, onCancel }) => {
+    const inputRef = React.useRef<HTMLInputElement | null>(null);
+    const [dragActive, setDragActive] = React.useState(false);
+    const [files, setFiles] = React.useState<File[]>([]);
+
+    const setFromFileList = (list: FileList | null) => {
+        if (!list || list.length === 0) {
+            return;
+        }
+        setFiles(Array.from(list));
+    };
+
+    const handleChooseClick = () => {
+        inputRef.current?.click();
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFromFileList(e.target.files);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!dragActive) {
+            setDragActive(true);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+
+        const dropped = e.dataTransfer?.files;
+        if (dropped && dropped.length > 0) {
+            const nextFiles = Array.from(dropped);
+            setFiles(options.multiple ? nextFiles : [nextFiles[0]]);
+        }
+    };
+
+    const handleOk = () => {
+        if (files.length === 0) {
+            return;
+        }
+        onSubmit(options.multiple ? files : [files[0]]);
+    };
+
+    return (
+        <div className="w-full max-w-lg rounded-2xl bg-slate-900 p-6 shadow-xl border border-slate-700 text-slate-100">
+            <h2 className="text-lg font-semibold mb-3">
+                {options.title ?? "ファイルを選択"}
+            </h2>
+
+            {options.message && (
+                <div className="mb-3 text-xs text-slate-300">
+                    {options.message}
+                </div>
+            )}
+
+            <input
+                ref={inputRef}
+                type="file"
+                className="hidden"
+                accept={options.accept}
+                multiple={options.multiple}
+                onChange={handleInputChange}
+            />
+
+            <div
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={[
+                    "rounded-2xl border-2 border-dashed p-6 text-center transition-colors",
+                    dragActive
+                        ? "border-emerald-400 bg-emerald-500/10"
+                        : "border-slate-600 bg-slate-800/40",
+                ].join(" ")}
+            >
+                <p className="text-sm font-medium text-slate-100">
+                    ここにファイルを Drag & Drop
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                    または下のボタンから選択
+                </p>
+
+                <button
+                    type="button"
+                    onClick={handleChooseClick}
+                    className="mt-4 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm"
+                >
+                    ファイルを選択
+                </button>
+            </div>
+
+            <div className="mt-4 max-h-40 overflow-y-auto rounded-xl border border-slate-700 bg-slate-800/50 p-3">
+                {files.length === 0 ? (
+                    <p className="text-xs text-slate-400">
+                        まだファイルは選択されていません
+                    </p>
+                ) : (
+                    <ul className="space-y-1">
+                        {files.map((file, index) => (
+                            <li key={`${file.name}-${index}`} className="text-xs text-slate-200">
+                                <div className="font-medium">{file.name}</div>
+                                <div className="text-slate-400">
+                                    type: {file.type || "(unknown)"} / size: {file.size.toLocaleString()} bytes
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+
+            <div className="mt-4 flex justify-end gap-2 text-sm">
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    className="px-3 py-1.5 rounded-lg border border-slate-600 hover:bg-slate-800"
+                >
+                    {options.cancelText ?? "キャンセル"}
+                </button>
+                <button
+                    type="button"
+                    disabled={files.length === 0}
+                    onClick={handleOk}
+                    className={[
+                        "px-3 py-1.5 rounded-lg",
+                        files.length === 0
+                            ? "bg-slate-700 text-slate-400 cursor-not-allowed"
+                            : "bg-emerald-600 hover:bg-emerald-500 text-white",
+                    ].join(" ")}
+                >
+                    {options.okText ?? "OK"}
+                </button>
+            </div>
+        </div>
+    );
+};
 // ----------------------
 // 公開フック
 // ----------------------
@@ -409,6 +571,19 @@ export function useDialog() {
         },
         [showDialog]
     );
+
+    const showFileDialog = useCallback(
+        (options?: FileDialogOptions): Promise<FileDialogResult | null> => {
+            return showDialog<FileDialogResult>(({ resolve, close }) => (
+                <FileDialog
+                    options={options ?? {}}
+                    onSubmit={(files) => resolve({ files })}
+                    onCancel={close}
+                />
+            ));
+        },
+        [showDialog]
+    );
     // return に追加
     return {
         showDialog,
@@ -417,6 +592,7 @@ export function useDialog() {
         showConfirmDialog,
         showProgressDialog,
         showSelectDialog,
+        showFileDialog,
         push, pop
     };
 }
