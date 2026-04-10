@@ -168,7 +168,7 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
   };
 
   useEffect(() => {
-    //console.log(">>>AppScreenCaputreCanvas.useEffect ppp")
+    console.log(">>>AppScreenCaputreCanvas.useEffect ppp")
     try {
       const root = rootRef.current;
       if (!root || !image) return;
@@ -208,7 +208,7 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
       */
       //
       const isMobile = window.innerWidth < 768;
-      renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(isMobile ? 0.5 : Math.min(window.devicePixelRatio || 1, 2));
 
       //renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       root.appendChild(renderer.domElement);
