@@ -2,7 +2,7 @@ import { RefObject, useEffect, useState } from "react"
 import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
 import { showToast } from "./toast";
-import { Menu, MousePointerClick, Pin } from "lucide-react";
+import { Menu, MousePointerClick, Pin, Image,  Monitor} from "lucide-react";
 import { isTauri } from "./native";
 import { useDialog } from "./useDialog";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
@@ -140,6 +140,61 @@ export function AppToolbar(props: {
                 }
                 {
                     // -always on top
+                }
+                {
+                    // target image or screen-
+                }
+                {isTauri() &&
+                    <div
+                        className={`
+                        rounded-lg bg-black/60 px-1 py-1 text-sm text-white
+                        transition-opacity duration-200
+                        flex items-center justify-center
+                        ${!visible ? "opacity-80" : "opacity-0"}
+                    `}
+                    >
+                        <div
+                            className="group relative inline-flex"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <label className="flex cursor-pointer flex-row items-center justify-center gap-1 text-center">
+
+                                <span className="inline-flex">
+                                    <Image size={12} />
+                                </span>
+                                <input
+                                    type="checkbox"
+                                    checked={uAppState.alwaysOnTop}
+                                    className="peer sr-only"
+                                    onChange={async (e) => {
+                                        const next = e.target.checked
+                                        //appState.setAlwaysOnTop(next)
+                                        await setAlwaysOnTop(next);
+                                    }}
+                                />
+                                <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
+
+                                <span className="inline-flex">
+                                    <Monitor size={12} />
+                                </span>
+
+                            </label>
+
+                            <div
+                                className="
+                                pointer-events-none absolute left-1/2 top-full z-50 mt-2
+                                -translate-x-1/2 whitespace-nowrap rounded bg-slate-900
+                                px-2 py-1 text-xs text-white opacity-0 shadow-md
+                                transition-opacity group-hover:opacity-100
+                            "
+                            >
+                                analusis target : monitor or imported image
+                            </div>
+                        </div>
+                    </div>
+                }
+                {
+                    // -target image or screen
                 }
             </div>
 
