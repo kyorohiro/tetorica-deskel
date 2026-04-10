@@ -177,7 +177,8 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
       sceneRef.current = scene;
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        //antialias: true,
+        antialias: false,
         alpha: true,
       });
       //
@@ -202,7 +203,10 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
         );
       };
       //
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      const isMobile = window.innerWidth < 768;
+      renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+
+      //renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       root.appendChild(renderer.domElement);
       rendererRef.current = renderer;
 
