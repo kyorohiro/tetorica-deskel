@@ -200,25 +200,27 @@ export function AppToolbar(props: {
                 `}
                 style={{ zIndex: 99999 }}
             >
-                <label className="flex items-center justify-between gap-3 px-3 py-1 text-xs">
-    <span>Menu Pin</span>
-    <button
-        type="button"
-        onClick={() => setMenuPinned(v => !v)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            menuPinned ? "bg-blue-600" : "bg-slate-600"
-        }`}
-        aria-pressed={menuPinned}
-        title="keep menu open"
-    >
-        <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                menuPinned ? "translate-x-5" : "translate-x-1"
-            }`}
-        />
-    </button>
-</label>
-                {}
+                <div className="absolute right-3 top-0">
+                    <label className="flex items-center justify-between gap-2 text-xs">
+                        <span className="inline-flex items-center">
+                            <Pin size={12} />
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setMenuPinned(v => !v)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${menuPinned ? "bg-blue-600" : "bg-slate-600"
+                                }`}
+                            aria-pressed={menuPinned}
+                            title="keep menu open"
+                        >
+                            <span
+                                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${menuPinned ? "translate-x-5" : "translate-x-1"
+                                    }`}
+                            />
+                        </button>
+                    </label>
+                </div>
+                { }
                 <label className="flex items-center m-0 text-xs">
                     Pen
                 </label>
