@@ -115,7 +115,7 @@ const AppDeslel = forwardRef<
     }
   }, []);
 
-  async function onPointerUp() {
+  async function handleSelectionComplete() {
     //updateDragging(false);
 
     if (!startRef.current || !currentRef.current) return;
@@ -312,12 +312,18 @@ const AppDeslel = forwardRef<
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const onMouseDown = (e: MouseEvent) => {
+    canvas.style.touchAction = "none";
+
+    const getPoint = (e: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
-      const p = {
+      return {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
       };
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      const p = getPoint(e);
 
       chainMesureRef.current.setChainLengthMin(uAppState.measureUnit);
       startRef.current = p;
@@ -325,46 +331,41 @@ const AppDeslel = forwardRef<
       setDraggingValue(true);
       chainMesureRef.current.update(p);
       redraw();
-      //
+
       const pointSet = findNearestQuadPoint(p, clipQuadRef.current, 14);
-      if (pointSet.type == "center") {
-        // 中央が選択
+      if (pointSet.type === "center") {
         draggedCenterQuadRef.current = { ...p };
       }
-      const pointIndex = pointSet.index;
-      //findNearestQuadPointIndex(p, clipQuadRef.current, 14);
-      clipQuadDraggingPointIndexRef.current = pointIndex;
-      //console.log(">> pointIndex:", pointIndex);
+      clipQuadDraggingPointIndexRef.current = pointSet.index;
+
+      canvas.setPointerCapture?.(e.pointerId);
     };
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onPointerMove = (e: PointerEvent) => {
       if (!draggingRef.current || !startRef.current) return;
 
-      const rect = canvas.getBoundingClientRect();
-      currentRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
-
+      currentRef.current = getPoint(e);
       chainMesureRef.current.update(currentRef.current);
 
-      if (clipQuadDraggingPointIndexRef.current != -1) {
+      if (clipQuadDraggingPointIndexRef.current !== -1) {
         const index = clipQuadDraggingPointIndexRef.current;
         clipQuadRef.current[index] = { ...currentRef.current };
       }
+
       if (draggedCenterQuadRef.current) {
-        let _dx = currentRef.current.x - draggedCenterQuadRef.current.x;
-        let _dy = currentRef.current.y - draggedCenterQuadRef.current.y;
+        const dx = currentRef.current.x - draggedCenterQuadRef.current.x;
+        const dy = currentRef.current.y - draggedCenterQuadRef.current.y;
         for (let i = 0; i < clipQuadRef.current.length; i++) {
-          clipQuadRef.current[i].x += _dx
-          clipQuadRef.current[i].y += _dy
+          clipQuadRef.current[i].x += dx;
+          clipQuadRef.current[i].y += dy;
         }
-        draggedCenterQuadRef.current = { ...currentRef.current }
+        draggedCenterQuadRef.current = { ...currentRef.current };
       }
+
       redraw();
     };
 
-    const onMouseUp = async () => {
+    const finishPointer = async () => {
       setDraggingValue(false);
       chainMesureRef.current.clear();
       redraw();
@@ -374,8 +375,8 @@ const AppDeslel = forwardRef<
         const dy = currentRef.current.y - startRef.current.y;
         const len = Math.sqrt(dx * dx + dy * dy);
         if (len <= 5) {
-          showToast(`Must be 5px or more.`);
-          return
+          showToast("Must be 5px or more.");
+          return;
         }
         appState.setMeasureUnit(len / 5);
         uAppState.measureUnitSet = {
@@ -387,19 +388,29 @@ const AppDeslel = forwardRef<
 
       clipQuadDraggingPointIndexRef.current = -1;
       draggedCenterQuadRef.current = undefined;
-      await onPointerUp();
+      await handleSelectionComplete();
     };
 
-    canvas.addEventListener("mousedown", onMouseDown);
-    canvas.addEventListener("mousemove", onMouseMove);
-    canvas.addEventListener("mouseup", onMouseUp);
+    const onPointerUp = () => {
+      void finishPointer();
+    };
+
+    const onPointerCancel = () => {
+      void finishPointer();
+    };
+
+    canvas.addEventListener("pointerdown", onPointerDown);
+    canvas.addEventListener("pointermove", onPointerMove);
+    canvas.addEventListener("pointerup", onPointerUp);
+    canvas.addEventListener("pointercancel", onPointerCancel);
 
     redraw({ isResizeCanvas: true });
 
     return () => {
-      canvas.removeEventListener("mousedown", onMouseDown);
-      canvas.removeEventListener("mousemove", onMouseMove);
-      canvas.removeEventListener("mouseup", onMouseUp);
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerup", onPointerUp);
+      canvas.removeEventListener("pointercancel", onPointerCancel);
     };
   }, [redraw, measureMode, uAppState, captureMode, uAppState.measureUnit]);
 
