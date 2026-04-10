@@ -5,6 +5,7 @@ import {
     useImperativeHandle,
     useRef,
 } from "react";
+import { useDialog } from "./useDialog";
 
 function getCanvasPoint(
     canvas: HTMLCanvasElement,
@@ -20,21 +21,21 @@ function getCanvasPoint(
 }
 
 type CropImageResult = {
-  blob: Blob;
-  width: number;
-  height: number;
+    blob: Blob;
+    width: number;
+    height: number;
 };
 
 type AppBackgroundImageCanvasHandle = {
-  hasImage: () => boolean;
-  addImage: (data: Blob) => Promise<void>;
-  clear: () => Promise<void>;
-  getCropImage: (rect: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }) => Promise<CropImageResult | null>;
+    hasImage: () => boolean;
+    addImage: (data: Blob) => Promise<void>;
+    clear: () => Promise<void>;
+    getCropImage: (rect: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }) => Promise<CropImageResult | null>;
 };
 
 const INITIAL_FIT_RATIO = 0.7;
@@ -42,6 +43,7 @@ const INITIAL_FIT_RATIO = 0.7;
 const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
 
     function (_, ref) {
+        const dialog = useDialog();
         const canvasRef = useRef<HTMLCanvasElement | null>(null);
         const wrapRef = useRef<HTMLDivElement | null>(null);
         const imageRef = useRef<ImageBitmap | null>(null);
@@ -146,11 +148,59 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
                 hasImage: () => imageRef.current != undefined && imageRef.current != null,
                 addImage: async (data: Blob) => {
                     console.log("> addImage ", data);
+
+                    const preview = await createImageBitmap(data);
+
+                    try {
+                        const maxW = Math.max(1, canvasRef.current?.clientWidth ?? 1024);
+                        const maxH = Math.max(1, canvasRef.current?.clientHeight ?? 1024);
+
+                        const needsShrink = preview.width > maxW || preview.height > maxH;
+
+                        let nextImage: ImageBitmap;
+
+                        if (needsShrink) {
+                            const okToShrink = await dialog.showConfirmDialog({
+                                title: "Large Image",
+                                body: "This image is large. Shrink it to fit the screen before processing?",
+                                cancelText: "Keep Original",
+                                okText: "Shrink"
+                            });
+
+                            if (okToShrink) {
+                                const scale = Math.min(maxW / preview.width, maxH / preview.height, 1);
+                                const targetW = Math.max(1, Math.round(preview.width * scale));
+                                const targetH = Math.max(1, Math.round(preview.height * scale));
+
+                                preview.close();
+
+                                nextImage = await createImageBitmap(data, {
+                                    resizeWidth: targetW,
+                                    resizeHeight: targetH,
+                                    resizeQuality: "high",
+                                });
+                            } else {
+                                nextImage = preview;
+                            }
+                        } else {
+                            nextImage = preview;
+                        }
+
+                        imageRef.current?.close?.();
+                        imageRef.current = nextImage;
+                        resizeCanvas();
+                    } catch (e) {
+                        preview.close();
+                        throw e;
+                    }
+                },/*
+                addImage: async (data: Blob) => {
+                    console.log("> addImage ", data);
                     const image = await createImageBitmap(data);
                     imageRef.current?.close?.();
                     imageRef.current = image;
                     resizeCanvas();
-                },
+                },*/
                 clear: async () => {
                     imageRef.current?.close?.();
                     imageRef.current = null;
