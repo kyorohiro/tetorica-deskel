@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react"
 
-type CaptureMode = 
+type CaptureMode =
     | "none"
     | "lightness"
     | "protan"
@@ -27,14 +27,15 @@ type Settings = {
         cropHeight: number;
     } | null | undefined
     captureMode?: CaptureMode;
-    
+
 }
 
 type ToolMode = "measure" | "draw" | "color" | "capture"
-
+type Target = "screen" | "image"
 type AppState = Settings & {
     clickThrough: boolean
     alwaysOnTop: boolean
+    target: Target
     tool: ToolMode
 }
 
@@ -136,6 +137,7 @@ class AppStateStore {
             color: saved.color,
             clickThrough: false,
             alwaysOnTop: false,
+            target: "screen",
             rotation: saved.rotation,
             tool: "measure",
             measureUnit: saved.measureUnit,
@@ -220,6 +222,9 @@ class AppStateStore {
 
     public setAlwaysOnTop(value: boolean): void {
         this.setState({ alwaysOnTop: value })
+    }
+    public setTarget(value: Target): void {
+        this.setState({ target: value })
     }
 
     public setTool(value: ToolMode): void {
