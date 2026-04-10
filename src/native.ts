@@ -35,7 +35,7 @@ async function saveDialog(options?: SaveDialogOptions): Promise<string | null> {
     return await save(options);
 }
 
-async function writeFileForNative(path: string | URL, data: Uint8Array<ArrayBufferLike> | ReadableStream<Uint8Array<ArrayBufferLike>>) {
+async function writeFileForNative(path: string | URL, data: Uint8Array | ReadableStream<Uint8Array>) {
     await writeFile(path,  data);
 }
 
