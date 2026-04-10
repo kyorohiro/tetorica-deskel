@@ -27,6 +27,7 @@ import { openPrivacySettings } from "./nativePermissionCheck";
 import { getRectFromPoints } from "./utils";
 import { getTaurPlatformInfo } from "./native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
+import { analyzeImageBlob } from "./colorAnalysis";
 //import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
 
 
@@ -187,19 +188,39 @@ const AppDeslel = forwardRef<
     }
     if (uAppState.tool == "color") {
       try {
-        //
-        // ensureScreenCapturePermission() の コメントを確認してね
-        //if (!await await ensureScreenCapturePermission()) {
-        //  return
-        //}
-        if (props.onBeforeCapture) {
-          await props.onBeforeCapture();
-        }
-        const ret = await captureAndCropToAnalysis({
-          targetRect: selectedRect,
-        });
-        if (props.onColorAnalysis) {
-          props.onColorAnalysis(ret.colors, ret.colors01);
+        if (uAppState.target == "image" && props.appBackgroundImageCanvasRef) {
+          const cropResult = await props.appBackgroundImageCanvasRef.current?.getCropImage({
+            x: selectedRect.x,
+            y: selectedRect.y,
+            width: selectedRect.width,
+            height: selectedRect.height,
+          });
+
+          if (!cropResult) {
+            showToast("Failed to analyze image.");
+            return;
+          }
+
+          const ret = await analyzeImageBlob(cropResult.blob, 32, 1000);
+
+          if (props.onColorAnalysis) {
+            await props.onColorAnalysis(ret.colors, ret.colors01);
+          }
+        } else {
+          //
+          // ensureScreenCapturePermission() の コメントを確認してね
+          //if (!await await ensureScreenCapturePermission()) {
+          //  return
+          //}
+          if (props.onBeforeCapture) {
+            await props.onBeforeCapture();
+          }
+          const ret = await captureAndCropToAnalysis({
+            targetRect: selectedRect,
+          });
+          if (props.onColorAnalysis) {
+            await props.onColorAnalysis(ret.colors, ret.colors01);
+          }
         }
       } catch (e) {
         console.log(e);
