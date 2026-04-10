@@ -306,7 +306,7 @@ const AppDeslel = forwardRef<
     } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
     }
-  }, [uAppState.tool, measureMode, uAppState.color, quadMode]);
+  }, [uAppState.tool, measureMode, uAppState.color, quadMode, uAppState.measureUnit]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -401,7 +401,7 @@ const AppDeslel = forwardRef<
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mouseup", onMouseUp);
     };
-  }, [redraw, measureMode, uAppState, captureMode]);
+  }, [redraw, measureMode, uAppState, captureMode, uAppState.measureUnit]);
 
   useEffect(() => {
     const handleResize = () => {
