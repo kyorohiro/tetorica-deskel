@@ -10,9 +10,7 @@ import { ColorCount } from "./nativeScreenshot";
 import { useAppState } from "./state";
 import { Download, BrushCleaning } from "lucide-react";
 import { useDialog } from "./useDialog";
-import { showToast } from "./toast";
-import { isTauri } from "./native";
-import { exportPaletteCsv, exportPalettePng, exportProcreateSwatches } from "./colorPalette";
+import { handleExport } from "./colorPalette";
 
 type AppColorAnalysisMode = "hue-saturation" | "hue-lightness";
 
@@ -31,7 +29,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const [colorAnalysisMode, setColorAnalysisMode] = useState<AppColorAnalysisMode>("hue-saturation");
   const [colorToolbarOpen, setColorToolbarOpen] = useState(true);
 
-  const { showSelectDialog } = useDialog();
+  const dialog = useDialog();
   const setVisible = useCallback((visible: boolean) => {
     if (!rootRef.current) return;
     rootRef.current.style.display = visible ? "block" : "none";
@@ -39,98 +37,6 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const handleClear = useCallback(() => {
     setVisible(false);
   }, []);
-
-  const handleExport = useCallback(async () => {
-    console.log("> handleExport");
-
-
-    const selectedColorType = await showSelectDialog({
-      title: "Export Palette",
-      message: "Choose a palette source.",
-      options: isTauri() ? [
-        {
-          value: "color-count",
-          label: "Color (Count)",
-          description: "Export colors based on appearance frequency.",
-        },
-        {
-          value: "color-clustering",
-          label: "Color (Clustering)",
-          description: "Export colors based on clustering results.",
-        },
-      ] : [
-        {
-          value: "color-count",
-          label: "Color (Count)",
-          description: "Export colors based on appearance frequency.",
-        },
-      ],
-      cancelText: "Cancel",
-    });
-
-    if (selectedColorType === null) {
-      console.log("> canceled: color type");
-      return;
-    }
-
-    const selectedFormat = await showSelectDialog({
-      title: "Export Format",
-      message: "Choose a format.",
-      options: [
-        {
-          value: "procreate-swatches",
-          label: "Procreate (.swatches)",
-          description: "Export colors as a Procreate palette file.",
-        },
-        {
-          value: "png",
-          label: "PNG",
-          description: "Export colors as a palette image.",
-        },
-        {
-          value: "csv",
-          label: "CSV",
-          description: "Export colors as a CSV file.",
-        },
-      ],
-      cancelText: "Cancel",
-    });
-
-    if (selectedFormat === null) {
-      console.log("> canceled: format");
-      return;
-    }
-
-    const exportColors =
-      selectedColorType === "color-count"
-        ? colorsRef.current.colors
-        : colorsRef.current.colors01;
-
-    if (!exportColors || exportColors.length === 0) {
-      console.log("> no colors to export");
-      return;
-    }
-
-    try {
-      switch (selectedFormat) {
-        case "procreate-swatches":
-          await exportProcreateSwatches("Deskel Palette", exportColors);
-          break;
-        case "png":
-          await exportPalettePng(exportColors);
-          break;
-        case "csv":
-          await exportPaletteCsv(exportColors);
-          break;
-        default:
-          console.log("> unknown format:", selectedFormat);
-          break;
-      }
-    } catch (e) {
-      console.error("> export failed", e);
-      showToast(`> export failed: ${e}`);
-    }
-  }, [showSelectDialog]);
 
   const redraw = useCallback((props?: { colors: ColorCount[], colors01: ColorCount[], colorAnalysisMode: AppColorAnalysisMode }) => {
     //console.log("> redraw", props);
@@ -463,7 +369,11 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
                   ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                   : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                   }`}
-                onClick={handleExport}
+                onClick={()=>handleExport({
+                  dialog,
+                  colors: colorsRef.current?.colors ?? [],
+                  colors01:colorsRef.current?.colors01 ?? []
+                })}
                 title="Save"
                 aria-label="Save"
               >

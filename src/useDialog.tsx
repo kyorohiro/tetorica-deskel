@@ -596,3 +596,5 @@ export function useDialog() {
         push, pop
     };
 }
+
+export type UseDialogReturn = ReturnType<typeof useDialog>;

@@ -2,7 +2,8 @@
 import { ColorCount } from "./nativeScreenshot";
 import { showToast } from "./toast";
 import { createSwatchesFile } from "procreate-swatches";
-import { saveDialog, writeFileForNative } from "./native";
+import { isTauri, saveDialog, writeFileForNative } from "./native";
+import { UseDialogReturn } from "./useDialog";
 
 function hexToRgb(hex: string): [number, number, number] {
   const normalized = hex.replace("#", "").trim();
@@ -187,6 +188,103 @@ async function exportPaletteCsv(colors: ColorCount[]) {
   }
 }
 
+const handleExport = async (params:{
+    dialog: UseDialogReturn,
+    colors: ColorCount[],
+    colors01: ColorCount[],
+}) => {
+    console.log("> handleExport");
+
+
+    const selectedColorType = await params.dialog.showSelectDialog({
+      title: "Export Palette",
+      message: "Choose a palette source.",
+      options: isTauri() ? [
+        {
+          value: "color-count",
+          label: "Color (Count)",
+          description: "Export colors based on appearance frequency.",
+        },
+        {
+          value: "color-clustering",
+          label: "Color (Clustering)",
+          description: "Export colors based on clustering results.",
+        },
+      ] : [
+        {
+          value: "color-count",
+          label: "Color (Count)",
+          description: "Export colors based on appearance frequency.",
+        },
+      ],
+      cancelText: "Cancel",
+    });
+
+    if (selectedColorType === null) {
+      console.log("> canceled: color type");
+      return;
+    }
+
+    const selectedFormat = await params.dialog.showSelectDialog({
+      title: "Export Format",
+      message: "Choose a format.",
+      options: [
+        {
+          value: "procreate-swatches",
+          label: "Procreate (.swatches)",
+          description: "Export colors as a Procreate palette file.",
+        },
+        {
+          value: "png",
+          label: "PNG",
+          description: "Export colors as a palette image.",
+        },
+        {
+          value: "csv",
+          label: "CSV",
+          description: "Export colors as a CSV file.",
+        },
+      ],
+      cancelText: "Cancel",
+    });
+
+    if (selectedFormat === null) {
+      console.log("> canceled: format");
+      return;
+    }
+
+    const exportColors =
+      selectedColorType === "color-count"
+        ? params.colors
+        : params.colors01;
+
+    if (!exportColors || exportColors.length === 0) {
+      console.log("> no colors to export");
+      return;
+    }
+
+    try {
+      switch (selectedFormat) {
+        case "procreate-swatches":
+          await exportProcreateSwatches("Deskel Palette", exportColors);
+          break;
+        case "png":
+          await exportPalettePng(exportColors);
+          break;
+        case "csv":
+          await exportPaletteCsv(exportColors);
+          break;
+        default:
+          console.log("> unknown format:", selectedFormat);
+          break;
+      }
+    } catch (e) {
+      console.error("> export failed", e);
+      showToast(`> export failed: ${e}`);
+    }
+  };
+
 export {
-    exportPaletteCsv, createSwatchesFile, exportPalettePng,exportProcreateSwatches, hexToRgb
+    exportPaletteCsv, createSwatchesFile, exportPalettePng,exportProcreateSwatches, hexToRgb,
+    handleExport
 }
