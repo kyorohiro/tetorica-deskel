@@ -8,19 +8,12 @@ import {
   useState,
 } from "react";
 import { draw, resizeCanvas } from "./deskel";
-import { drawMeasure } from "./deskelMeasure";
-import {
-  drawClipRect,
-  drawClipQuad2,
-  findNearestQuadPoint,
-} from "./deskelClipRect";
 import { useAppState, appState } from "./state";
 import {
   captureAndCrop,
   captureAndCropToAnalysis,
   ColorCount,
 } from "./nativeScreenshot";
-import { ChainMeasure } from "./deskelChainMesure";
 import { showToast } from "./toast";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./nativePermissionCheck";
@@ -28,23 +21,30 @@ import { getRectFromPoints } from "./utils";
 import { getTaurPlatformInfo } from "./native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { analyzeImageBlob } from "./colorAnalysis";
-import {
-  AppDeskelMeasureToolbar,
-  MeasureMode,
-  QuadMode,
-} from "./AppDeskelMeasureToolbar";
+import { AppDeskelMeasureToolbar } from "./AppDeskelMeasureToolbar";
 import {
   AppDeskelCaptureToolbar,
   AppDeskelCaptureMode,
 } from "./AppDeskelCaptureToolbar";
+
+import type {
+  AppDeskelPoint,
+  DeskelToolContext,
+  DeskelToolHandler,
+  MeasureMode,
+  QuadMode,
+  SelectionRect,
+  ToolKind,
+} from "./DeskelToolHandler";
+import { MeasureHandler } from "./MeasureHandler";
+import { CaptureHandler } from "./CaptureHandler";
+import { ColorHandler } from "./ColorHandler";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
   setVisible: (visible: boolean) => void;
   getCanvas: () => HTMLCanvasElement | null;
 };
-
-type AppDeskelPoint = { x: number; y: number };
 
 const AppDeslel = forwardRef<
   AppDeskelHandle,
@@ -56,38 +56,35 @@ const AppDeslel = forwardRef<
     onBeforeCapture?: () => Promise<void>;
     appBackgroundImageCanvasRef: RefObject<AppBackgroundImageCanvasHandle | null>;
   }
->(function (props, ref) {
+>(function AppDeslel(props, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const startRef = useRef<AppDeskelPoint | null>(null);
   const currentRef = useRef<AppDeskelPoint | null>(null);
-  const clipQuadRef = useRef<AppDeskelPoint[]>([
-    { x: 200, y: 200 },
-    { x: 300, y: 200 },
-    { x: 300, y: 300 },
-    { x: 200, y: 300 },
-  ]);
-  const clipQuadDraggingPointIndexRef = useRef<number>(-1);
-  const draggedCenterQuadRef = useRef<AppDeskelPoint>(undefined);
   const draggingRef = useRef(false);
   const [, setDragging] = useState(false);
-  const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
 
   const [measureMode, setMeasureMode] = useState<MeasureMode>("line");
-  const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
-  const [captureToolbarOpen, setCaptureToolbarOpen] = useState(true);
-  const [isMac, setIsMac] = useState(false);
   const [quadMode, setQuadMode] = useState<QuadMode>("off");
+  const [isMac, setIsMac] = useState(false);
 
   const dialog = useDialog();
   const uAppState = useAppState();
 
-  function setDraggingValue(value: boolean) {
+  const measureHandlerRef = useRef(new MeasureHandler());
+  const captureHandlerRef = useRef(new CaptureHandler());
+  const colorHandlerRef = useRef(new ColorHandler());
+
+  const [captureToolbarOpen, setCaptureToolbarOpen] = useState(true);
+  const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
+  
+
+  const setDraggingValue = useCallback((value: boolean) => {
     if (draggingRef.current === value) return;
     draggingRef.current = value;
     setDragging(value);
-  }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -122,19 +119,26 @@ const AppDeslel = forwardRef<
     }
   }, [dialog]);
 
-  function handleAsyncError(e: unknown) {
-    console.log(e);
-    if (e instanceof Error) {
-      showToast(e.message);
-    } else {
-      showToast(`${e}`);
+  const getSelectionRect = useCallback((): SelectionRect | null => {
+    if (!startRef.current || !currentRef.current || !canvasRef.current) {
+      return null;
     }
-  }
 
-  async function handleCaptureSelection(
-    selectedRect: ReturnType<typeof getRectFromPoints>,
-  ) {
-    if (uAppState.target === "image" && props.appBackgroundImageCanvasRef) {
+    const width = Math.abs(startRef.current.x - currentRef.current.x);
+    const height = Math.abs(startRef.current.y - currentRef.current.y);
+
+    if (width < 8 || height < 8) {
+      return null;
+    }
+
+    return getRectFromPoints({
+      start: startRef.current,
+      current: currentRef.current,
+    });
+  }, []);
+
+  const captureFromImage = useCallback(
+    async (selectedRect: SelectionRect) => {
       const result = await props.appBackgroundImageCanvasRef.current?.getCropImage({
         x: selectedRect.x,
         y: selectedRect.y,
@@ -159,9 +163,11 @@ const AppDeslel = forwardRef<
         cropWidth: selectedRect.width,
         cropHeight: selectedRect.height,
       });
-      return;
-    }
+    },
+    [props.appBackgroundImageCanvasRef],
+  );
 
+  const captureFromScreen = useCallback(async (selectedRect: SelectionRect) => {
     const ret = await captureAndCrop({
       targetRect: selectedRect,
       hideWindow: true,
@@ -176,12 +182,10 @@ const AppDeslel = forwardRef<
       cropWidth: ret.width,
       cropHeight: ret.height,
     });
-  }
+  }, []);
 
-  async function handleColorSelection(
-    selectedRect: ReturnType<typeof getRectFromPoints>,
-  ) {
-    if (uAppState.target === "image" && props.appBackgroundImageCanvasRef) {
+  const analyzeFromImage = useCallback(
+    async (selectedRect: SelectionRect) => {
       const cropResult = await props.appBackgroundImageCanvasRef.current?.getCropImage({
         x: selectedRect.x,
         y: selectedRect.y,
@@ -196,114 +200,112 @@ const AppDeslel = forwardRef<
 
       const ret = await analyzeImageBlob(cropResult.blob, 32, 1000);
       await props.onColorAnalysis?.(ret.colors, ret.colors01);
-      return;
-    }
+    },
+    [props.appBackgroundImageCanvasRef, props.onColorAnalysis],
+  );
 
-    if (props.onBeforeCapture) {
-      await props.onBeforeCapture();
-    }
-
+  const analyzeFromScreen = useCallback(async (selectedRect: SelectionRect) => {
+    await props.onBeforeCapture?.();
     const ret = await captureAndCropToAnalysis({
       targetRect: selectedRect,
     });
-
     await props.onColorAnalysis?.(ret.colors, ret.colors01);
-  }
+  }, [props.onBeforeCapture, props.onColorAnalysis]);
 
-  async function handleSelectionComplete() {
-    if (!startRef.current || !currentRef.current) return;
+  const setMeasureUnit = useCallback(
+    (pixelsPerUnit: number, start: AppDeskelPoint, end: AppDeskelPoint) => {
+      appState.setMeasureUnit(pixelsPerUnit);
+      uAppState.measureUnitSet = {
+        start: { ...start },
+        end: { ...end },
+      };
+      showToast(`Measure unit set to ${pixelsPerUnit.toFixed(2)} pixels`);
+    },
+    [uAppState],
+  );
 
-    const width = Math.abs(startRef.current.x - currentRef.current.x);
-    const height = Math.abs(startRef.current.y - currentRef.current.y);
+  const getPoint = useCallback((e: PointerEvent): AppDeskelPoint => {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  }, []);
 
-    if (!canvasRef.current || width < 8 || height < 8) return;
+  const getCurrentHandler = useCallback((): DeskelToolHandler => {
+    const tool = uAppState.tool as ToolKind;
+    if (tool === "measure") return measureHandlerRef.current;
+    if (tool === "capture") return captureHandlerRef.current;
+    return colorHandlerRef.current;
+  }, [uAppState.tool]);
 
-    const selectedRect = getRectFromPoints({
-      start: startRef.current,
-      current: currentRef.current,
-    });
-
-    try {
-      if (uAppState.tool === "capture") {
-        await handleCaptureSelection(selectedRect);
-      } else if (uAppState.tool === "color") {
-        await handleColorSelection(selectedRect);
-      }
-    } catch (e) {
-      handleAsyncError(e);
-    }
-  }
-
-  const redraw = useCallback((props?: { isResizeCanvas: boolean }) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    if (props?.isResizeCanvas) {
-      resizeCanvas({ canvas, ctx });
-    }
-
-    draw({ canvas, ctx });
-
-    const start = startRef.current;
-    const current = currentRef.current;
-    const dragging = draggingRef.current;
-
-    if (uAppState.tool === "measure") {
-      if (measureMode === "line") {
-        drawMeasure({
-          canvas,
-          ctx,
-          start,
-          current,
-          dragging,
-          chainLength: chainMesureRef.current.getLength(
-            current ? { x: current.x, y: current.y } : undefined,
-          ),
-          measureUnit: uAppState.measureUnit,
-        });
-      } else if (measureMode === "chain") {
-        chainMesureRef.current.draw(ctx, {
+  const createToolContext = useCallback(
+    (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): DeskelToolContext => {
+      return {
+        canvas,
+        ctx,
+        state: {
+          tool: uAppState.tool as ToolKind,
+          target: uAppState.target as "image" | "screen",
           color: uAppState.color,
-          lineWidth: 1,
-          currentPoint: current ?? undefined,
-        });
-      } else if (measureMode === "setUnit") {
-        drawMeasure({
-          canvas,
-          ctx,
-          start,
-          current,
-          dragging,
-          chainLength: chainMesureRef.current.getLength(
-            current ? { x: current.x, y: current.y } : undefined,
-          ),
           measureUnit: uAppState.measureUnit,
-        });
-      } else if (measureMode === "setVanishingPoint" && current) {
-        // reserved
+          measureMode,
+          quadMode,
+        },
+        startRef,
+        currentRef,
+        draggingRef,
+        setDragging: setDraggingValue,
+        getPoint,
+        getSelectionRect,
+        requestRedraw: () => {},
+        setMeasureUnit,
+        captureFromImage,
+        captureFromScreen,
+        analyzeFromImage,
+        analyzeFromScreen,
+        showToast,
+      };
+    },
+    [
+      uAppState.tool,
+      uAppState.target,
+      uAppState.color,
+      uAppState.measureUnit,
+      measureMode,
+      quadMode,
+      setDraggingValue,
+      getPoint,
+      getSelectionRect,
+      setMeasureUnit,
+      captureFromImage,
+      captureFromScreen,
+      analyzeFromImage,
+      analyzeFromScreen,
+    ],
+  );
+
+  const redraw = useCallback(
+    (props?: { isResizeCanvas: boolean }) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      if (props?.isResizeCanvas) {
+        resizeCanvas({ canvas, ctx });
       }
 
-      if (clipQuadRef.current.length === 4 && quadMode !== "off") {
-        drawClipQuad2({
-          canvas,
-          ctx,
-          points: clipQuadRef.current,
-          dragging: true,
-        });
-      }
-    } else if (uAppState.tool === "color" || uAppState.tool === "capture") {
-      drawClipRect({ canvas, ctx, start, current, dragging });
-    }
-  }, [
-    uAppState.tool,
-    measureMode,
-    uAppState.color,
-    quadMode,
-    uAppState.measureUnit,
-  ]);
+      draw({ canvas, ctx });
+
+      const toolCtx = createToolContext(canvas, ctx);
+      toolCtx.requestRedraw = redraw;
+      getCurrentHandler().redraw(toolCtx);
+    },
+    [createToolContext, getCurrentHandler],
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -311,89 +313,54 @@ const AppDeslel = forwardRef<
 
     canvas.style.touchAction = "none";
 
-    const getPoint = (e: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
-    };
-
     const onPointerDown = (e: PointerEvent) => {
-      const p = getPoint(e);
+      const handler = getCurrentHandler();
+      const ctx = createToolContext(canvas, canvas.getContext("2d")!);
+      ctx.requestRedraw = redraw;
 
-      chainMesureRef.current.setChainLengthMin(uAppState.measureUnit);
-      startRef.current = p;
-      currentRef.current = p;
-      setDraggingValue(true);
-      chainMesureRef.current.update(p);
-      redraw();
-
-      const pointSet = findNearestQuadPoint(p, clipQuadRef.current, 14);
-      if (pointSet.type === "center") {
-        draggedCenterQuadRef.current = { ...p };
-      }
-      clipQuadDraggingPointIndexRef.current = pointSet.index;
-
+      handler.onPointerDown(ctx, e);
       canvas.setPointerCapture?.(e.pointerId);
+      redraw();
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      if (!draggingRef.current || !startRef.current) return;
+      const handler = getCurrentHandler();
+      const ctx = createToolContext(canvas, canvas.getContext("2d")!);
+      ctx.requestRedraw = redraw;
 
-      currentRef.current = getPoint(e);
-      chainMesureRef.current.update(currentRef.current);
-
-      if (clipQuadDraggingPointIndexRef.current !== -1) {
-        const index = clipQuadDraggingPointIndexRef.current;
-        clipQuadRef.current[index] = { ...currentRef.current };
-      }
-
-      if (draggedCenterQuadRef.current) {
-        const dx = currentRef.current.x - draggedCenterQuadRef.current.x;
-        const dy = currentRef.current.y - draggedCenterQuadRef.current.y;
-        for (let i = 0; i < clipQuadRef.current.length; i++) {
-          clipQuadRef.current[i].x += dx;
-          clipQuadRef.current[i].y += dy;
-        }
-        draggedCenterQuadRef.current = { ...currentRef.current };
-      }
-
+      handler.onPointerMove(ctx, e);
       redraw();
     };
 
-    const finishPointer = async () => {
-      setDraggingValue(false);
-      chainMesureRef.current.clear();
-      redraw();
+    const onPointerUp = async (e: PointerEvent) => {
+      const handler = getCurrentHandler();
+      const ctx = createToolContext(canvas, canvas.getContext("2d")!);
+      ctx.requestRedraw = redraw;
 
-      if (measureMode === "setUnit" && startRef.current && currentRef.current) {
-        const dx = currentRef.current.x - startRef.current.x;
-        const dy = currentRef.current.y - startRef.current.y;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        if (len <= 5) {
-          showToast("Must be 5px or more.");
-          return;
+      try {
+        await handler.onPointerUp(ctx, e);
+      } catch (err) {
+        console.error(err);
+        if (err instanceof Error) {
+          showToast(err.message);
+        } else {
+          showToast(String(err));
         }
-        appState.setMeasureUnit(len / 5);
-        uAppState.measureUnitSet = {
-          start: { ...startRef.current },
-          end: { ...currentRef.current },
-        };
-        showToast(`Measure unit set to ${uAppState.measureUnit.toFixed(2)} pixels`);
       }
-
-      clipQuadDraggingPointIndexRef.current = -1;
-      draggedCenterQuadRef.current = undefined;
-      await handleSelectionComplete();
+      redraw();
     };
 
-    const onPointerUp = () => {
-      void finishPointer();
-    };
+    const onPointerCancel = async (e: PointerEvent) => {
+      const handler = getCurrentHandler();
+      const ctx = createToolContext(canvas, canvas.getContext("2d")!);
+      ctx.requestRedraw = redraw;
 
-    const onPointerCancel = () => {
-      void finishPointer();
+      try {
+        await handler.onPointerCancel(ctx, e);
+      } catch (err) {
+        console.error(err);
+      }
+      redraw();
     };
 
     canvas.addEventListener("pointerdown", onPointerDown);
@@ -409,7 +376,7 @@ const AppDeslel = forwardRef<
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerCancel);
     };
-  }, [redraw, measureMode, uAppState, uAppState.captureMode, uAppState.measureUnit]);
+  }, [createToolContext, getCurrentHandler, redraw]);
 
   useEffect(() => {
     const handleResize = () => {
