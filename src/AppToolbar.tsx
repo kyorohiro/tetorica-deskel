@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useState } from "react"
+import { RefObject, useEffect, useState } from "react";
 import { saveSettings, appState, useAppState } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
 import { showToast } from "./toast";
@@ -9,391 +9,333 @@ import { AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { isPwaDistributionLocation, PWA_URL } from "./pwa";
 import { AppImportImageHandle } from "./AppImportImage";
 
-export function AppToolbar(props: {
-    onChangeState?: () => void
-    appBackgroundImageCanvasRef?: RefObject<AppBackgroundImageCanvasHandle | null>;
-    appColorAnalysisRef?: RefObject<AppColorAnalysisHandle | null>;
-    appImportImageRef?: RefObject<AppImportImageHandle | null>;
+type ToolType = "measure" | "draw" | "capture" | "color";
+
+function ToolbarSection(props: {
+  title: string;
+  children: React.ReactNode;
 }) {
-    const [visible, setVisible] = useState(false);
-    const [menuPinned, setMenuPinned] = useState(false);
-    const uAppState = useAppState();
+  return (
+    <>
+      <label className="flex items-center m-0 text-xs">{props.title}</label>
+      <div className="px-3">{props.children}</div>
+    </>
+  );
+}
 
-    const closeMenuIfNeeded = () => {
-        if (!menuPinned) {
-            setVisible(false);
-        }
-    };
-    useEffect(() => {
-        console.log(">> useEffect [grid, opacity]", [appState.getState()]);
-        saveSettings(appState.getState());
-        if (props.onChangeState) {
-            props.onChangeState();
-        }
-    }, [appState.getState()]);
+function ToolbarToggle(props: {
+  visible: boolean;
+  checked: boolean;
+  onChange: (checked: boolean) => void | Promise<void>;
+  tooltip: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`
+        rounded-lg bg-black/60 px-1 py-1 text-sm text-white
+        transition-opacity duration-200
+        flex items-center justify-center
+        ${!props.visible ? "opacity-80" : "opacity-0"}
+      `}
+    >
+      <div
+        className="group relative inline-flex"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <label className="flex cursor-pointer flex-row items-center justify-center gap-1 text-center">
+          {props.leftIcon && (
+            <span className="inline-flex">{props.leftIcon}</span>
+          )}
 
-    const syncBackgroundImageState = () => {
-        props.onChangeState?.();
-    };
+          <input
+            type="checkbox"
+            checked={props.checked}
+            className="peer sr-only"
+            onChange={(e) => {
+              void props.onChange(e.target.checked);
+            }}
+          />
 
-    const handleClearImage = async () => {
-        if (props.appBackgroundImageCanvasRef?.current) {
-            props.appBackgroundImageCanvasRef.current.clear();
-            syncBackgroundImageState();
-        }
-    };
+          <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
 
-    return (
-        <>
-            <div className="absolute left-3 top-1 z-20 flex items-center gap-2" style={{ zIndex: 99999 }}>
-                <button
-                    onClick={() => setVisible(v => !v)}
-                    className="rounded-lg bg-black/60 px-3 py-2 text-sm text-white transition-opacity duration-200 opacity-80"
-                >
-                    <Menu size={12} />
-                </button>
+          {props.rightIcon && (
+            <span className="inline-flex">{props.rightIcon}</span>
+          )}
+        </label>
 
-                {isTauri() &&
-                    <div
-                        className={`
-                        rounded-lg bg-black/60 px-1 py-1 text-sm text-white
-                        transition-opacity duration-200
-                        flex items-center justify-center
-                        ${!visible ? "opacity-80" : "opacity-0"}
-                    `}
-                    >
-                        <div
-                            className="group relative inline-flex"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <label className="flex cursor-pointer flex-row items-center justify-center gap-1 text-center">
-                                <input
-                                    type="checkbox"
-                                    checked={uAppState.clickThrough}
-                                    className="peer sr-only"
-                                    onChange={async (e) => {
-                                        const next = e.target.checked;
-                                        const info = await setClickThrough(next);
-                                        showToast(info);
-                                    }}
-                                />
+        <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+          {props.tooltip}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-                                <span className="inline-flex">
-                                    <MousePointerClick size={12} />
-                                </span>
+function ToolbarActionButton(props: {
+  active?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={props.onClick}
+      className={`rounded-lg border px-3 py-1 text-sm shadow transition ${
+        props.active
+          ? "border-sky-400 bg-sky-700 text-white"
+          : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"
+      }`}
+    >
+      {props.children}
+    </button>
+  );
+}
 
-                                <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
-                            </label>
+const TOOL_ITEMS: { key: ToolType; label: string }[] = [
+  { key: "measure", label: "Measure" },
+  { key: "draw", label: "Draw" },
+  { key: "capture", label: "Capture" },
+  { key: "color", label: "Color" },
+];
 
-                            <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                                click through
-                            </div>
-                        </div>
-                    </div>
-                }
+export function AppToolbar(props: {
+  onChangeState?: () => void;
+  appBackgroundImageCanvasRef?: RefObject<AppBackgroundImageCanvasHandle | null>;
+  appColorAnalysisRef?: RefObject<AppColorAnalysisHandle | null>;
+  appImportImageRef?: RefObject<AppImportImageHandle | null>;
+}) {
+  const [visible, setVisible] = useState(false);
+  const [menuPinned, setMenuPinned] = useState(false);
+  const uAppState = useAppState();
 
-                {isTauri() &&
-                    <div
-                        className={`
-                        rounded-lg bg-black/60 px-1 py-1 text-sm text-white
-                        transition-opacity duration-200
-                        flex items-center justify-center
-                        ${!visible ? "opacity-80" : "opacity-0"}
-                    `}
-                    >
-                        <div
-                            className="group relative inline-flex"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <label className="flex cursor-pointer flex-row items-center justify-center gap-1 text-center">
-                                <input
-                                    type="checkbox"
-                                    checked={uAppState.alwaysOnTop}
-                                    className="peer sr-only"
-                                    onChange={async (e) => {
-                                        const next = e.target.checked;
-                                        await setAlwaysOnTop(next);
-                                    }}
-                                />
+  const closeMenuIfNeeded = () => {
+    if (!menuPinned) {
+      setVisible(false);
+    }
+  };
 
-                                <span className="inline-flex">
-                                    <Pin size={12} />
-                                </span>
+  useEffect(() => {
+    saveSettings(appState.getState());
+    props.onChangeState?.();
+  }, [uAppState, props]);
 
-                                <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
-                            </label>
+  const handleClearImage = async () => {
+    if (props.appBackgroundImageCanvasRef?.current) {
+      await props.appBackgroundImageCanvasRef.current.clear();
+      props.onChangeState?.();
+    }
+  };
 
-                            <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                                always on top
-                            </div>
-                        </div>
-                    </div>
-                }
+  const tauriMode = isTauri();
 
-                {isTauri() &&
-                    <div
-                        className={`
-                        rounded-lg bg-black/60 px-1 py-1 text-sm text-white
-                        transition-opacity duration-200
-                        flex items-center justify-center
-                        ${!visible ? "opacity-80" : "opacity-0"}
-                    `}
-                    >
-                        <div
-                            className="group relative inline-flex"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <label className="flex cursor-pointer flex-row items-center justify-center gap-1 text-center">
-                                <span className="inline-flex">
-                                    <Image size={12} />
-                                </span>
-                                <input
-                                    type="checkbox"
-                                    checked={uAppState.target == "screen"}
-                                    className="peer sr-only"
-                                    onChange={async () => {
-                                        if (uAppState.target == "screen") {
-                                            appState.setTarget("image");
-                                        } else {
-                                            appState.setTarget("screen");
-                                        }
-                                    }}
-                                />
-                                <div className="relative h-6 w-11 rounded-full bg-slate-600 transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full" />
+  return (
+    <>
+      <div
+        className="absolute left-3 top-1 z-20 flex items-center gap-2"
+        style={{ zIndex: 99999 }}
+      >
+        <button
+          onClick={() => setVisible((v) => !v)}
+          className="rounded-lg bg-black/60 px-3 py-2 text-sm text-white transition-opacity duration-200 opacity-80"
+        >
+          <Menu size={12} />
+        </button>
 
-                                <span className="inline-flex">
-                                    <Monitor size={12} />
-                                </span>
-                            </label>
+        {tauriMode && (
+          <ToolbarToggle
+            visible={visible}
+            checked={uAppState.clickThrough}
+            onChange={async (next) => {
+              const info = await setClickThrough(next);
+              showToast(info);
+            }}
+            tooltip="click through"
+            leftIcon={<MousePointerClick size={12} />}
+          />
+        )}
 
-                            <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-                                analusis target : monitor or imported image
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
+        {tauriMode && (
+          <ToolbarToggle
+            visible={visible}
+            checked={uAppState.alwaysOnTop}
+            onChange={async (next) => {
+              await setAlwaysOnTop(next);
+            }}
+            tooltip="always on top"
+            leftIcon={<Pin size={12} />}
+          />
+        )}
 
-            <div
-                id="toolbar"
-                className={`
-                    absolute left-3 top-[52px] z-10
-                    rounded-xl bg-[rgba(20,20,20,0.6)]
-                    px-[10px] py-2 text-white select-none
-                    backdrop-blur-[6px]
-                    transition-opacity duration-200
-                    space-y-2
-                    ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
-                `}
-                style={{ zIndex: 99999 }}
+        {tauriMode && (
+          <ToolbarToggle
+            visible={visible}
+            checked={uAppState.target === "screen"}
+            onChange={() => {
+              if (uAppState.target === "screen") {
+                appState.setTarget("image");
+              } else {
+                appState.setTarget("screen");
+              }
+            }}
+            tooltip="analysis target : monitor or imported image"
+            leftIcon={<Image size={12} />}
+            rightIcon={<Monitor size={12} />}
+          />
+        )}
+      </div>
+
+      <div
+        id="toolbar"
+        className={`
+          absolute left-3 top-[52px] z-10
+          rounded-xl bg-[rgba(20,20,20,0.6)]
+          px-[10px] py-2 text-white select-none
+          backdrop-blur-[6px]
+          transition-opacity duration-200
+          space-y-2
+          ${visible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}
+        `}
+        style={{ zIndex: 99999 }}
+      >
+        <div className="absolute right-3 top-0">
+          <label className="flex items-center justify-between gap-2 text-xs">
+            <span className="inline-flex items-center">
+              <Pin size={12} />
+            </span>
+            <button
+              type="button"
+              onClick={() => setMenuPinned((v) => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                menuPinned ? "bg-blue-600" : "bg-slate-600"
+              }`}
+              aria-pressed={menuPinned}
+              title="keep menu open"
             >
-                <div className="absolute right-3 top-0">
-                    <label className="flex items-center justify-between gap-2 text-xs">
-                        <span className="inline-flex items-center">
-                            <Pin size={12} />
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => setMenuPinned(v => !v)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${menuPinned ? "bg-blue-600" : "bg-slate-600"
-                                }`}
-                            aria-pressed={menuPinned}
-                            title="keep menu open"
-                        >
-                            <span
-                                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${menuPinned ? "translate-x-5" : "translate-x-1"
-                                    }`}
-                            />
-                        </button>
-                    </label>
-                </div>
-                { }
-                <label className="flex items-center m-0 text-xs">
-                    Pen
-                </label>
-                <div className="px-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button
-                            onClick={() => {
-                                appState.setTool("measure");
-                                closeMenuIfNeeded();
-                            }}
-                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                ${uAppState.tool === "measure"
-                                    ? "border-sky-400 bg-sky-700 text-white"
-                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
-                        >
-                            Measure
-                        </button>
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                  menuPinned ? "translate-x-5" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </label>
+        </div>
 
-                        <button
-                            onClick={() => {
-                                appState.setTool("draw");
-                                closeMenuIfNeeded();
-                            }}
-                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                ${uAppState.tool === "draw"
-                                    ? "border-sky-400 bg-sky-700 text-white"
-                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
-                        >
-                            Draw
-                        </button>
+        <ToolbarSection title="Pen">
+          <div className="flex flex-wrap items-center gap-2">
+            {TOOL_ITEMS.map((item) => (
+              <ToolbarActionButton
+                key={item.key}
+                active={uAppState.tool === item.key}
+                onClick={() => {
+                  appState.setTool(item.key);
+                  closeMenuIfNeeded();
+                }}
+              >
+                {item.label}
+              </ToolbarActionButton>
+            ))}
+          </div>
+        </ToolbarSection>
 
-                        <button
-                            onClick={() => {
-                                appState.setTool("capture");
-                                closeMenuIfNeeded();
-                            }}
-                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                ${uAppState.tool === "capture"
-                                    ? "border-sky-400 bg-sky-700 text-white"
-                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
-                        >
-                            Caputure
-                        </button>
+        <ToolbarSection title="Grid">
+          <div className="toolbar-row">
+            <label className="flex items-center gap-1.5 text-xs">
+              color
+              <input
+                id="color"
+                type="color"
+                value={appState.getState().color}
+                onChange={(e) => {
+                  appState.getState().color = e.target.value;
+                  props.onChangeState?.();
+                }}
+              />
+            </label>
+          </div>
 
-                        <button
-                            onClick={() => {
-                                appState.setTool("color");
-                                closeMenuIfNeeded();
-                            }}
-                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                ${uAppState.tool === "color"
-                                    ? "border-sky-400 bg-sky-700 text-white"
-                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
-                        >
-                            Color
-                        </button>
-                    </div>
-                </div>
+          <label className="flex items-center gap-1.5 text-xs">
+            grid
+            <input
+              type="range"
+              min="20"
+              max="300"
+              value={appState.getState().grid}
+              onChange={(e) => appState.setGrid(Number(e.target.value))}
+            />
+          </label>
 
-                <label className="flex items-center m-0 text-xs">
-                    Grid
-                </label>
-                <div className="px-3">
-                    <div className="toolbar-row">
-                        <label className="flex items-center gap-1.5 text-xs">
-                            color
-                            <input
-                                id="color"
-                                type="color"
-                                value="#00ff88"
-                                onChange={() => {
-                                    const color = document.getElementById("color") as HTMLInputElement;
-                                    appState.getState().color = color.value;
-                                    if (props.onChangeState) {
-                                        props.onChangeState();
-                                    }
-                                }}
-                            />
-                        </label>
-                    </div>
+          <label className="flex items-center gap-1.5 text-xs">
+            opacity
+            <input
+              type="range"
+              min="0.05"
+              max="1"
+              step="0.05"
+              value={appState.getState().opacity}
+              onChange={(e) => appState.setOpacity(Number(e.target.value))}
+            />
+          </label>
 
-                    <label className="flex items-center gap-1.5 text-xs">
-                        grid
-                        <input
-                            type="range"
-                            min="20"
-                            max="300"
-                            value={appState.getState().grid}
-                            onChange={(e) => appState.setGrid(Number(e.target.value))}
-                        />
-                    </label>
+          <label className="flex items-center gap-1.5 text-xs">
+            rotation
+            <input
+              type="range"
+              min="-180"
+              max="180"
+              value={appState.getState().rotation}
+              onChange={(e) => appState.setRotation(Number(e.target.value))}
+            />
+          </label>
+        </ToolbarSection>
 
-                    <label className="flex items-center gap-1.5 text-xs">
-                        opacity
-                        <input
-                            type="range"
-                            min="0.05"
-                            max="1"
-                            step="0.05"
-                            value={appState.getState().opacity}
-                            onChange={(e) => appState.setOpacity(Number(e.target.value))}
-                        />
-                    </label>
+        <ToolbarSection title="Import">
+          <div className="flex flex-wrap items-center gap-2">
+            <ToolbarActionButton
+              onClick={() => {
+                void props.appImportImageRef?.current?.handleImportImage();
+              }}
+            >
+              Image
+            </ToolbarActionButton>
 
-                    <label className="flex items-center gap-1.5 text-xs">
-                        rotation
-                        <input
-                            type="range"
-                            min="-180"
-                            max="180"
-                            value={appState.getState().rotation}
-                            onChange={(e) => appState.setRotation(Number(e.target.value))}
-                        />
-                    </label>
-                </div>
+            <ToolbarActionButton
+              onClick={() => {
+                void handleClearImage();
+              }}
+            >
+              Clear
+            </ToolbarActionButton>
+          </div>
+        </ToolbarSection>
 
-                <label className="flex items-center m-0 text-xs">
-                    Import
-                </label>
-                <div className="px-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button
-                            onClick={props.appImportImageRef?.current?.handleImportImage}
-                            className="rounded-lg border px-3 py-1 text-sm shadow transition border-slate-500 bg-slate-800 text-white hover:bg-slate-700"
-                        >
-                            Image
-                        </button>
+        <ToolbarSection title="Snapshot">
+          <div />
+        </ToolbarSection>
 
-                        <button
-                            onClick={handleClearImage}
-                            className="rounded-lg border px-3 py-1 text-sm shadow transition border-slate-500 bg-slate-800 text-white hover:bg-slate-700"
-                        >
-                            Clear
-                        </button>
-                    </div>
-                </div>
+        <ToolbarSection title="Color Check">
+          <ToolbarActionButton
+            onClick={() => {
+              props.appColorAnalysisRef?.current?.setVisible(false);
+              closeMenuIfNeeded();
+            }}
+          >
+            Clear
+          </ToolbarActionButton>
+        </ToolbarSection>
 
-                <label className="flex items-center m-0 text-xs">
-                    Snapshot
-                </label>
-                <div className="px-3">
-                    <div></div>
-                </div>
-
-                <label className="flex items-center m-0 text-xs">
-                    Color Check
-                </label>
-                <div className="px-3">
-                    <button
-                        onClick={() => {
-                            props.appColorAnalysisRef?.current?.setVisible(false)
-                            closeMenuIfNeeded();
-                        }}
-                        className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                ${false
-                                ? "border-sky-400 bg-sky-700 text-white"
-                                : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
-                    >
-                        Clear
-                    </button>
-                </div>
-
-                {
-                    !isPwaDistributionLocation() && !isTauri()&& <>
-                        <label className="flex items-center m-0 text-xs">
-                            PWA
-                        </label>
-                        <div className="px-3">
-                            <button
-                                onClick={() => {
-                                    window.open(PWA_URL, "_blank", "noopener,noreferrer");
-                                }}
-                                className={`rounded-lg border px-3 py-1 text-sm shadow transition
-                                ${false
-                                        ? "border-sky-400 bg-sky-700 text-white"
-                                        : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
-                            >
-                                Open PWA Page
-                            </button>
-                        </div>
-                    </>
-
-                }
-
-            </div>
-
-        </>
-    );
+        {!isPwaDistributionLocation() && !tauriMode && (
+          <ToolbarSection title="PWA">
+            <ToolbarActionButton
+              onClick={() => {
+                window.open(PWA_URL, "_blank", "noopener,noreferrer");
+              }}
+            >
+              Open PWA Page
+            </ToolbarActionButton>
+          </ToolbarSection>
+        )}
+      </div>
+    </>
+  );
 }
