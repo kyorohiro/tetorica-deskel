@@ -3418,7 +3418,7 @@ checksum = "f38d5652c16fde515bb1ecef450ab0f6a219d619a7274976324d5e377f7dceba"
 
 [[package]]
 name = "parking_lot"
-version = "0.12.6"
+version = "0.12.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93857453250e3077bd71ff98b6a65ea6621a19bb0f559a85248955ac12c45a1a"
 dependencies = [
@@ -5358,7 +5358,7 @@ dependencies = [
 
 [[package]]
 name = "tetorica-deskel"
-version = "0.12.6"
+version = "0.12.7"
 dependencies = [
  "chrono",
  "core-foundation 0.10.1",

@@ -1,12 +1,13 @@
 import { useSyncExternalStore } from "react"
 
-type CaptureMode =
-    | "none"
-    | "lightness"
-    | "protan"
-    | "deutan"
-    | "tritan"
-    | undefined;
+const CAPTURE_MODES = ["none", "lightness", "protan", "deutan", "tritan"] as const;
+
+// 配列から型を自動生成
+type CaptureMode = (typeof CAPTURE_MODES)[number] | undefined;
+
+function isCaptureMode(value: any): value is CaptureMode {
+    return value === undefined || (CAPTURE_MODES as readonly any[]).includes(value);
+}
 
 type Settings = {
     grid: number
@@ -49,6 +50,7 @@ const DEFAULT_SETTINGS: Settings = {
     rotation: 0,
     measureUnit: 20,
     measureUnitSet: { start: { x: 0, y: 0 }, end: { x: 0, y: 0 } },
+    captureMode: "lightness"
 }
 
 const SETTINGS_KEY = "tetorica-deskel-settings"
@@ -101,7 +103,10 @@ function loadSettings(): Settings {
                         },
                     }
                     : DEFAULT_SETTINGS.measureUnitSet,
-
+            captureMode:
+                isCaptureMode(parsed.captureMode) && parsed.captureImage
+                    ? parsed.captureMode
+                    : DEFAULT_SETTINGS.captureMode,
         }
     } catch (error) {
         console.error("failed to load settings", error)
@@ -142,6 +147,7 @@ class AppStateStore {
             tool: "measure",
             measureUnit: saved.measureUnit,
             measureUnitSet: saved.measureUnitSet,
+            captureMode: saved.captureMode,
         }
     }
 

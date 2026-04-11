@@ -66,7 +66,7 @@ const AppDeslel = forwardRef<
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
   );
-  const [captureMode, setCaptureMode] = useState<CaptureMode>("lightness");
+
 
   const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
   const [captureToolbarOpen, setCaptureToolbarOpen] = useState(true);
@@ -75,7 +75,8 @@ const AppDeslel = forwardRef<
 
   const dialog = useDialog();
   const uAppState = useAppState();
-
+  
+  //const [captureMode, setCaptureMode] = useState<CaptureMode>(uAppState.captureMode);
   function setDraggingValue(value: boolean) {
     if (draggingRef.current === value) return;
 
@@ -412,7 +413,7 @@ const AppDeslel = forwardRef<
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerCancel);
     };
-  }, [redraw, measureMode, uAppState, captureMode, uAppState.measureUnit]);
+  }, [redraw, measureMode, uAppState, uAppState.captureMode, uAppState.measureUnit]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -615,12 +616,12 @@ const AppDeslel = forwardRef<
         >
           <div className="flex flex-col gap-1 p-2 sm:flex-row sm:flex-wrap">
             <button
-              className={`flex items-center gap-1 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "none"
+              className={`flex items-center gap-1 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${uAppState.captureMode === "none"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
-                setCaptureMode("none");
+                //setCaptureMode("none");
                 appState.setCaptureMode("none");
               }}
               title="none"
@@ -630,12 +631,12 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "lightness"
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${uAppState.captureMode === "lightness"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
-                setCaptureMode("lightness");
+                //setCaptureMode("lightness");
                 appState.setCaptureMode("lightness");
               }}
               title="grayscale value check"
@@ -645,12 +646,12 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs  transition-colors outline-none ${captureMode === "protan"
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs  transition-colors outline-none ${uAppState.captureMode === "protan"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
-                setCaptureMode("protan");
+                //setCaptureMode("protan");
                 appState.setCaptureMode("protan");
               }}
               title="protan preview"
@@ -660,12 +661,12 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "deutan"
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${uAppState.captureMode === "deutan"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
-                setCaptureMode("deutan");
+                //setCaptureMode("deutan");
                 appState.setCaptureMode("deutan");
               }}
               title="deutan preview"
@@ -675,12 +676,12 @@ const AppDeslel = forwardRef<
             </button>
 
             <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${captureMode === "tritan"
+              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${uAppState.captureMode === "tritan"
                 ? "border-emerald-500 bg-emerald-950 text-emerald-300"
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
-                setCaptureMode("tritan");
+                //setCaptureMode("tritan");
                 appState.setCaptureMode("tritan");
               }}
               title="tritan preview"
@@ -695,6 +696,7 @@ const AppDeslel = forwardRef<
                 : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
                 }`}
               onClick={() => {
+                console.log(">>uAppState.captureMode",uAppState.captureMode);
                 appState.setCaptureImage(undefined);
               }}
               title="clear capture image"
