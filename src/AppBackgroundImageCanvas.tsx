@@ -31,7 +31,6 @@ const INITIAL_FIT_RATIO = 0.7;
 
 const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
     function (_, ref) {
-        const _stateShared = useBackgroundImageState();
         const dialog = useDialog();
         const canvasRef = useRef<HTMLCanvasElement | null>(null);
         const wrapRef = useRef<HTMLDivElement | null>(null);

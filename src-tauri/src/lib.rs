@@ -17,7 +17,6 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             greet,
-            capture_and_crop_to_downloads,
             analyze_region_colors,
             check_screen_capture_permission,
             request_screen_capture_permission,
@@ -36,20 +35,6 @@ pub fn run() {
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
-
-#[tauri::command]
-fn capture_and_crop_to_downloads(
-    app: tauri::AppHandle,
-    x: i32,
-    y: i32,
-    width: u32,
-    height: u32,
-    path: &str,
-) -> Result<String, String> {
-    crate::screen_capture::capture_and_crop_to_downloads(app, x, y, width, height, path)
-}
-
-
 
 #[tauri::command]
 fn capture_and_crop_bytes(
