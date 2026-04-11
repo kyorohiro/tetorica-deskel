@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react"
-import { showToolbar, initToolbar } from "./toolbar"
+//import { showToolbar, initToolbar } from "./toolbar"
 import { updateWindowTitle } from "./window";
 import { setupShortcuts } from "./nativeShortcut";
 
@@ -33,7 +33,7 @@ export default function App() {
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)
     deskelRef.current?.redraw({ isResizeCanvas: true });
-    showToolbar()
+    //showToolbar()
     updateWindowTitle().catch((e)=>{
       console.log(e);
     })
@@ -73,8 +73,8 @@ export default function App() {
 
     setupTauriOnly();
     
-    initToolbar();
-    showToolbar();
+    //initToolbar();
+    //showToolbar();
 
     return () => {
       disposed = true;

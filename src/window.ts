@@ -1,6 +1,6 @@
 import { appState } from "./state";
 import { TOGGLE_CLICK_SHORTCUT } from "./nativeShortcut";
-import { showToolbar, hideToolbarSoon } from "./toolbar";
+//import { showToolbar, hideToolbarSoon } from "./toolbar";
 import { getAppWindow } from "./native";
 
 //const win = getCurrentWindow();
@@ -60,11 +60,11 @@ async function setClickThrough(value: boolean): Promise<string> {
   if (btn) {
     btn.textContent = `click: ${value ? "on" : "off"}`;
   }
-  if(value) {
-    hideToolbarSoon();
-  } else {
-    showToolbar();
-  }
+  //if(value) {
+  //  hideToolbarSoon();
+  //} else {
+  //  showToolbar();
+  //}
   return await updateWindowTitle();
 }
 
