@@ -7,6 +7,43 @@ import {
 } from "react";
 import { useDialog } from "./useDialog";
 
+async function waitForStableLayout(frames = 2): Promise<void> {
+    for (let i = 0; i < frames; i++) {
+        await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => resolve());
+        });
+    }
+}
+
+function getCurrentViewportSize(
+    wrap: HTMLDivElement | null,
+    canvas: HTMLCanvasElement | null
+): { width: number; height: number } {
+    const wrapRect = wrap?.getBoundingClientRect();
+
+    const width = Math.max(
+        1,
+        Math.floor(
+            wrapRect?.width ||
+            canvas?.clientWidth ||
+            window.innerWidth ||
+            1024
+        )
+    );
+
+    const height = Math.max(
+        1,
+        Math.floor(
+            wrapRect?.height ||
+            canvas?.clientHeight ||
+            window.innerHeight ||
+            1024
+        )
+    );
+
+    return { width, height };
+}
+
 function getCanvasPoint(
     canvas: HTMLCanvasElement,
     clientX: number,
@@ -149,11 +186,19 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
                 addImage: async (data: Blob) => {
                     console.log("> addImage ", data);
 
+                    await waitForStableLayout(2);
+                    resizeCanvas();
+
                     const preview = await createImageBitmap(data);
 
                     try {
-                        const maxW = Math.max(1, canvasRef.current?.clientWidth ?? 1024);
-                        const maxH = Math.max(1, canvasRef.current?.clientHeight ?? 1024);
+                        await waitForStableLayout(1);
+                        resizeCanvas();
+
+                        const { width: maxW, height: maxH } = getCurrentViewportSize(
+                            wrapRef.current,
+                            canvasRef.current
+                        );
 
                         const needsShrink = preview.width > maxW || preview.height > maxH;
 
