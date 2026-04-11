@@ -387,7 +387,7 @@ export function AppToolbar(props: {
                 </div>
 
                 {
-                    !isPwaDistributionLocation() && <>
+                    !isPwaDistributionLocation() && !isTauri()&& <>
                         <label className="flex items-center m-0 text-xs">
                             PWA
                         </label>
