@@ -244,8 +244,18 @@ mv /tmp/butler/butler ~/bin/butler
 ```
 
 
+### For itch.io / web pag
+
 ```
 npm run build:web
 cd dist
 zip -r ../web-build_0.12.15.zip .
+```
+
+### For github pages (pwa)
+
+```
+npm run build:gh
+cd dist
+zip -r ../web-build_0.12.15_gh.zip .
 ```
