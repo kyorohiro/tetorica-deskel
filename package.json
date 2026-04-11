@@ -1,13 +1,15 @@
 {
   "name": "tetorica-deskel",
   "private": true,
-  "version": "0.12.7",
+  "version": "0.12.10",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node scripts/build-sw.mjs",
-    "build": "tsc && vite build",
-    "build:itch": "vite build --base=./",
+    "build-sw": "node scripts/build-sw.mjs",
+    "build": "npm run build-sw && tsc && vite build",
+    "build:gh": "npm run build-sw && tsc && vite build --base=/tetorica-deskel/demo/",
+    "build:itch": "npm run build-sw && tsc && vite build --base=./",
+    "build:web": "npm run build-sw && tsc && vite build --base=./",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev"
