@@ -14,9 +14,11 @@ import { useAppState, appState } from "./state";
 import ScreenCaptureCanvas from "./AppScreenCaptureCanvas";
 import { getAppWindow, isTauri } from "./native";
 import { AppBackgroundImageCanvas, AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
+import { AppImportImage, AppImportImageHandle } from "./AppImportImage";
 
 export default function App() {
   const deskelRef = useRef<AppDeskelHandle | null>(null);
+  const appImportImageRef = useRef<AppImportImageHandle | null>(null);
   const colorAnalysisRef = useRef<AppColorAnalysisHandle | null>(null);
   const appBackgroundImageCanvasRef = useRef<AppBackgroundImageCanvasHandle|null>(null);
   const state = useAppState();
@@ -112,8 +114,13 @@ export default function App() {
       </div>
 
       <div className="absolute top-0 left-0 z-50">
-        <AppToolbar onChangeState={onChangeStateForToolbar} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} appColorAnalysisRef={colorAnalysisRef}/>
+        <AppImportImage ref={appImportImageRef} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef}/>
       </div>
+
+      <div className="absolute top-0 left-0 z-50">
+        <AppToolbar onChangeState={onChangeStateForToolbar} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} appColorAnalysisRef={colorAnalysisRef} appImportImageRef={appImportImageRef}/>
+      </div>
+  
     </div>
   );
 }

@@ -30,6 +30,9 @@ function showToast(message: string): void {
     window.clearTimeout(hideTimer);
   }
 
+  toast.style.opacity = "0";
+  toast.style.transform = "translateY(8px)";
+
   requestAnimationFrame(() => {
     if (!toast) {
       return;
