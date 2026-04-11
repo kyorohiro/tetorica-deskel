@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/build-sw.mjs",
     "build": "tsc && vite build",
     "build:itch": "vite build --base=./",
     "preview": "vite preview",
