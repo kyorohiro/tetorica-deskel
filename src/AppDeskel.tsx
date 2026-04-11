@@ -10,7 +10,7 @@ import {
 import { draw, resizeCanvas } from "./deskel";
 import { drawMeasure } from "./deskelMeasure";
 import { drawClipRect, drawClipQuad2, findNearestQuadPoint } from "./deskelClipRect";
-import { useAppState, appState, CaptureMode } from "./state";
+import { useAppState, appState } from "./state";
 
 import {
   //calcCaptureAndCropParams,
