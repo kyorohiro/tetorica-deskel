@@ -11,6 +11,11 @@ type TransformState = {
   mirrorX: boolean;
 };
 
+type WebKitGestureEvent = Event & {
+  rotation: number;
+  scale: number;
+};
+
 const INITIAL_TRANSFORM: TransformState = {
   x: 0,
   y: 0,
@@ -97,6 +102,10 @@ export default function CameraDeskel() {
     startTransform: TransformState;
   }>(null);
 
+  const safariGestureRef = useRef<null | {
+    startTransform: TransformState;
+  }>(null);
+
   const [sourceType, setSourceType] = useState<SourceType>("none");
   const [status, setStatus] = useState("no source");
   const [error, setError] = useState("");
@@ -108,6 +117,93 @@ export default function CameraDeskel() {
   useEffect(() => {
     transformRef.current = transform;
   }, [transform]);
+
+  useEffect(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const onGestureStart = (event: Event) => {
+      const e = event as WebKitGestureEvent;
+      e.preventDefault();
+
+      safariGestureRef.current = {
+        startTransform: transformRef.current,
+      };
+    };
+
+    const onGestureChange = (event: Event) => {
+      const e = event as WebKitGestureEvent;
+      e.preventDefault();
+
+      const g = safariGestureRef.current;
+      if (!g) {
+        return;
+      }
+
+      setTransform({
+        ...g.startTransform,
+        rotation: g.startTransform.rotation + e.rotation,
+        scale: Math.min(5, Math.max(0.2, g.startTransform.scale * e.scale)),
+      });
+    };
+
+    const onGestureEnd = (event: Event) => {
+      const e = event as WebKitGestureEvent;
+      e.preventDefault();
+      safariGestureRef.current = null;
+    };
+
+    canvas.addEventListener("gesturestart", onGestureStart as EventListener, {
+      passive: false,
+    });
+    canvas.addEventListener("gesturechange", onGestureChange as EventListener, {
+      passive: false,
+    });
+    canvas.addEventListener("gestureend", onGestureEnd as EventListener, {
+      passive: false,
+    });
+
+    return () => {
+      canvas.removeEventListener(
+        "gesturestart",
+        onGestureStart as EventListener
+      );
+      canvas.removeEventListener(
+        "gesturechange",
+        onGestureChange as EventListener
+      );
+      canvas.removeEventListener(
+        "gestureend",
+        onGestureEnd as EventListener
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) {
+      return;
+    }
+
+    const onWheelNative = (event: WheelEvent) => {
+      event.preventDefault();
+
+      const factor = event.deltaY < 0 ? 1.05 : 0.95;
+
+      setTransform((prev) => ({
+        ...prev,
+        scale: Math.min(5, Math.max(0.2, prev.scale * factor)),
+      }));
+    };
+
+    canvas.addEventListener("wheel", onWheelNative, { passive: false });
+
+    return () => {
+      canvas.removeEventListener("wheel", onWheelNative);
+    };
+  }, []);
 
   const canDrawMovingSource = useMemo(
     () => sourceType === "camera" || sourceType === "video",
@@ -145,6 +241,7 @@ export default function CameraDeskel() {
 
     pointersRef.current.clear();
     gestureRef.current = null;
+    safariGestureRef.current = null;
     dragRef.current.active = false;
 
     setSourceType("none");
@@ -788,15 +885,6 @@ export default function CameraDeskel() {
             } else if (count === 0) {
               dragRef.current.active = false;
             }
-          }}
-          onWheel={(e) => {
-            e.preventDefault();
-            const factor = e.deltaY < 0 ? 1.05 : 0.95;
-
-            setTransform((prev) => ({
-              ...prev,
-              scale: Math.min(5, Math.max(0.2, prev.scale * factor)),
-            }));
           }}
         />
       </div>
