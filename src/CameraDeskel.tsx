@@ -27,6 +27,38 @@ function degToRad(deg: number) {
   return (deg * Math.PI) / 180;
 }
 
+function calcDistance(
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  return Math.hypot(dx, dy);
+}
+
+function calcAngle(
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+) {
+  return Math.atan2(b.y - a.y, b.x - a.x);
+}
+
+function calcCenter(
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+) {
+  return {
+    x: (a.x + b.x) / 2,
+    y: (a.y + b.y) / 2,
+  };
+}
+
+function normalizeAngleDelta(rad: number) {
+  while (rad > Math.PI) rad -= Math.PI * 2;
+  while (rad < -Math.PI) rad += Math.PI * 2;
+  return rad;
+}
+
 export default function CameraDeskel() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -37,6 +69,8 @@ export default function CameraDeskel() {
   const streamRef = useRef<MediaStream | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const rafRef = useRef<number | null>(null);
+
+  const transformRef = useRef<TransformState>(INITIAL_TRANSFORM);
 
   const dragRef = useRef<{
     active: boolean;
@@ -54,6 +88,15 @@ export default function CameraDeskel() {
     originY: 0,
   });
 
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const gestureRef = useRef<null | {
+    startDistance: number;
+    startAngle: number;
+    startCenterX: number;
+    startCenterY: number;
+    startTransform: TransformState;
+  }>(null);
+
   const [sourceType, setSourceType] = useState<SourceType>("none");
   const [status, setStatus] = useState("no source");
   const [error, setError] = useState("");
@@ -61,6 +104,10 @@ export default function CameraDeskel() {
   const [opacity, setOpacity] = useState(0.85);
   const [lineWidth, setLineWidth] = useState(1.2);
   const [transform, setTransform] = useState<TransformState>(INITIAL_TRANSFORM);
+
+  useEffect(() => {
+    transformRef.current = transform;
+  }, [transform]);
 
   const canDrawMovingSource = useMemo(
     () => sourceType === "camera" || sourceType === "video",
@@ -96,6 +143,10 @@ export default function CameraDeskel() {
       img.removeAttribute("src");
     }
 
+    pointersRef.current.clear();
+    gestureRef.current = null;
+    dragRef.current.active = false;
+
     setSourceType("none");
     setStatus("no source");
     setError("");
@@ -129,7 +180,6 @@ export default function CameraDeskel() {
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
-      // outer border
       ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
 
       const drawVertical = (x: number) => {
@@ -146,7 +196,12 @@ export default function CameraDeskel() {
         ctx.stroke();
       };
 
-      if (gridMode === "cross" || gridMode === "rule3" || gridMode === "rule4" || gridMode === "rule9") {
+      if (
+        gridMode === "cross" ||
+        gridMode === "rule3" ||
+        gridMode === "rule4" ||
+        gridMode === "rule9"
+      ) {
         drawVertical(width / 2);
         drawHorizontal(height / 2);
       }
@@ -172,7 +227,6 @@ export default function CameraDeskel() {
         }
       }
 
-      // center mark
       const cx = width / 2;
       const cy = height / 2;
       const mark = 12;
@@ -213,7 +267,6 @@ export default function CameraDeskel() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // background
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, width, height);
 
@@ -231,9 +284,21 @@ export default function CameraDeskel() {
       ctx.scale(transform.mirrorX ? -finalScale : finalScale, finalScale);
 
       if ((sourceType === "camera" || sourceType === "video") && video) {
-        ctx.drawImage(video, -size.width / 2, -size.height / 2, size.width, size.height);
+        ctx.drawImage(
+          video,
+          -size.width / 2,
+          -size.height / 2,
+          size.width,
+          size.height
+        );
       } else if (sourceType === "image" && img) {
-        ctx.drawImage(img, -size.width / 2, -size.height / 2, size.width, size.height);
+        ctx.drawImage(
+          img,
+          -size.width / 2,
+          -size.height / 2,
+          size.width,
+          size.height
+        );
       }
 
       ctx.restore();
@@ -330,7 +395,7 @@ export default function CameraDeskel() {
         });
 
         await video.play().catch(() => {
-          // Safari などで自動再生が失敗しても、最初のフレーム描画はできることがある
+          // 再生開始できない環境でも最初のフレームだけ描けることがある
         });
 
         setSourceType("video");
@@ -345,7 +410,6 @@ export default function CameraDeskel() {
   );
 
   const savePng = useCallback(async () => {
-    console.log(">> save/png")
     const canvas = previewCanvasRef.current;
     if (!canvas) {
       return;
@@ -431,12 +495,12 @@ export default function CameraDeskel() {
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 p-3">
         <button
           className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
-          onClick={startCamera}
+          onClick={() => void startCamera()}
         >
           Start Camera
         </button>
 
-        <label className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800 cursor-pointer">
+        <label className="cursor-pointer rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800">
           Open Image/Video
           <input
             type="file"
@@ -459,7 +523,7 @@ export default function CameraDeskel() {
 
         <button
           className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
-          onClick={savePng}
+          onClick={() => void savePng()}
         >
           Save PNG
         </button>
@@ -527,7 +591,9 @@ export default function CameraDeskel() {
               }))
             }
           />
-          <span className="w-14 text-right">{transform.rotation}°</span>
+          <span className="w-14 text-right">
+            {Math.round(transform.rotation)}°
+          </span>
         </label>
 
         <label className="flex items-center gap-2 text-sm">
@@ -565,9 +631,7 @@ export default function CameraDeskel() {
 
       <div className="text-sm text-slate-300">
         <div>Status: {status}</div>
-        <div>
-          Drag: move / Wheel: zoom / Slider: rotate
-        </div>
+        <div>1 finger: move / 2 fingers: zoom + rotate / wheel: zoom</div>
         {error ? <div className="text-rose-400">Error: {error}</div> : null}
       </div>
 
@@ -577,58 +641,156 @@ export default function CameraDeskel() {
       >
         <canvas
           ref={previewCanvasRef}
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 h-full w-full touch-none"
           onPointerDown={(e) => {
             const canvas = previewCanvasRef.current;
             if (!canvas) {
               return;
             }
 
-            dragRef.current = {
-              active: true,
-              pointerId: e.pointerId,
-              startX: e.clientX,
-              startY: e.clientY,
-              originX: transform.x,
-              originY: transform.y,
-            };
-
             canvas.setPointerCapture(e.pointerId);
+
+            pointersRef.current.set(e.pointerId, {
+              x: e.clientX,
+              y: e.clientY,
+            });
+
+            const points = Array.from(pointersRef.current.values());
+
+            if (points.length === 1) {
+              const current = transformRef.current;
+              dragRef.current = {
+                active: true,
+                pointerId: e.pointerId,
+                startX: e.clientX,
+                startY: e.clientY,
+                originX: current.x,
+                originY: current.y,
+              };
+              gestureRef.current = null;
+            } else if (points.length === 2) {
+              dragRef.current.active = false;
+              const [p1, p2] = points;
+              const center = calcCenter(p1, p2);
+              gestureRef.current = {
+                startDistance: calcDistance(p1, p2),
+                startAngle: calcAngle(p1, p2),
+                startCenterX: center.x,
+                startCenterY: center.y,
+                startTransform: transformRef.current,
+              };
+            }
           }}
           onPointerMove={(e) => {
-            const drag = dragRef.current;
-            if (!drag.active || drag.pointerId !== e.pointerId) {
+            if (!pointersRef.current.has(e.pointerId)) {
               return;
             }
 
-            const dx = e.clientX - drag.startX;
-            const dy = e.clientY - drag.startY;
+            pointersRef.current.set(e.pointerId, {
+              x: e.clientX,
+              y: e.clientY,
+            });
 
-            setTransform((prev) => ({
-              ...prev,
-              x: drag.originX + dx,
-              y: drag.originY + dy,
-            }));
+            const points = Array.from(pointersRef.current.values());
+
+            if (points.length === 1 && dragRef.current.active) {
+              const drag = dragRef.current;
+              if (drag.pointerId !== e.pointerId) {
+                return;
+              }
+
+              const dx = e.clientX - drag.startX;
+              const dy = e.clientY - drag.startY;
+
+              setTransform((prev) => ({
+                ...prev,
+                x: drag.originX + dx,
+                y: drag.originY + dy,
+              }));
+              return;
+            }
+
+            if (points.length === 2 && gestureRef.current) {
+              const [p1, p2] = points;
+              const currentDistance = calcDistance(p1, p2);
+              const currentAngle = calcAngle(p1, p2);
+              const currentCenter = calcCenter(p1, p2);
+
+              const g = gestureRef.current;
+              const distanceRatio =
+                g.startDistance > 0 ? currentDistance / g.startDistance : 1;
+
+              const angleDelta = normalizeAngleDelta(
+                currentAngle - g.startAngle
+              );
+              const rotationDeltaDeg = (angleDelta * 180) / Math.PI;
+
+              setTransform({
+                ...g.startTransform,
+                x: g.startTransform.x + (currentCenter.x - g.startCenterX),
+                y: g.startTransform.y + (currentCenter.y - g.startCenterY),
+                scale: Math.min(
+                  5,
+                  Math.max(0.2, g.startTransform.scale * distanceRatio)
+                ),
+                rotation: g.startTransform.rotation + rotationDeltaDeg,
+              });
+            }
           }}
           onPointerUp={(e) => {
-            const drag = dragRef.current;
-            if (drag.pointerId !== e.pointerId) {
-              return;
-            }
+            pointersRef.current.delete(e.pointerId);
 
-            dragRef.current.active = false;
+            const entries = Array.from(pointersRef.current.entries());
+            const points = entries.map(([, p]) => p);
+
+            if (points.length === 1) {
+              const remaining = entries[0];
+              if (remaining) {
+                const [pointerId, p] = remaining;
+                const current = transformRef.current;
+                dragRef.current = {
+                  active: true,
+                  pointerId,
+                  startX: p.x,
+                  startY: p.y,
+                  originX: current.x,
+                  originY: current.y,
+                };
+              }
+              gestureRef.current = null;
+            } else {
+              dragRef.current.active = false;
+              gestureRef.current = null;
+            }
           }}
           onPointerCancel={(e) => {
-            const drag = dragRef.current;
-            if (drag.pointerId !== e.pointerId) {
-              return;
-            }
+            pointersRef.current.delete(e.pointerId);
 
-            dragRef.current.active = false;
+            const count = pointersRef.current.size;
+
+            if (count < 2) {
+              gestureRef.current = null;
+            }
+            if (count === 1) {
+              const remaining = Array.from(pointersRef.current.entries())[0];
+              if (remaining) {
+                const [pointerId, p] = remaining;
+                const current = transformRef.current;
+                dragRef.current = {
+                  active: true,
+                  pointerId,
+                  startX: p.x,
+                  startY: p.y,
+                  originX: current.x,
+                  originY: current.y,
+                };
+              }
+            } else if (count === 0) {
+              dragRef.current.active = false;
+            }
           }}
           onWheel={(e) => {
             e.preventDefault();
-
             const factor = e.deltaY < 0 ? 1.05 : 0.95;
 
             setTransform((prev) => ({
@@ -639,7 +801,6 @@ export default function CameraDeskel() {
         />
       </div>
 
-      {/* hidden sources */}
       <video ref={hiddenVideoRef} className="hidden" muted playsInline />
       <img ref={hiddenImageRef} className="hidden" alt="" />
     </div>
