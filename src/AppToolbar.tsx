@@ -394,7 +394,7 @@ export function AppToolbar(props: {
                         <div className="px-3">
                             <button
                                 onClick={() => {
-                                    window.location.href = PWA_URL
+                                    window.open(PWA_URL, "_blank", "noopener,noreferrer");
                                 }}
                                 className={`rounded-lg border px-3 py-1 text-sm shadow transition
                                 ${false
