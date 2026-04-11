@@ -6,6 +6,8 @@ import {
     useRef,
 } from "react";
 import { useDialog } from "./useDialog";
+import { useSyncExternalStore } from "react";
+
 
 async function waitForStableLayout(frames = 2): Promise<void> {
     for (let i = 0; i < frames; i++) {
@@ -78,8 +80,8 @@ type AppBackgroundImageCanvasHandle = {
 const INITIAL_FIT_RATIO = 0.7;
 
 const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
-
     function (_, ref) {
+        const _stateShared = useBackgroundImageState();
         const dialog = useDialog();
         const canvasRef = useRef<HTMLCanvasElement | null>(null);
         const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -234,22 +236,18 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
                         imageRef.current?.close?.();
                         imageRef.current = nextImage;
                         resizeCanvas();
+                        setBackgroundImageExists(true);
                     } catch (e) {
                         preview.close();
                         throw e;
                     }
-                },/*
-                addImage: async (data: Blob) => {
-                    console.log("> addImage ", data);
-                    const image = await createImageBitmap(data);
-                    imageRef.current?.close?.();
-                    imageRef.current = image;
-                    resizeCanvas();
-                },*/
+                },
                 clear: async () => {
                     imageRef.current?.close?.();
                     imageRef.current = null;
+                    setBackgroundImageExists(false);
                     redrawAll();
+                    
                 },
                 getCropImage: async (rect) => {
                     const image = imageRef.current;
@@ -348,5 +346,39 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
     }
 );
 
-export { AppBackgroundImageCanvas, getCanvasPoint };
+///---
+/// 外部と共有する状態
+///---
+let _sharedState: {
+  hasImage: boolean;
+} = { hasImage: false };
+
+const _sharedStateListeners = new Set<() => void>();
+
+function _sharedStateEmit() {
+  _sharedStateListeners.forEach((l) => l());
+}
+
+function setBackgroundImageExists(v: boolean) {
+  if (_sharedState.hasImage === v) return;
+
+  _sharedState = {
+    ..._sharedState,
+    hasImage: v,
+  };
+
+  _sharedStateEmit();
+}
+
+function useBackgroundImageState() {
+  return useSyncExternalStore(
+    (listener) => {
+      _sharedStateListeners.add(listener);
+      return () => _sharedStateListeners.delete(listener);
+    },
+    () => _sharedState
+  );
+}
+
+export { AppBackgroundImageCanvas, getCanvasPoint, useBackgroundImageState, setBackgroundImageExists };
 export type { AppBackgroundImageCanvasHandle };
