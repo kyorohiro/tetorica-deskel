@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@import "tailwindcss";
-
 html,
 body,
 #app,
@@ -19,89 +17,10 @@ body {
   background: transparent;
   font-family: sans-serif;
 }
-/*
 
-html,
-body,
-#app,
-#root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: transparent;
-}
-
-body {
-  font-family: sans-serif;
-}
-
-#root {
-  position: relative;
-}
-
-#toolbar {
-  position: absolute;
-  top: 22px;
-  left: 12px;
-  z-index: 10;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: rgba(20, 20, 20, 0.6);
-  color: white;
-  user-select: none;
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-
-.toolbar-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.toolbar-row + .toolbar-row {
-  margin-top: 8px;
-}
-#toolbar.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-#toolbar label {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  font-size: 12px;
-}
-*/
 #canvas {
   display: block;
   width: 100%;
   height: 100%;
   background: transparent;
-}
-
-#toast {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 9999;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: rgba(20, 20, 20, 0.8);
-  color: white;
-  font-size: 13px;
-  opacity: 0;
-  transform: translateY(8px);
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-#toast.show {
-  opacity: 1;
-  transform: translateY(0);
 }
