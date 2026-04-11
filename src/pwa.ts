@@ -4,9 +4,9 @@ function isPwaDistributionLocation() {
   const host = window.location.hostname;
   const path = window.location.pathname;
 
-  if (host === "localhost" || host === "127.0.0.1") {
-    return true;
-  }
+  //if (host === "localhost" || host === "127.0.0.1") {
+  //  return true;
+  //}
 
   return (
     host === "kyorohiro.github.io" &&

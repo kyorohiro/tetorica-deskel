@@ -7,6 +7,7 @@ import { isTauri } from "./native";
 import { useDialog } from "./useDialog";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { AppColorAnalysisHandle } from "./AppColorAnalysis";
+import { isPwaDistributionLocation, PWA_URL } from "./pwa";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
@@ -371,19 +372,42 @@ export function AppToolbar(props: {
                     Color Check
                 </label>
                 <div className="px-3">
-                        <button
-                            onClick={() => {
-                                props.appColorAnalysisRef?.current?.setVisible(false)
-                                closeMenuIfNeeded();
-                            }}
-                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                    <button
+                        onClick={() => {
+                            props.appColorAnalysisRef?.current?.setVisible(false)
+                            closeMenuIfNeeded();
+                        }}
+                        className={`rounded-lg border px-3 py-1 text-sm shadow transition
                                 ${false
-                                    ? "border-sky-400 bg-sky-700 text-white"
-                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
-                        >
-                            Clear
-                        </button>
+                                ? "border-sky-400 bg-sky-700 text-white"
+                                : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                    >
+                        Clear
+                    </button>
                 </div>
+
+                {
+                    !isPwaDistributionLocation() && <>
+                        <label className="flex items-center m-0 text-xs">
+                            PWA
+                        </label>
+                        <div className="px-3">
+                            <button
+                                onClick={() => {
+                                    window.location.href = PWA_URL
+                                }}
+                                className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                                ${false
+                                        ? "border-sky-400 bg-sky-700 text-white"
+                                        : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                            >
+                                Open PWA Page
+                            </button>
+                        </div>
+                    </>
+
+                }
+
             </div>
 
             {!hasBackgroundImage && !isTauri() && (
@@ -405,6 +429,7 @@ export function AppToolbar(props: {
                     </div>
                 </div>
             )}
+
         </>
     );
 }
