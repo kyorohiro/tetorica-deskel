@@ -15,6 +15,7 @@ import ScreenCaptureCanvas from "./AppScreenCaptureCanvas";
 import { getAppWindow, isTauri } from "./native";
 import { AppBackgroundImageCanvas, AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { AppImportImage, AppImportImageHandle } from "./AppImportImage";
+import CameraDeskel from "./CameraDeskel";
 
 export default function App() {
   const deskelRef = useRef<AppDeskelHandle | null>(null);
@@ -121,6 +122,10 @@ export default function App() {
         <AppToolbar onChangeState={onChangeStateForToolbar} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} appColorAnalysisRef={colorAnalysisRef} appImportImageRef={appImportImageRef}/>
       </div>
   
+
+      <div className="absolute top-0 left-0 z-50">
+        <CameraDeskel/>
+      </div> 
     </div>
   );
 }
