@@ -95,6 +95,33 @@ function getCanvasPoint(
         y: clientY - rect.top,
     };
 }
+
+function normalizeToBytes(buffer: unknown): Uint8Array {
+  if (buffer instanceof Uint8Array) {
+    return buffer;
+  }
+
+  if (buffer instanceof ArrayBuffer) {
+    return new Uint8Array(buffer);
+  }
+
+  if (Array.isArray(buffer)) {
+    return new Uint8Array(buffer);
+  }
+
+  if (
+    buffer &&
+    typeof buffer === "object" &&
+    "buffer" in (buffer as Record<string, unknown>)
+  ) {
+    const view = buffer as ArrayBufferView;
+    if (view.buffer instanceof ArrayBuffer) {
+      return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+    }
+  }
+
+  throw new Error(`Unsupported buffer type: ${Object.prototype.toString.call(buffer)}`);
+}
 export {
-  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize
+  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize, normalizeToBytes
 }

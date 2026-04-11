@@ -2,39 +2,8 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { CaptureMode } from "./state";
 import { useDialog } from "./useDialog";
+import { normalizeToBytes } from "./utils";
 
-function normalizeToBytes(buffer: unknown): Uint8Array {
-  if (buffer instanceof Uint8Array) {
-    return buffer;
-  }
-
-  if (buffer instanceof ArrayBuffer) {
-    return new Uint8Array(buffer);
-  }
-
-  if (Array.isArray(buffer)) {
-    return new Uint8Array(buffer);
-  }
-
-  if (
-    buffer &&
-    typeof buffer === "object" &&
-    "buffer" in (buffer as Record<string, unknown>)
-  ) {
-    const view = buffer as ArrayBufferView;
-    if (view.buffer instanceof ArrayBuffer) {
-      return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
-    }
-  }
-
-  throw new Error(`Unsupported buffer type: ${Object.prototype.toString.call(buffer)}`);
-}
-
-//function bytesToHex(bytes: Uint8Array, count = 16): string {
-//  return Array.from(bytes.slice(0, count))
-///    .map((v) => v.toString(16).padStart(2, "0"))
-//    .join(" ");
-//}
 export type ScreenCaptureImage = {
   path?: string;
   buffer?: ArrayBuffer;
@@ -314,50 +283,6 @@ export default function ScreenCaptureCanvas({ image, mode, className }: Props) {
             e instanceof Error ? `${e.message}\n${e.stack ?? ""}` : String(e)
           );
         });
-      /*
-      loader.load(
-        imageUrl,
-        (loadedTexture) => {
-          if (disposed) {
-            loadedTexture.dispose();
-            return;
-          }
-
-          textureRef.current = loadedTexture;
-          loadedTexture.minFilter = THREE.LinearFilter;
-          loadedTexture.magFilter = THREE.LinearFilter;
-          loadedTexture.generateMipmaps = false;
-          loadedTexture.colorSpace = THREE.SRGBColorSpace; //THREE.NoColorSpace;;//
-
-          if (materialRef.current) {
-            materialRef.current.uniforms.uTexture.value = loadedTexture;
-          }
-
-          updateRendererSize();
-        },
-        undefined,
-        (err) => {
-          console.error("texture load error", {
-            imageUrl,
-            err,
-            //type: err?.type,
-            //target: err?.target,
-            //currentTarget: err?.currentTarget,
-          });
-
-          showError(
-            "texture load error",
-            JSON.stringify(
-              {
-                imageUrl,
-                type: (err as Event | undefined)?.type ?? null,
-              },
-              null,
-              2
-            )
-          );
-        }
-      );*/
 
       const onResize = () => updateRendererSize();
       window.addEventListener("resize", onResize);
