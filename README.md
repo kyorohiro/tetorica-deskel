@@ -236,16 +236,16 @@ mv /tmp/butler/butler ~/bin/butler
 ``` 
 % sh deploy_mac.sh
 % ~/bin/butler login
-% ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.12.5_aarch64.dmg kyorohiro/tetorica-deskel:mac-apple-silicon --userversion 0.12.5
+% ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.12.13_aarch64.dmg kyorohiro/tetorica-deskel:mac-apple-silicon --userversion 0.12.13
 
-% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.12.5_x64.dmg kyorohiro/tetorica-deskel:mac-intel --userversion 0.12.5
+% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.12.13_x64.dmg kyorohiro/tetorica-deskel:mac-intel --userversion 0.12.13
 
-% ~/bin/butler push "src-tauri/target/release/bundle/nsis/tetorica-deskel_0.12.5_x64-setup.exe" kyorohiro/tetorica-deskel:windows --userversion 0.12.5
+% ~/bin/butler push "src-tauri/target/release/bundle/nsis/tetorica-deskel_0.12.13_x64-setup.exe" kyorohiro/tetorica-deskel:windows --userversion 0.12.13
 ```
 
 
 ```
 npm run build:web
 cd dist
-zip -r ../web-build_0.12.8.zip .
+zip -r ../web-build_0.12.13.zip .
 ```
