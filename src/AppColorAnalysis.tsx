@@ -11,8 +11,7 @@ import { useAppState } from "./state";
 import { Download, BrushCleaning } from "lucide-react";
 import { useDialog } from "./useDialog";
 import { showToast } from "./toast";
-import { createSwatchesFile } from "procreate-swatches";
-import { isTauri, saveDialog, writeFileForNative } from "./native";
+import { isTauri } from "./native";
 import { exportPaletteCsv, exportPalettePng, exportProcreateSwatches } from "./colorPalette";
 
 type AppColorAnalysisMode = "hue-saturation" | "hue-lightness";
