@@ -245,7 +245,7 @@ mv /tmp/butler/butler ~/bin/butler
 
 
 ```
-npm run build:itch
+npm run build:web
 cd dist
 zip -r ../web-build_0.12.8.zip .
 ```
