@@ -124,11 +124,9 @@ export default function App() {
   
 
       {
-        /*
       <div className="absolute top-0 left-0 z-50">
         <CameraDeskel/>
       </div> 
-      */
       }
     </div>
   );

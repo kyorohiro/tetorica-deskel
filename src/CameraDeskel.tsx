@@ -1,58 +1,31 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Point, TransformModel, TransformSession } from "./transform2d";
+import {
+  cloneModel,
+  commitPreview,
+  clearPreview,
+  createMoveInput,
+  createRotateInput,
+  createScaleInput,
+  getModelMatrix,
+  mat3ToCanvasTransform,
+  multiplyMat3,
+  scaleMat3,
+  translateMat3,
+} from "./transform2d";
 
 type GridMode = "none" | "cross" | "rule3" | "rule4" | "rule9";
 type SourceType = "none" | "camera" | "image" | "video";
 type ControlMode = "none" | "rotate" | "scale" | "move";
 
-type TransformState = {
-  x: number;
-  y: number;
-  scale: number;
-  rotation: number;
-  mirrorX: boolean;
-};
-
-type ControlDragState = {
-  mode: Exclude<ControlMode, "none">;
-  pointerId: number;
-  startPointerX: number;
-  startPointerY: number;
-  startTransform: TransformState;
-  centerX: number;
-  centerY: number;
-  startAngle: number;
-};
-
-const INITIAL_TRANSFORM: TransformState = {
-  x: 0,
-  y: 0,
-  scale: 1,
-  rotation: 0,
-  mirrorX: false,
-};
-
 function stopStream(stream: MediaStream | null) {
   stream?.getTracks().forEach((t) => t.stop());
-}
-
-function degToRad(deg: number) {
-  return (deg * Math.PI) / 180;
-}
-
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
 }
 
 function controlLabel(mode: Exclude<ControlMode, "none">) {
   if (mode === "rotate") return "Rotate";
   if (mode === "scale") return "Scale";
   return "Move";
-}
-
-function normalizeAngleDelta(rad: number) {
-  while (rad > Math.PI) rad -= Math.PI * 2;
-  while (rad < -Math.PI) rad += Math.PI * 2;
-  return rad;
 }
 
 export default function CameraDeskel() {
@@ -66,8 +39,7 @@ export default function CameraDeskel() {
   const objectUrlRef = useRef<string | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  const transformRef = useRef<TransformState>(INITIAL_TRANSFORM);
-  const controlDragRef = useRef<ControlDragState | null>(null);
+  const sessionRef = useRef<TransformSession | null>(null);
 
   const [sourceType, setSourceType] = useState<SourceType>("none");
   const [status, setStatus] = useState("no source");
@@ -75,12 +47,12 @@ export default function CameraDeskel() {
   const [gridMode, setGridMode] = useState<GridMode>("rule3");
   const [opacity, setOpacity] = useState(0.85);
   const [lineWidth, setLineWidth] = useState(1.2);
-  const [transform, setTransform] = useState<TransformState>(INITIAL_TRANSFORM);
   const [activeControl, setActiveControl] = useState<ControlMode>("none");
+  const [model, setModel] = useState<TransformModel>(() => cloneModel());
 
-  useEffect(() => {
-    transformRef.current = transform;
-  }, [transform]);
+  const moveInput = useMemo(() => createMoveInput(), []);
+  const rotateInput = useMemo(() => createRotateInput(), []);
+  const scaleInput = useMemo(() => createScaleInput({ speed: 0.01 }), []);
 
   const canDrawMovingSource = useMemo(
     () => sourceType === "camera" || sourceType === "video",
@@ -116,13 +88,12 @@ export default function CameraDeskel() {
       img.removeAttribute("src");
     }
 
-    controlDragRef.current = null;
-
+    sessionRef.current = null;
     setSourceType("none");
     setStatus("no source");
     setError("");
     setActiveControl("none");
-    setTransform(INITIAL_TRANSFORM);
+    setModel(cloneModel());
   }, [cleanupObjectUrl, stopCamera]);
 
   const getSourceSize = useCallback((): { width: number; height: number } | null => {
@@ -143,6 +114,22 @@ export default function CameraDeskel() {
 
     return null;
   }, [sourceType]);
+
+  const getPivotPoint = useCallback((): Point => {
+    const host = hostRef.current;
+    if (!host) {
+      return { x: 0, y: 0 };
+    }
+
+    const rect = host.getBoundingClientRect();
+
+    // 今は画面中央固定
+    // 後で任意支点にしたくなったら、ここだけ差し替えればよい
+    return {
+      x: rect.width / 2,
+      y: rect.height / 2,
+    };
+  }, []);
 
   const drawOverlay = useCallback(
     (ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -248,36 +235,53 @@ export default function CameraDeskel() {
 
     if (size) {
       const baseScale = Math.max(width / size.width, height / size.height);
-      const finalScale = baseScale * transform.scale;
+
+      // source local coords (0,0)-(w,h) を、
+      // 画面中央に fit するベース行列
+      const baseMatrix = multiplyMat3(
+        translateMat3(
+          (width - size.width * baseScale) / 2,
+          (height - size.height * baseScale) / 2
+        ),
+        scaleMat3(baseScale, baseScale)
+      );
+
+      // UI から来た committed + preview を合成した行列
+      // これは「画面座標系に対する追加変形」
+      const modelMatrix = getModelMatrix(model);
+
+      // total = model * base
+      const totalMatrix = multiplyMat3(modelMatrix, baseMatrix);
+      const t = mat3ToCanvasTransform(totalMatrix);
 
       ctx.save();
-      ctx.translate(width / 2 + transform.x, height / 2 + transform.y);
-      ctx.rotate(degToRad(transform.rotation));
-      ctx.scale(transform.mirrorX ? -finalScale : finalScale, finalScale);
+      ctx.setTransform(t.a * dpr, t.b * dpr, t.c * dpr, t.d * dpr, t.e * dpr, t.f * dpr);
 
       if ((sourceType === "camera" || sourceType === "video") && video) {
-        ctx.drawImage(
-          video,
-          -size.width / 2,
-          -size.height / 2,
-          size.width,
-          size.height
-        );
+        ctx.drawImage(video, 0, 0, size.width, size.height);
       } else if (sourceType === "image" && img) {
-        ctx.drawImage(
-          img,
-          -size.width / 2,
-          -size.height / 2,
-          size.width,
-          size.height
-        );
+        ctx.drawImage(img, 0, 0, size.width, size.height);
       }
 
       ctx.restore();
+
+      // pivot を見たい時はコメントアウト解除
+      /*
+      const pivot = getPivotPoint();
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 128, 0, 0.9)";
+      ctx.beginPath();
+      ctx.moveTo(pivot.x - 10, pivot.y);
+      ctx.lineTo(pivot.x + 10, pivot.y);
+      ctx.moveTo(pivot.x, pivot.y - 10);
+      ctx.lineTo(pivot.x, pivot.y + 10);
+      ctx.stroke();
+      ctx.restore();
+      */
     }
 
     drawOverlay(ctx, width, height);
-  }, [drawOverlay, getSourceSize, sourceType, transform]);
+  }, [drawOverlay, getSourceSize, model, sourceType]);
 
   const startCamera = useCallback(async () => {
     setError("");
@@ -306,7 +310,7 @@ export default function CameraDeskel() {
       video.playsInline = true;
       await video.play();
 
-      setTransform(INITIAL_TRANSFORM);
+      setModel(cloneModel());
       setSourceType("camera");
       setStatus("camera started");
     } catch (e) {
@@ -328,7 +332,7 @@ export default function CameraDeskel() {
 
       const url = URL.createObjectURL(file);
       objectUrlRef.current = url;
-      setTransform(INITIAL_TRANSFORM);
+      setModel(cloneModel());
 
       if (file.type.startsWith("image/")) {
         const img = hiddenImageRef.current;
@@ -470,97 +474,116 @@ export default function CameraDeskel() {
       e.preventDefault();
       e.stopPropagation();
 
-      const rect = e.currentTarget.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+      const start = { x: e.clientX, y: e.clientY };
+      const pivot = getPivotPoint();
+
+      let session: TransformSession | null = null;
+
+      if (mode === "move") {
+        session = moveInput.begin({
+          start,
+          pivot,
+          model,
+        });
+      } else if (mode === "rotate") {
+        session = rotateInput.begin({
+          start,
+          pivot,
+          model,
+        });
+      } else if (mode === "scale") {
+        session = scaleInput.begin({
+          start,
+          pivot,
+          model,
+        });
+      }
+
+      if (!session) {
+        return;
+      }
 
       e.currentTarget.setPointerCapture(e.pointerId);
-
-      controlDragRef.current = {
-        mode,
-        pointerId: e.pointerId,
-        startPointerX: e.clientX,
-        startPointerY: e.clientY,
-        startTransform: transformRef.current,
-        centerX,
-        centerY,
-        startAngle,
-      };
-
+      sessionRef.current = session;
       setActiveControl(mode);
     },
-    []
+    [getPivotPoint, model, moveInput, rotateInput, scaleInput]
   );
 
   const handleControlPointerMove = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
-      const state = controlDragRef.current;
-      if (!state || state.pointerId !== e.pointerId) {
+      const session = sessionRef.current;
+      if (!session) {
         return;
       }
 
       e.preventDefault();
       e.stopPropagation();
 
-      const dx = e.clientX - state.startPointerX;
-      const dy = e.clientY - state.startPointerY;
+      const nextPreview = session.move({
+        x: e.clientX,
+        y: e.clientY,
+      });
 
-      if (state.mode === "move") {
-        setTransform({
-          ...state.startTransform,
-          x: state.startTransform.x + dx,
-          y: state.startTransform.y + dy,
-        });
-        return;
-      }
-
-      if (state.mode === "scale") {
-        const nextScale = clamp(
-          state.startTransform.scale * Math.exp(-dy * 0.01),
-          0.2,
-          5
-        );
-
-        setTransform({
-          ...state.startTransform,
-          scale: nextScale,
-        });
-        return;
-      }
-
-      if (state.mode === "rotate") {
-        const currentAngle = Math.atan2(
-          e.clientY - state.centerY,
-          e.clientX - state.centerX
-        );
-        const deltaRad = normalizeAngleDelta(currentAngle - state.startAngle);
-        const deltaDeg = (deltaRad * 180) / Math.PI;
-
-        setTransform({
-          ...state.startTransform,
-          rotation: state.startTransform.rotation + deltaDeg,
-        });
-      }
+      setModel((prev) => ({
+        ...prev,
+        preview: nextPreview,
+      }));
     },
     []
   );
 
   const endControlDrag = useCallback(
     (e: React.PointerEvent<HTMLButtonElement>) => {
-      const state = controlDragRef.current;
-      if (!state || state.pointerId !== e.pointerId) {
+      const session = sessionRef.current;
+      if (!session) {
         return;
       }
 
       e.preventDefault();
       e.stopPropagation();
 
+      const finalPreview = session.end({
+        x: e.clientX,
+        y: e.clientY,
+      });
+
+      setModel((prev) =>
+        commitPreview({
+          ...prev,
+          preview: finalPreview,
+        })
+      );
+
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         e.currentTarget.releasePointerCapture(e.pointerId);
       }
 
-      controlDragRef.current = null;
+      sessionRef.current = null;
+      setActiveControl("none");
+    },
+    []
+  );
+
+  const cancelControlDrag = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      const session = sessionRef.current;
+      if (!session) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      session.cancel();
+
+      setModel((prev) => clearPreview(prev));
+
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+
+      sessionRef.current = null;
       setActiveControl("none");
     },
     []
@@ -572,9 +595,9 @@ export default function CameraDeskel() {
         beginControlDrag(mode, e),
       onPointerMove: handleControlPointerMove,
       onPointerUp: endControlDrag,
-      onPointerCancel: endControlDrag,
+      onPointerCancel: cancelControlDrag,
     }),
-    [beginControlDrag, endControlDrag, handleControlPointerMove]
+    [beginControlDrag, cancelControlDrag, endControlDrag, handleControlPointerMove]
   );
 
   const controlButtonClass = (mode: Exclude<ControlMode, "none">) =>
@@ -624,7 +647,11 @@ export default function CameraDeskel() {
 
         <button
           className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
-          onClick={() => setTransform(INITIAL_TRANSFORM)}
+          onClick={() => {
+            sessionRef.current = null;
+            setActiveControl("none");
+            setModel(cloneModel());
+          }}
         >
           Reset
         </button>
@@ -669,25 +696,11 @@ export default function CameraDeskel() {
           />
           <span className="w-10 text-right">{lineWidth.toFixed(1)}</span>
         </label>
-
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={transform.mirrorX}
-            onChange={(e) =>
-              setTransform((prev) => ({
-                ...prev,
-                mirrorX: e.target.checked,
-              }))
-            }
-          />
-          Mirror
-        </label>
       </div>
 
       <div className="text-sm text-slate-300">
         <div>Status: {status}</div>
-        <div>Bottom controls only: rotate / scale / move</div>
+        <div>TransformInput based: bottom controls only</div>
         {error ? <div className="text-rose-400">Error: {error}</div> : null}
       </div>
 
