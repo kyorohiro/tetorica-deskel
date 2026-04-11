@@ -66,7 +66,7 @@ const AppDeslel = forwardRef<
   const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
     "line",
   );
-  const [captureMode, setCaptureMode] = useState<CaptureMode>("none");
+  const [captureMode, setCaptureMode] = useState<CaptureMode>("lightness");
 
   const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
   const [captureToolbarOpen, setCaptureToolbarOpen] = useState(true);
@@ -641,7 +641,7 @@ const AppDeslel = forwardRef<
               title="grayscale value check"
               aria-label="grayscale value check"
             >
-              Value
+              Grayscale
             </button>
 
             <button
