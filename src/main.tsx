@@ -3,17 +3,25 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { DialogProvider } from './useDialog';
 import { isTauri } from './native';
+import { isPwaDistributionLocation } from './pwa';
 
-
-if ("serviceWorker" in navigator && !isTauri()) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/tetorica-deskel/demo/sw.js");
+if ("serviceWorker" in navigator && !isTauri() && isPwaDistributionLocation()) {
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register("./sw.js", {
+        scope: "./",
+      });
+      console.log("SW registered:", registration.scope);
+    } catch (error) {
+      console.error("SW registration failed:", error);
+    }
   });
 }
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <DialogProvider>
       <App />
     </DialogProvider>
   </React.StrictMode>
-)
+);
