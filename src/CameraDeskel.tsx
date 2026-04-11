@@ -49,9 +49,10 @@ export default function CameraDeskel() {
   const [lineWidth, setLineWidth] = useState(1.2);
   const [activeControl, setActiveControl] = useState<ControlMode>("none");
   const [model, setModel] = useState<TransformModel>(() => cloneModel());
+  const [pivot, setPivot] = useState<Point | null>(null);
 
   const moveInput = useMemo(() => createMoveInput(), []);
-  const rotateInput = useMemo(() => createRotateInput(), []);
+  const rotateInput = useMemo(() => createRotateInput({ speed: 2.0 }), []);
   const scaleInput = useMemo(() => createScaleInput({ speed: 0.01 }), []);
 
   const canDrawMovingSource = useMemo(
@@ -94,6 +95,7 @@ export default function CameraDeskel() {
     setError("");
     setActiveControl("none");
     setModel(cloneModel());
+    setPivot(null);
   }, [cleanupObjectUrl, stopCamera]);
 
   const getSourceSize = useCallback((): { width: number; height: number } | null => {
@@ -115,19 +117,33 @@ export default function CameraDeskel() {
     return null;
   }, [sourceType]);
 
-  const getPivotPoint = useCallback((): Point => {
+  const getDefaultPivotPoint = useCallback((): Point => {
     const host = hostRef.current;
     if (!host) {
       return { x: 0, y: 0 };
     }
 
     const rect = host.getBoundingClientRect();
-
-    // 今は画面中央固定
-    // 後で任意支点にしたくなったら、ここだけ差し替えればよい
     return {
       x: rect.width / 2,
       y: rect.height / 2,
+    };
+  }, []);
+
+  const getPivotPoint = useCallback((): Point => {
+    return pivot ?? getDefaultPivotPoint();
+  }, [getDefaultPivotPoint, pivot]);
+
+  const clientToLocalPoint = useCallback((clientX: number, clientY: number): Point => {
+    const host = hostRef.current;
+    if (!host) {
+      return { x: 0, y: 0 };
+    }
+
+    const rect = host.getBoundingClientRect();
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top,
     };
   }, []);
 
@@ -201,6 +217,25 @@ export default function CameraDeskel() {
     [gridMode, lineWidth, opacity]
   );
 
+  const drawPivotMarker = useCallback((ctx: CanvasRenderingContext2D, p: Point) => {
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 140, 0, 0.95)";
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.moveTo(p.x - 10, p.y);
+    ctx.lineTo(p.x + 10, p.y);
+    ctx.moveTo(p.x, p.y - 10);
+    ctx.lineTo(p.x, p.y + 10);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+  }, []);
+
   const drawPreview = useCallback(() => {
     const host = hostRef.current;
     const canvas = previewCanvasRef.current;
@@ -236,8 +271,6 @@ export default function CameraDeskel() {
     if (size) {
       const baseScale = Math.max(width / size.width, height / size.height);
 
-      // source local coords (0,0)-(w,h) を、
-      // 画面中央に fit するベース行列
       const baseMatrix = multiplyMat3(
         translateMat3(
           (width - size.width * baseScale) / 2,
@@ -246,16 +279,19 @@ export default function CameraDeskel() {
         scaleMat3(baseScale, baseScale)
       );
 
-      // UI から来た committed + preview を合成した行列
-      // これは「画面座標系に対する追加変形」
       const modelMatrix = getModelMatrix(model);
-
-      // total = model * base
       const totalMatrix = multiplyMat3(modelMatrix, baseMatrix);
       const t = mat3ToCanvasTransform(totalMatrix);
 
       ctx.save();
-      ctx.setTransform(t.a * dpr, t.b * dpr, t.c * dpr, t.d * dpr, t.e * dpr, t.f * dpr);
+      ctx.setTransform(
+        t.a * dpr,
+        t.b * dpr,
+        t.c * dpr,
+        t.d * dpr,
+        t.e * dpr,
+        t.f * dpr
+      );
 
       if ((sourceType === "camera" || sourceType === "video") && video) {
         ctx.drawImage(video, 0, 0, size.width, size.height);
@@ -264,24 +300,11 @@ export default function CameraDeskel() {
       }
 
       ctx.restore();
-
-      // pivot を見たい時はコメントアウト解除
-      /*
-      const pivot = getPivotPoint();
-      ctx.save();
-      ctx.strokeStyle = "rgba(255, 128, 0, 0.9)";
-      ctx.beginPath();
-      ctx.moveTo(pivot.x - 10, pivot.y);
-      ctx.lineTo(pivot.x + 10, pivot.y);
-      ctx.moveTo(pivot.x, pivot.y - 10);
-      ctx.lineTo(pivot.x, pivot.y + 10);
-      ctx.stroke();
-      ctx.restore();
-      */
     }
 
     drawOverlay(ctx, width, height);
-  }, [drawOverlay, getSourceSize, model, sourceType]);
+    drawPivotMarker(ctx, getPivotPoint());
+  }, [drawOverlay, drawPivotMarker, getPivotPoint, getSourceSize, model, sourceType]);
 
   const startCamera = useCallback(async () => {
     setError("");
@@ -311,6 +334,7 @@ export default function CameraDeskel() {
       await video.play();
 
       setModel(cloneModel());
+      setPivot(null);
       setSourceType("camera");
       setStatus("camera started");
     } catch (e) {
@@ -333,6 +357,7 @@ export default function CameraDeskel() {
       const url = URL.createObjectURL(file);
       objectUrlRef.current = url;
       setModel(cloneModel());
+      setPivot(null);
 
       if (file.type.startsWith("image/")) {
         const img = hiddenImageRef.current;
@@ -474,27 +499,28 @@ export default function CameraDeskel() {
       e.preventDefault();
       e.stopPropagation();
 
-      const start = { x: e.clientX, y: e.clientY };
-      const pivot = getPivotPoint();
+      //const start = { x: e.clientX, y: e.clientY };
+      const start = clientToLocalPoint(e.clientX, e.clientY);
+      const pivotPoint = getPivotPoint();
 
       let session: TransformSession | null = null;
 
       if (mode === "move") {
         session = moveInput.begin({
           start,
-          pivot,
+          pivot: pivotPoint,
           model,
         });
       } else if (mode === "rotate") {
         session = rotateInput.begin({
           start,
-          pivot,
+          pivot: pivotPoint,
           model,
         });
       } else if (mode === "scale") {
         session = scaleInput.begin({
           start,
-          pivot,
+          pivot: pivotPoint,
           model,
         });
       }
@@ -507,46 +533,44 @@ export default function CameraDeskel() {
       sessionRef.current = session;
       setActiveControl(mode);
     },
-    [getPivotPoint, model, moveInput, rotateInput, scaleInput]
+    [getPivotPoint, model, moveInput, rotateInput, scaleInput, clientToLocalPoint]
   );
 
-  const handleControlPointerMove = useCallback(
-    (e: React.PointerEvent<HTMLButtonElement>) => {
-      const session = sessionRef.current;
-      if (!session) {
-        return;
-      }
+const handleControlPointerMove = useCallback(
+  (e: React.PointerEvent<HTMLButtonElement>) => {
+    const session = sessionRef.current;
+    if (!session) {
+      return;
+    }
 
-      e.preventDefault();
-      e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
 
-      const nextPreview = session.move({
-        x: e.clientX,
-        y: e.clientY,
-      });
+    const p = clientToLocalPoint(e.clientX, e.clientY);
+
+    const nextPreview = session.move(p);
 
       setModel((prev) => ({
         ...prev,
         preview: nextPreview,
       }));
     },
-    []
+    [clientToLocalPoint]
   );
 
-  const endControlDrag = useCallback(
-    (e: React.PointerEvent<HTMLButtonElement>) => {
-      const session = sessionRef.current;
-      if (!session) {
-        return;
-      }
+const endControlDrag = useCallback(
+  (e: React.PointerEvent<HTMLButtonElement>) => {
+    const session = sessionRef.current;
+    if (!session) {
+      return;
+    }
 
-      e.preventDefault();
-      e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
 
-      const finalPreview = session.end({
-        x: e.clientX,
-        y: e.clientY,
-      });
+    const p = clientToLocalPoint(e.clientX, e.clientY);
+
+    const finalPreview = session.end(p);
 
       setModel((prev) =>
         commitPreview({
@@ -562,7 +586,7 @@ export default function CameraDeskel() {
       sessionRef.current = null;
       setActiveControl("none");
     },
-    []
+    [clientToLocalPoint]
   );
 
   const cancelControlDrag = useCallback(
@@ -651,9 +675,17 @@ export default function CameraDeskel() {
             sessionRef.current = null;
             setActiveControl("none");
             setModel(cloneModel());
+            setPivot(null);
           }}
         >
           Reset
+        </button>
+
+        <button
+          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
+          onClick={() => setPivot(null)}
+        >
+          Pivot Center
         </button>
 
         <label className="ml-2 flex items-center gap-2 text-sm">
@@ -700,7 +732,7 @@ export default function CameraDeskel() {
 
       <div className="text-sm text-slate-300">
         <div>Status: {status}</div>
-        <div>TransformInput based: bottom controls only</div>
+        <div>Tap canvas to set pivot. Bottom controls: rotate / scale / move</div>
         {error ? <div className="text-rose-400">Error: {error}</div> : null}
       </div>
 
@@ -711,6 +743,15 @@ export default function CameraDeskel() {
         <canvas
           ref={previewCanvasRef}
           className="absolute inset-0 h-full w-full touch-none"
+          onPointerDown={(e) => {
+            // ボタン操作中は pivot 更新しない
+            if (activeControl !== "none") {
+              return;
+            }
+
+            const p = clientToLocalPoint(e.clientX, e.clientY);
+            setPivot(p);
+          }}
         />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center">

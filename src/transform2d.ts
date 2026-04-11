@@ -219,7 +219,11 @@ export function createMoveInput(): TransformInput {
   };
 }
 
-export function createRotateInput(): TransformInput {
+export function createRotateInput(options?: {
+  speed?: number;
+}): TransformInput {
+  const speed = options?.speed ?? 1.0;
+
   return {
     begin({ start, pivot }) {
       const startAngle = Math.atan2(start.y - pivot.y, start.x - pivot.x);
@@ -231,7 +235,7 @@ export function createRotateInput(): TransformInput {
             current.x - pivot.x
           );
           const deltaRad = normalizeAngle(currentAngle - startAngle);
-          const deg = (deltaRad * 180) / Math.PI;
+          const deg = (deltaRad * 180) / Math.PI * speed;
 
           return {
             kind: "rotate",
@@ -246,7 +250,7 @@ export function createRotateInput(): TransformInput {
             current.x - pivot.x
           );
           const deltaRad = normalizeAngle(currentAngle - startAngle);
-          const deg = (deltaRad * 180) / Math.PI;
+          const deg = (deltaRad * 180) / Math.PI * speed;
 
           return {
             kind: "rotate",
