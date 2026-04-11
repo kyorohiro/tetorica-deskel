@@ -12,11 +12,6 @@ type TransformState = {
   mirrorX: boolean;
 };
 
-type WebKitGestureEvent = Event & {
-  rotation: number;
-  scale: number;
-};
-
 type ControlDragState = {
   mode: Exclude<ControlMode, "none">;
   pointerId: number;
@@ -48,42 +43,16 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function calcDistance(
-  a: { x: number; y: number },
-  b: { x: number; y: number }
-) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  return Math.hypot(dx, dy);
-}
-
-function calcAngle(
-  a: { x: number; y: number },
-  b: { x: number; y: number }
-) {
-  return Math.atan2(b.y - a.y, b.x - a.x);
-}
-
-function calcCenter(
-  a: { x: number; y: number },
-  b: { x: number; y: number }
-) {
-  return {
-    x: (a.x + b.x) / 2,
-    y: (a.y + b.y) / 2,
-  };
+function controlLabel(mode: Exclude<ControlMode, "none">) {
+  if (mode === "rotate") return "Rotate";
+  if (mode === "scale") return "Scale";
+  return "Move";
 }
 
 function normalizeAngleDelta(rad: number) {
   while (rad > Math.PI) rad -= Math.PI * 2;
   while (rad < -Math.PI) rad += Math.PI * 2;
   return rad;
-}
-
-function controlLabel(mode: Exclude<ControlMode, "none">) {
-  if (mode === "rotate") return "Rotate";
-  if (mode === "scale") return "Scale";
-  return "Move";
 }
 
 export default function CameraDeskel() {
@@ -98,36 +67,6 @@ export default function CameraDeskel() {
   const rafRef = useRef<number | null>(null);
 
   const transformRef = useRef<TransformState>(INITIAL_TRANSFORM);
-
-  const dragRef = useRef<{
-    active: boolean;
-    pointerId: number;
-    startX: number;
-    startY: number;
-    originX: number;
-    originY: number;
-  }>({
-    active: false,
-    pointerId: -1,
-    startX: 0,
-    startY: 0,
-    originX: 0,
-    originY: 0,
-  });
-
-  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
-  const gestureRef = useRef<null | {
-    startDistance: number;
-    startAngle: number;
-    startCenterX: number;
-    startCenterY: number;
-    startTransform: TransformState;
-  }>(null);
-
-  const safariGestureRef = useRef<null | {
-    startTransform: TransformState;
-  }>(null);
-
   const controlDragRef = useRef<ControlDragState | null>(null);
 
   const [sourceType, setSourceType] = useState<SourceType>("none");
@@ -142,93 +81,6 @@ export default function CameraDeskel() {
   useEffect(() => {
     transformRef.current = transform;
   }, [transform]);
-
-  useEffect(() => {
-    const canvas = previewCanvasRef.current;
-    if (!canvas) {
-      return;
-    }
-
-    const onGestureStart = (event: Event) => {
-      const e = event as WebKitGestureEvent;
-      e.preventDefault();
-
-      safariGestureRef.current = {
-        startTransform: transformRef.current,
-      };
-    };
-
-    const onGestureChange = (event: Event) => {
-      const e = event as WebKitGestureEvent;
-      e.preventDefault();
-
-      const g = safariGestureRef.current;
-      if (!g) {
-        return;
-      }
-
-      setTransform({
-        ...g.startTransform,
-        rotation: g.startTransform.rotation + e.rotation,
-        scale: clamp(g.startTransform.scale * e.scale, 0.2, 5),
-      });
-    };
-
-    const onGestureEnd = (event: Event) => {
-      const e = event as WebKitGestureEvent;
-      e.preventDefault();
-      safariGestureRef.current = null;
-    };
-
-    canvas.addEventListener("gesturestart", onGestureStart as EventListener, {
-      passive: false,
-    });
-    canvas.addEventListener("gesturechange", onGestureChange as EventListener, {
-      passive: false,
-    });
-    canvas.addEventListener("gestureend", onGestureEnd as EventListener, {
-      passive: false,
-    });
-
-    return () => {
-      canvas.removeEventListener(
-        "gesturestart",
-        onGestureStart as EventListener
-      );
-      canvas.removeEventListener(
-        "gesturechange",
-        onGestureChange as EventListener
-      );
-      canvas.removeEventListener(
-        "gestureend",
-        onGestureEnd as EventListener
-      );
-    };
-  }, []);
-
-  useEffect(() => {
-    const canvas = previewCanvasRef.current;
-    if (!canvas) {
-      return;
-    }
-
-    const onWheelNative = (event: WheelEvent) => {
-      event.preventDefault();
-
-      const factor = event.deltaY < 0 ? 1.05 : 0.95;
-
-      setTransform((prev) => ({
-        ...prev,
-        scale: clamp(prev.scale * factor, 0.2, 5),
-      }));
-    };
-
-    canvas.addEventListener("wheel", onWheelNative, { passive: false });
-
-    return () => {
-      canvas.removeEventListener("wheel", onWheelNative);
-    };
-  }, []);
 
   const canDrawMovingSource = useMemo(
     () => sourceType === "camera" || sourceType === "video",
@@ -264,11 +116,7 @@ export default function CameraDeskel() {
       img.removeAttribute("src");
     }
 
-    pointersRef.current.clear();
-    gestureRef.current = null;
-    safariGestureRef.current = null;
     controlDragRef.current = null;
-    dragRef.current.active = false;
 
     setSourceType("none");
     setStatus("no source");
@@ -625,7 +473,6 @@ export default function CameraDeskel() {
       const rect = e.currentTarget.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-
       const startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
 
       e.currentTarget.setPointerCapture(e.pointerId);
@@ -824,44 +671,6 @@ export default function CameraDeskel() {
         </label>
 
         <label className="flex items-center gap-2 text-sm">
-          Rotation
-          <input
-            type="range"
-            min="-180"
-            max="180"
-            step="1"
-            value={transform.rotation}
-            onChange={(e) =>
-              setTransform((prev) => ({
-                ...prev,
-                rotation: Number(e.target.value),
-              }))
-            }
-          />
-          <span className="w-14 text-right">
-            {Math.round(transform.rotation)}°
-          </span>
-        </label>
-
-        <label className="flex items-center gap-2 text-sm">
-          Zoom
-          <input
-            type="range"
-            min="0.2"
-            max="5"
-            step="0.01"
-            value={transform.scale}
-            onChange={(e) =>
-              setTransform((prev) => ({
-                ...prev,
-                scale: Number(e.target.value),
-              }))
-            }
-          />
-          <span className="w-12 text-right">{transform.scale.toFixed(2)}</span>
-        </label>
-
-        <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={transform.mirrorX}
@@ -878,10 +687,7 @@ export default function CameraDeskel() {
 
       <div className="text-sm text-slate-300">
         <div>Status: {status}</div>
-        <div>
-          1 finger: move / 2 fingers: zoom + rotate / wheel: zoom / bottom controls:
-          rotate + scale + move
-        </div>
+        <div>Bottom controls only: rotate / scale / move</div>
         {error ? <div className="text-rose-400">Error: {error}</div> : null}
       </div>
 
@@ -892,151 +698,6 @@ export default function CameraDeskel() {
         <canvas
           ref={previewCanvasRef}
           className="absolute inset-0 h-full w-full touch-none"
-          onPointerDown={(e) => {
-            const canvas = previewCanvasRef.current;
-            if (!canvas) {
-              return;
-            }
-
-            pointersRef.current.set(e.pointerId, {
-              x: e.clientX,
-              y: e.clientY,
-            });
-
-            canvas.setPointerCapture(e.pointerId);
-
-            const points = Array.from(pointersRef.current.values());
-
-            if (points.length === 1) {
-              const current = transformRef.current;
-              dragRef.current = {
-                active: true,
-                pointerId: e.pointerId,
-                startX: e.clientX,
-                startY: e.clientY,
-                originX: current.x,
-                originY: current.y,
-              };
-              gestureRef.current = null;
-            } else if (points.length === 2) {
-              dragRef.current.active = false;
-              const [p1, p2] = points;
-              const center = calcCenter(p1, p2);
-              gestureRef.current = {
-                startDistance: calcDistance(p1, p2),
-                startAngle: calcAngle(p1, p2),
-                startCenterX: center.x,
-                startCenterY: center.y,
-                startTransform: transformRef.current,
-              };
-            }
-          }}
-          onPointerMove={(e) => {
-            if (!pointersRef.current.has(e.pointerId)) {
-              return;
-            }
-
-            pointersRef.current.set(e.pointerId, {
-              x: e.clientX,
-              y: e.clientY,
-            });
-
-            const points = Array.from(pointersRef.current.values());
-
-            if (points.length === 1 && dragRef.current.active) {
-              const drag = dragRef.current;
-              if (drag.pointerId !== e.pointerId) {
-                return;
-              }
-
-              const dx = e.clientX - drag.startX;
-              const dy = e.clientY - drag.startY;
-
-              setTransform((prev) => ({
-                ...prev,
-                x: drag.originX + dx,
-                y: drag.originY + dy,
-              }));
-              return;
-            }
-
-            if (points.length === 2 && gestureRef.current) {
-              const [p1, p2] = points;
-              const currentDistance = calcDistance(p1, p2);
-              const currentAngle = calcAngle(p1, p2);
-              const currentCenter = calcCenter(p1, p2);
-
-              const g = gestureRef.current;
-              const distanceRatio =
-                g.startDistance > 0 ? currentDistance / g.startDistance : 1;
-
-              const angleDelta = normalizeAngleDelta(
-                currentAngle - g.startAngle
-              );
-              const rotationDeltaDeg = (angleDelta * 180) / Math.PI;
-
-              setTransform({
-                ...g.startTransform,
-                x: g.startTransform.x + (currentCenter.x - g.startCenterX),
-                y: g.startTransform.y + (currentCenter.y - g.startCenterY),
-                scale: clamp(g.startTransform.scale * distanceRatio, 0.2, 5),
-                rotation: g.startTransform.rotation + rotationDeltaDeg,
-              });
-            }
-          }}
-          onPointerUp={(e) => {
-            pointersRef.current.delete(e.pointerId);
-
-            const entries = Array.from(pointersRef.current.entries());
-            const points = entries.map(([, p]) => p);
-
-            if (points.length === 1) {
-              const remaining = entries[0];
-              if (remaining) {
-                const [pointerId, p] = remaining;
-                const current = transformRef.current;
-                dragRef.current = {
-                  active: true,
-                  pointerId,
-                  startX: p.x,
-                  startY: p.y,
-                  originX: current.x,
-                  originY: current.y,
-                };
-              }
-              gestureRef.current = null;
-            } else {
-              dragRef.current.active = false;
-              gestureRef.current = null;
-            }
-          }}
-          onPointerCancel={(e) => {
-            pointersRef.current.delete(e.pointerId);
-
-            const count = pointersRef.current.size;
-
-            if (count < 2) {
-              gestureRef.current = null;
-            }
-
-            if (count === 1) {
-              const remaining = Array.from(pointersRef.current.entries())[0];
-              if (remaining) {
-                const [pointerId, p] = remaining;
-                const current = transformRef.current;
-                dragRef.current = {
-                  active: true,
-                  pointerId,
-                  startX: p.x,
-                  startY: p.y,
-                  originX: current.x,
-                  originY: current.y,
-                };
-              }
-            } else if (count === 0) {
-              dragRef.current.active = false;
-            }
-          }}
         />
 
         <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center">
