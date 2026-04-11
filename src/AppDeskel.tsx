@@ -9,18 +9,18 @@ import {
 } from "react";
 import { draw, resizeCanvas } from "./deskel";
 import { drawMeasure } from "./deskelMeasure";
-import { drawClipRect, drawClipQuad2, findNearestQuadPoint } from "./deskelClipRect";
-import { useAppState, appState } from "./state";
-
 import {
-  //calcCaptureAndCropParams,
+  drawClipRect,
+  drawClipQuad2,
+  findNearestQuadPoint,
+} from "./deskelClipRect";
+import { useAppState, appState } from "./state";
+import {
   captureAndCrop,
   captureAndCropToAnalysis,
-  //captureAndCropToDownloads,
   ColorCount,
 } from "./nativeScreenshot";
 import { ChainMeasure } from "./deskelChainMesure";
-
 import { showToast } from "./toast";
 import { useDialog } from "./useDialog";
 import { openPrivacySettings } from "./nativePermissionCheck";
@@ -28,8 +28,15 @@ import { getRectFromPoints } from "./utils";
 import { getTaurPlatformInfo } from "./native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { analyzeImageBlob } from "./colorAnalysis";
-//import { drawPerspectiveRulerByUnitBaseRange } from "./deskelMeasurePerspectiveRuler";
-
+import {
+  AppDeskelMeasureToolbar,
+  MeasureMode,
+  QuadMode,
+} from "./AppDeskelMeasureToolbar";
+import {
+  AppDeskelCaptureToolbar,
+  AppDeskelCaptureMode,
+} from "./AppDeskelCaptureToolbar";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -38,8 +45,6 @@ type AppDeskelHandle = {
 };
 
 type AppDeskelPoint = { x: number; y: number };
-
-type QuadMode = "off" | "view" | "apply";
 
 const AppDeslel = forwardRef<
   AppDeskelHandle,
@@ -57,17 +62,19 @@ const AppDeslel = forwardRef<
 
   const startRef = useRef<AppDeskelPoint | null>(null);
   const currentRef = useRef<AppDeskelPoint | null>(null);
-  const clipQuadRef = useRef<AppDeskelPoint[]>([{ x: 200, y: 200 }, { x: 300, y: 200 }, { x: 300, y: 300 }, { x: 200, y: 300 }]); // 台形を定義して、射系変換の基準点とする
+  const clipQuadRef = useRef<AppDeskelPoint[]>([
+    { x: 200, y: 200 },
+    { x: 300, y: 200 },
+    { x: 300, y: 300 },
+    { x: 200, y: 300 },
+  ]);
   const clipQuadDraggingPointIndexRef = useRef<number>(-1);
   const draggedCenterQuadRef = useRef<AppDeskelPoint>(undefined);
   const draggingRef = useRef(false);
   const [, setDragging] = useState(false);
   const chainMesureRef = useRef<ChainMeasure>(new ChainMeasure());
-  const [measureMode, setMeasureMode] = useState<"line" | "chain" | "setUnit" | "setVanishingPoint">(
-    "line",
-  );
 
-
+  const [measureMode, setMeasureMode] = useState<MeasureMode>("line");
   const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
   const [captureToolbarOpen, setCaptureToolbarOpen] = useState(true);
   const [isMac, setIsMac] = useState(false);
@@ -75,11 +82,9 @@ const AppDeslel = forwardRef<
 
   const dialog = useDialog();
   const uAppState = useAppState();
-  
-  //const [captureMode, setCaptureMode] = useState<CaptureMode>(uAppState.captureMode);
+
   function setDraggingValue(value: boolean) {
     if (draggingRef.current === value) return;
-
     draggingRef.current = value;
     setDragging(value);
   }
@@ -102,6 +107,7 @@ const AppDeslel = forwardRef<
       mounted = false;
     };
   }, []);
+
   const handleHelpMac = useCallback(async () => {
     const result = await dialog.showConfirmDialog({
       title: "Screen Capture Reset Required",
@@ -114,124 +120,117 @@ const AppDeslel = forwardRef<
     if (result) {
       await openPrivacySettings();
     }
-  }, []);
+  }, [dialog]);
+
+  function handleAsyncError(e: unknown) {
+    console.log(e);
+    if (e instanceof Error) {
+      showToast(e.message);
+    } else {
+      showToast(`${e}`);
+    }
+  }
+
+  async function handleCaptureSelection(
+    selectedRect: ReturnType<typeof getRectFromPoints>,
+  ) {
+    if (uAppState.target === "image" && props.appBackgroundImageCanvasRef) {
+      const result = await props.appBackgroundImageCanvasRef.current?.getCropImage({
+        x: selectedRect.x,
+        y: selectedRect.y,
+        width: selectedRect.width,
+        height: selectedRect.height,
+      });
+
+      if (!result) {
+        showToast("Failed to crop image.");
+        return;
+      }
+
+      const arrayBuffer = await result.blob.arrayBuffer();
+      const pngBuffer = new Uint8Array(arrayBuffer);
+
+      appState.setCaptureImage({
+        buffer: pngBuffer as any,
+        sourceWidth: window.innerWidth,
+        sourceHeight: window.innerHeight,
+        cropX: selectedRect.x,
+        cropY: selectedRect.y,
+        cropWidth: selectedRect.width,
+        cropHeight: selectedRect.height,
+      });
+      return;
+    }
+
+    const ret = await captureAndCrop({
+      targetRect: selectedRect,
+      hideWindow: true,
+    });
+
+    appState.setCaptureImage({
+      buffer: ret.pngBuffer,
+      sourceWidth: ret.viewWidth,
+      sourceHeight: ret.viewHeight,
+      cropX: ret.x,
+      cropY: ret.y,
+      cropWidth: ret.width,
+      cropHeight: ret.height,
+    });
+  }
+
+  async function handleColorSelection(
+    selectedRect: ReturnType<typeof getRectFromPoints>,
+  ) {
+    if (uAppState.target === "image" && props.appBackgroundImageCanvasRef) {
+      const cropResult = await props.appBackgroundImageCanvasRef.current?.getCropImage({
+        x: selectedRect.x,
+        y: selectedRect.y,
+        width: selectedRect.width,
+        height: selectedRect.height,
+      });
+
+      if (!cropResult) {
+        showToast("Failed to analyze image.");
+        return;
+      }
+
+      const ret = await analyzeImageBlob(cropResult.blob, 32, 1000);
+      await props.onColorAnalysis?.(ret.colors, ret.colors01);
+      return;
+    }
+
+    if (props.onBeforeCapture) {
+      await props.onBeforeCapture();
+    }
+
+    const ret = await captureAndCropToAnalysis({
+      targetRect: selectedRect,
+    });
+
+    await props.onColorAnalysis?.(ret.colors, ret.colors01);
+  }
 
   async function handleSelectionComplete() {
-    //updateDragging(false);
-
     if (!startRef.current || !currentRef.current) return;
 
-    //const x = Math.min(startRef.current.x, currentRef.current.x);
-    //const y = Math.min(startRef.current.y, currentRef.current.y);
     const width = Math.abs(startRef.current.x - currentRef.current.x);
     const height = Math.abs(startRef.current.y - currentRef.current.y);
 
     if (!canvasRef.current || width < 8 || height < 8) return;
 
-    // color check
     const selectedRect = getRectFromPoints({
-      //canvas: canvasRef.current!,
       start: startRef.current,
       current: currentRef.current,
     });
-    if (uAppState.tool == "capture") {
-      try {
-        if (uAppState.target == "image" && props.appBackgroundImageCanvasRef) {
-          const result = await props.appBackgroundImageCanvasRef.current?.getCropImage({
-            x: selectedRect.x,
-            y: selectedRect.y,
-            width: selectedRect.width,
-            height: selectedRect.height,
-          });
 
-          if (!result) {
-            showToast("Failed to crop image.");
-            return;
-          }
-
-          const arrayBuffer = await result.blob.arrayBuffer();
-          const pngBuffer = new Uint8Array(arrayBuffer);
-
-          appState.setCaptureImage({
-            buffer: pngBuffer as any,
-
-            // captureAndCrop と合わせて「view 上の選択矩形」をそのまま持たせる
-            sourceWidth: window.innerWidth,
-            sourceHeight: window.innerHeight,
-            cropX: selectedRect.x,
-            cropY: selectedRect.y,
-            cropWidth: selectedRect.width,
-            cropHeight: selectedRect.height,
-          });
-        } else {
-          const ret = await captureAndCrop({
-            targetRect: selectedRect,
-            hideWindow: true,
-          });
-
-          appState.setCaptureImage({
-            buffer: ret.pngBuffer,
-            sourceWidth: ret.viewWidth,
-            sourceHeight: ret.viewHeight,
-            cropX: ret.x,
-            cropY: ret.y,
-            cropWidth: ret.width,
-            cropHeight: ret.height,
-          });
-        }
-      } catch (e) {
-        console.log(e);
-        if (e instanceof Error) {
-          showToast(e.message);
-        } else {
-          showToast(`${e}`);
-        }
+    try {
+      if (uAppState.tool === "capture") {
+        await handleCaptureSelection(selectedRect);
+      } else if (uAppState.tool === "color") {
+        await handleColorSelection(selectedRect);
       }
-    }
-    if (uAppState.tool == "color") {
-      try {
-        if (uAppState.target == "image" && props.appBackgroundImageCanvasRef) {
-          const cropResult = await props.appBackgroundImageCanvasRef.current?.getCropImage({
-            x: selectedRect.x,
-            y: selectedRect.y,
-            width: selectedRect.width,
-            height: selectedRect.height,
-          });
-
-          if (!cropResult) {
-            showToast("Failed to analyze image.");
-            return;
-          }
-
-          const ret = await analyzeImageBlob(cropResult.blob, 32, 1000);
-
-          if (props.onColorAnalysis) {
-            await props.onColorAnalysis(ret.colors, ret.colors01);
-          }
-        } else {
-          //
-          // ensureScreenCapturePermission() の コメントを確認してね
-          //if (!await await ensureScreenCapturePermission()) {
-          //  return
-          //}
-          if (props.onBeforeCapture) {
-            await props.onBeforeCapture();
-          }
-          const ret = await captureAndCropToAnalysis({
-            targetRect: selectedRect,
-          });
-          if (props.onColorAnalysis) {
-            await props.onColorAnalysis(ret.colors, ret.colors01);
-          }
-        }
-      } catch (e) {
-        console.log(e);
-        if (e instanceof Error) {
-          showToast(e.message);
-        } else {
-          showToast(`${e}`);
-        }
-      }
+    } catch (e) {
+      handleAsyncError(e);
     }
   }
 
@@ -251,9 +250,9 @@ const AppDeslel = forwardRef<
     const start = startRef.current;
     const current = currentRef.current;
     const dragging = draggingRef.current;
-    if (uAppState.tool == "measure") {
-      //console.log({ measureMode });
-      if (measureMode == "line") {
+
+    if (uAppState.tool === "measure") {
+      if (measureMode === "line") {
         drawMeasure({
           canvas,
           ctx,
@@ -261,27 +260,17 @@ const AppDeslel = forwardRef<
           current,
           dragging,
           chainLength: chainMesureRef.current.getLength(
-            current ? { x: current?.x, y: current.y } : undefined,
+            current ? { x: current.x, y: current.y } : undefined,
           ),
           measureUnit: uAppState.measureUnit,
         });
-        //
-        if (clipQuadRef.current && clipQuadRef.current.length == 4 && quadMode != "off") {
-          drawClipQuad2({
-            canvas,
-            ctx,
-            points: clipQuadRef.current,
-            dragging: true
-          })
-        }
-      } else if (measureMode == "chain") {
-        // redraw時
+      } else if (measureMode === "chain") {
         chainMesureRef.current.draw(ctx, {
           color: uAppState.color,
           lineWidth: 1,
           currentPoint: current ?? undefined,
         });
-      } else if (measureMode == "setUnit") {
+      } else if (measureMode === "setUnit") {
         drawMeasure({
           canvas,
           ctx,
@@ -289,25 +278,32 @@ const AppDeslel = forwardRef<
           current,
           dragging,
           chainLength: chainMesureRef.current.getLength(
-            current ? { x: current?.x, y: current.y } : undefined,
+            current ? { x: current.x, y: current.y } : undefined,
           ),
           measureUnit: uAppState.measureUnit,
         });
-      } else if (measureMode == "setVanishingPoint" && current) {
-        //vanishingRectRef.current = { x: current.x, y: current.y };
+      } else if (measureMode === "setVanishingPoint" && current) {
+        // reserved
       }
-      if (clipQuadRef.current && clipQuadRef.current.length == 4 && quadMode != "off") {
+
+      if (clipQuadRef.current.length === 4 && quadMode !== "off") {
         drawClipQuad2({
           canvas,
           ctx,
           points: clipQuadRef.current,
-          dragging: true
-        })
+          dragging: true,
+        });
       }
-    } else if (uAppState.tool == "color" || uAppState.tool == "capture") {
+    } else if (uAppState.tool === "color" || uAppState.tool === "capture") {
       drawClipRect({ canvas, ctx, start, current, dragging });
     }
-  }, [uAppState.tool, measureMode, uAppState.color, quadMode, uAppState.measureUnit]);
+  }, [
+    uAppState.tool,
+    measureMode,
+    uAppState.color,
+    quadMode,
+    uAppState.measureUnit,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -427,6 +423,7 @@ const AppDeslel = forwardRef<
       window.removeEventListener("resize", handleResize);
     };
   }, [redraw]);
+
   useImperativeHandle(
     ref,
     () => ({
@@ -446,142 +443,32 @@ const AppDeslel = forwardRef<
         <canvas key="deskel-default" id="deskel" ref={canvasRef} />
       </div>
 
-      {/* Measure Sub Toolbar */}
+      <AppDeskelMeasureToolbar
+        visible={uAppState.tool === "measure"}
+        open={measureToolbarOpen}
+        onToggle={() => setMeasureToolbarOpen((v) => !v)}
+        measureMode={measureMode}
+        setMeasureMode={setMeasureMode}
+        quadMode={quadMode}
+        setQuadMode={setQuadMode}
+        onApplyQuad={() => {
+          void dialog.showConfirmDialog({
+            title: "Quad Apply",
+            body: "now creating",
+          });
+        }}
+      />
+
       <div
-        className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${uAppState.tool === "measure" ? "flex" : "hidden"
-          }`}
-      >
-        {/* 展開パネル */}
-        {/* 開閉タブ */}
-        <button
-          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
-          onClick={() => setMeasureToolbarOpen((v) => !v)}
-          title="toggle measure toolbar"
-          aria-label="toggle measure toolbar"
-        >
-          {measureToolbarOpen ? ">" : "<"}
-        </button>
-        <div
-          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${measureToolbarOpen
-            ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
-            : "max-w-0 opacity-0 translate-x-2 border border-transparent"
-            }`}
-        >
-          <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
-            <button
-              className={`flex items-center justify-center gap-1 rounded-2xl border px-2 py-1 m-0.5 text-xs transition-colors outline-none ${measureMode === "line"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                console.log("line measure click");
-                setMeasureMode("line");
-              }}
-              title="line measure"
-              aria-label="line measure"
-            >
-              Line
-            </button>
-
-            <button
-              className={`flex items-center justify-center gap-2 rounded-2xl border px-2 py-1 m-0.5 text-xs transition-colors outline-none ${measureMode === "chain"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                console.log("chain measure click");
-                setMeasureMode("chain");
-              }}
-              title="chain measure"
-              aria-label="chain measure"
-            >
-              Chain
-            </button>
-
-            <button
-              className={`flex items-center justify-center gap-2 rounded-2xl border px-2 py-1 m-0.5 text-xs transition-colors outline-none ${measureMode === "setUnit"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                console.log("set unit click");
-                setMeasureMode("setUnit");
-              }}
-              title="set unit"
-              aria-label="set unit"
-            >
-              Set Unit
-            </button>
-
-            <div className="flex items-center gap-2">
-              <div
-                className="
-      flex flex-col gap-1
-      rounded-2xl border border-slate-700 bg-slate-900 p-1
-      sm:flex-row sm:items-center
-    "
-              >
-                <span
-                  className="
-                    inline-flex items-center justify-center
-                    rounded-xl
-                    bg-slate-800/80
-                    px-2 py-1 m-0.5 
-                    text-xs font-medium uppercase tracking-wide
-                    text-slate-400
-                    select-none
-                    sm:rounded-l-xl sm:rounded-r-none
-                  "
-                >
-                  Quad
-                </span>
-
-                <div className="flex flex-col gap-1 sm:flex-row">
-                  {(["off", "view", "apply"] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      className={`rounded-xl px-2 py-1 m-0.5 text-xs ${quadMode === mode
-                        ? "border border-amber-500 bg-amber-950 text-amber-300"
-                        : "text-slate-100 hover:bg-slate-800"
-                        }`}
-                      onClick={() => {
-                        setQuadMode(mode);
-                        if (mode === "apply") {
-                          dialog.showConfirmDialog({
-                            title: "Quad Apply",
-                            body: "now creating",
-                          });
-                        }
-                      }}
-                    >
-                      {mode === "off" ? "Off" : mode === "view" ? "View" : "Apply"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 開閉タブ */}
-      </div>
-      {
-        // color menu
-      }
-      <div
-        className={`fixed top-4 right-4 z-9999 items-center gap-2 ${(uAppState.tool === "capture" || uAppState.tool === "color") && isMac
-          ? "flex"
-          : "hidden"
-          }`}
+        className={`fixed top-4 right-4 z-9999 items-center gap-2 ${
+          (uAppState.tool === "capture" || uAppState.tool === "color") && isMac
+            ? "flex"
+            : "hidden"
+        }`}
       >
         <button
-          className="
-          rounded-lg bg-black/60 px-3 py-2 text-xs text-white
-          transition-opacity duration-200
-          opacity-80
-        "
+          className="rounded-lg bg-black/60 px-3 py-2 text-xs text-white transition-opacity duration-200 opacity-80"
           onClick={() => {
-            console.log("CheckMac");
             void handleHelpMac();
           }}
           title="Screen capture help"
@@ -590,125 +477,19 @@ const AppDeslel = forwardRef<
           ?
         </button>
       </div>
-      {
-        // capture sub menu
-      }
-      {/* Measure Sub Toolbar */}
-      <div
-        className={`fixed bottom-4 right-4 z-9999 flex items-end p-1 m-1 gap-1 ${uAppState.tool === "capture" ? "flex" : "hidden"
-          }`}
-      >
-        {/* 展開パネル */}
-        {/* 開閉タブ */}
-        <button
-          className="rounded-2xl border border-slate-700 bg-slate-900/90 px-2 py-2 m-0.5 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
-          onClick={() => setCaptureToolbarOpen((v) => !v)}
-          title="toggle measure toolbar"
-          aria-label="toggle measure toolbar"
-        >
-          {captureToolbarOpen ? ">" : "<"}
-        </button>
-        <div
-          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${captureToolbarOpen
-            ? "max-w-[1200px] translate-x-0 border border-slate-800 opacity-100"
-            : "max-w-0 translate-x-2 border border-transparent opacity-0"
-            }`}
-        >
-          <div className="flex flex-col gap-1 p-2 sm:flex-row sm:flex-wrap">
-            <button
-              className={`flex items-center gap-1 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${uAppState.captureMode === "none"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                //setCaptureMode("none");
-                appState.setCaptureMode("none");
-              }}
-              title="none"
-              aria-label="none"
-            >
-              None
-            </button>
 
-            <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${uAppState.captureMode === "lightness"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                //setCaptureMode("lightness");
-                appState.setCaptureMode("lightness");
-              }}
-              title="grayscale value check"
-              aria-label="grayscale value check"
-            >
-              Grayscale
-            </button>
-
-            <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs  transition-colors outline-none ${uAppState.captureMode === "protan"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                //setCaptureMode("protan");
-                appState.setCaptureMode("protan");
-              }}
-              title="protan preview"
-              aria-label="protan preview"
-            >
-              Protan
-            </button>
-
-            <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${uAppState.captureMode === "deutan"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                //setCaptureMode("deutan");
-                appState.setCaptureMode("deutan");
-              }}
-              title="deutan preview"
-              aria-label="deutan preview"
-            >
-              Deutan
-            </button>
-
-            <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${uAppState.captureMode === "tritan"
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                //setCaptureMode("tritan");
-                appState.setCaptureMode("tritan");
-              }}
-              title="tritan preview"
-              aria-label="tritan preview"
-            >
-              Tritan
-            </button>
-
-            <button
-              className={`flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none ${false
-                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-                }`}
-              onClick={() => {
-                console.log(">>uAppState.captureMode",uAppState.captureMode);
-                appState.setCaptureImage(undefined);
-              }}
-              title="clear capture image"
-              aria-label="clear capture image"
-            >
-              Clear
-            </button>
-          </div>
-        </div>
-
-        {/* 開閉タブ */}
-      </div>
+      <AppDeskelCaptureToolbar
+        visible={uAppState.tool === "capture"}
+        open={captureToolbarOpen}
+        onToggle={() => setCaptureToolbarOpen((v) => !v)}
+        captureMode={uAppState.captureMode as AppDeskelCaptureMode}
+        onChangeCaptureMode={(mode) => {
+          appState.setCaptureMode(mode);
+        }}
+        onClearCaptureImage={() => {
+          appState.setCaptureImage(undefined);
+        }}
+      />
     </>
   );
 });
