@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 type GridMode = "none" | "cross" | "rule3" | "rule4" | "rule9";
 type SourceType = "none" | "camera" | "image" | "video";
+type ControlMode = "none" | "rotate" | "scale" | "move";
 
 type TransformState = {
   x: number;
@@ -14,6 +15,17 @@ type TransformState = {
 type WebKitGestureEvent = Event & {
   rotation: number;
   scale: number;
+};
+
+type ControlDragState = {
+  mode: Exclude<ControlMode, "none">;
+  pointerId: number;
+  startPointerX: number;
+  startPointerY: number;
+  startTransform: TransformState;
+  centerX: number;
+  centerY: number;
+  startAngle: number;
 };
 
 const INITIAL_TRANSFORM: TransformState = {
@@ -30,6 +42,10 @@ function stopStream(stream: MediaStream | null) {
 
 function degToRad(deg: number) {
   return (deg * Math.PI) / 180;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function calcDistance(
@@ -62,6 +78,12 @@ function normalizeAngleDelta(rad: number) {
   while (rad > Math.PI) rad -= Math.PI * 2;
   while (rad < -Math.PI) rad += Math.PI * 2;
   return rad;
+}
+
+function controlLabel(mode: Exclude<ControlMode, "none">) {
+  if (mode === "rotate") return "Rotate";
+  if (mode === "scale") return "Scale";
+  return "Move";
 }
 
 export default function CameraDeskel() {
@@ -106,6 +128,8 @@ export default function CameraDeskel() {
     startTransform: TransformState;
   }>(null);
 
+  const controlDragRef = useRef<ControlDragState | null>(null);
+
   const [sourceType, setSourceType] = useState<SourceType>("none");
   const [status, setStatus] = useState("no source");
   const [error, setError] = useState("");
@@ -113,6 +137,7 @@ export default function CameraDeskel() {
   const [opacity, setOpacity] = useState(0.85);
   const [lineWidth, setLineWidth] = useState(1.2);
   const [transform, setTransform] = useState<TransformState>(INITIAL_TRANSFORM);
+  const [activeControl, setActiveControl] = useState<ControlMode>("none");
 
   useEffect(() => {
     transformRef.current = transform;
@@ -145,7 +170,7 @@ export default function CameraDeskel() {
       setTransform({
         ...g.startTransform,
         rotation: g.startTransform.rotation + e.rotation,
-        scale: Math.min(5, Math.max(0.2, g.startTransform.scale * e.scale)),
+        scale: clamp(g.startTransform.scale * e.scale, 0.2, 5),
       });
     };
 
@@ -194,7 +219,7 @@ export default function CameraDeskel() {
 
       setTransform((prev) => ({
         ...prev,
-        scale: Math.min(5, Math.max(0.2, prev.scale * factor)),
+        scale: clamp(prev.scale * factor, 0.2, 5),
       }));
     };
 
@@ -242,11 +267,13 @@ export default function CameraDeskel() {
     pointersRef.current.clear();
     gestureRef.current = null;
     safariGestureRef.current = null;
+    controlDragRef.current = null;
     dragRef.current.active = false;
 
     setSourceType("none");
     setStatus("no source");
     setError("");
+    setActiveControl("none");
     setTransform(INITIAL_TRANSFORM);
   }, [cleanupObjectUrl, stopCamera]);
 
@@ -492,7 +519,7 @@ export default function CameraDeskel() {
         });
 
         await video.play().catch(() => {
-          // 再生開始できない環境でも最初のフレームだけ描けることがある
+          // no-op
         });
 
         setSourceType("video");
@@ -586,6 +613,129 @@ export default function CameraDeskel() {
       }
     };
   }, [cleanupObjectUrl, stopCamera]);
+
+  const beginControlDrag = useCallback(
+    (
+      mode: Exclude<ControlMode, "none">,
+      e: React.PointerEvent<HTMLButtonElement>
+    ) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+
+      e.currentTarget.setPointerCapture(e.pointerId);
+
+      controlDragRef.current = {
+        mode,
+        pointerId: e.pointerId,
+        startPointerX: e.clientX,
+        startPointerY: e.clientY,
+        startTransform: transformRef.current,
+        centerX,
+        centerY,
+        startAngle,
+      };
+
+      setActiveControl(mode);
+    },
+    []
+  );
+
+  const handleControlPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      const state = controlDragRef.current;
+      if (!state || state.pointerId !== e.pointerId) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const dx = e.clientX - state.startPointerX;
+      const dy = e.clientY - state.startPointerY;
+
+      if (state.mode === "move") {
+        setTransform({
+          ...state.startTransform,
+          x: state.startTransform.x + dx,
+          y: state.startTransform.y + dy,
+        });
+        return;
+      }
+
+      if (state.mode === "scale") {
+        const nextScale = clamp(
+          state.startTransform.scale * Math.exp(-dy * 0.01),
+          0.2,
+          5
+        );
+
+        setTransform({
+          ...state.startTransform,
+          scale: nextScale,
+        });
+        return;
+      }
+
+      if (state.mode === "rotate") {
+        const currentAngle = Math.atan2(
+          e.clientY - state.centerY,
+          e.clientX - state.centerX
+        );
+        const deltaRad = normalizeAngleDelta(currentAngle - state.startAngle);
+        const deltaDeg = (deltaRad * 180) / Math.PI;
+
+        setTransform({
+          ...state.startTransform,
+          rotation: state.startTransform.rotation + deltaDeg,
+        });
+      }
+    },
+    []
+  );
+
+  const endControlDrag = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      const state = controlDragRef.current;
+      if (!state || state.pointerId !== e.pointerId) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+
+      controlDragRef.current = null;
+      setActiveControl("none");
+    },
+    []
+  );
+
+  const makeControlHandlers = useCallback(
+    (mode: Exclude<ControlMode, "none">) => ({
+      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) =>
+        beginControlDrag(mode, e),
+      onPointerMove: handleControlPointerMove,
+      onPointerUp: endControlDrag,
+      onPointerCancel: endControlDrag,
+    }),
+    [beginControlDrag, endControlDrag, handleControlPointerMove]
+  );
+
+  const controlButtonClass = (mode: Exclude<ControlMode, "none">) =>
+    `flex h-14 w-14 select-none items-center justify-center rounded-full border text-[11px] font-medium shadow-lg backdrop-blur touch-none ${
+      activeControl === mode
+        ? "border-emerald-400 bg-emerald-500/30 text-emerald-100"
+        : "border-slate-500/80 bg-slate-900/70 text-slate-100 hover:bg-slate-800/80"
+    }`;
 
   return (
     <div className="flex flex-col gap-3 text-slate-100">
@@ -728,7 +878,10 @@ export default function CameraDeskel() {
 
       <div className="text-sm text-slate-300">
         <div>Status: {status}</div>
-        <div>1 finger: move / 2 fingers: zoom + rotate / wheel: zoom</div>
+        <div>
+          1 finger: move / 2 fingers: zoom + rotate / wheel: zoom / bottom controls:
+          rotate + scale + move
+        </div>
         {error ? <div className="text-rose-400">Error: {error}</div> : null}
       </div>
 
@@ -745,12 +898,12 @@ export default function CameraDeskel() {
               return;
             }
 
-            canvas.setPointerCapture(e.pointerId);
-
             pointersRef.current.set(e.pointerId, {
               x: e.clientX,
               y: e.clientY,
             });
+
+            canvas.setPointerCapture(e.pointerId);
 
             const points = Array.from(pointersRef.current.values());
 
@@ -826,10 +979,7 @@ export default function CameraDeskel() {
                 ...g.startTransform,
                 x: g.startTransform.x + (currentCenter.x - g.startCenterX),
                 y: g.startTransform.y + (currentCenter.y - g.startCenterY),
-                scale: Math.min(
-                  5,
-                  Math.max(0.2, g.startTransform.scale * distanceRatio)
-                ),
+                scale: clamp(g.startTransform.scale * distanceRatio, 0.2, 5),
                 rotation: g.startTransform.rotation + rotationDeltaDeg,
               });
             }
@@ -868,6 +1018,7 @@ export default function CameraDeskel() {
             if (count < 2) {
               gestureRef.current = null;
             }
+
             if (count === 1) {
               const remaining = Array.from(pointersRef.current.entries())[0];
               if (remaining) {
@@ -887,6 +1038,25 @@ export default function CameraDeskel() {
             }
           }}
         />
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center">
+          <div className="pointer-events-auto flex items-end gap-3 rounded-full border border-slate-600/60 bg-slate-950/40 px-3 py-2 backdrop-blur">
+            {(["rotate", "scale", "move"] as const).map((mode) => (
+              <div key={mode} className="flex flex-col items-center gap-1">
+                <button
+                  type="button"
+                  className={controlButtonClass(mode)}
+                  {...makeControlHandlers(mode)}
+                >
+                  {mode === "rotate" ? "↻" : mode === "scale" ? "⤢" : "✥"}
+                </button>
+                <div className="text-[10px] text-slate-200">
+                  {controlLabel(mode)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <video ref={hiddenVideoRef} className="hidden" muted playsInline />
