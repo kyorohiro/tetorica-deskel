@@ -3,7 +3,6 @@ import {
   forwardRef,
   useImperativeHandle,
   useCallback,
-  useEffect,
   useState,
 } from "react";
 import { ColorCount } from "./nativeScreenshot";
