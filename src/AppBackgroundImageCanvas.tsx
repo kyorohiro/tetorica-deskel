@@ -7,57 +7,7 @@ import {
 } from "react";
 import { useDialog } from "./useDialog";
 import { useSyncExternalStore } from "react";
-
-
-async function waitForStableLayout(frames = 2): Promise<void> {
-    for (let i = 0; i < frames; i++) {
-        await new Promise<void>((resolve) => {
-            requestAnimationFrame(() => resolve());
-        });
-    }
-}
-
-function getCurrentViewportSize(
-    wrap: HTMLDivElement | null,
-    canvas: HTMLCanvasElement | null
-): { width: number; height: number } {
-    const wrapRect = wrap?.getBoundingClientRect();
-
-    const width = Math.max(
-        1,
-        Math.floor(
-            wrapRect?.width ||
-            canvas?.clientWidth ||
-            window.innerWidth ||
-            1024
-        )
-    );
-
-    const height = Math.max(
-        1,
-        Math.floor(
-            wrapRect?.height ||
-            canvas?.clientHeight ||
-            window.innerHeight ||
-            1024
-        )
-    );
-
-    return { width, height };
-}
-
-function getCanvasPoint(
-    canvas: HTMLCanvasElement,
-    clientX: number,
-    clientY: number
-): { x: number; y: number } {
-    const rect = canvas.getBoundingClientRect();
-
-    return {
-        x: clientX - rect.left,
-        y: clientY - rect.top,
-    };
-}
+import { getCurrentViewportSize, waitNextFrame } from "./utils";
 
 type CropImageResult = {
     blob: Blob;
@@ -188,13 +138,13 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
                 addImage: async (data: Blob) => {
                     console.log("> addImage ", data);
 
-                    await waitForStableLayout(2);
+                    await waitNextFrame();
                     resizeCanvas();
 
                     const preview = await createImageBitmap(data);
 
                     try {
-                        await waitForStableLayout(1);
+                        await waitNextFrame();
                         resizeCanvas();
 
                         const { width: maxW, height: maxH } = getCurrentViewportSize(
@@ -380,5 +330,5 @@ function useBackgroundImageState() {
   );
 }
 
-export { AppBackgroundImageCanvas, getCanvasPoint, useBackgroundImageState, setBackgroundImageExists };
+export { AppBackgroundImageCanvas, useBackgroundImageState, setBackgroundImageExists };
 export type { AppBackgroundImageCanvasHandle };

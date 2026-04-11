@@ -54,6 +54,47 @@ function getRectFromPoints(params: {
 
 }
 
+function getCurrentViewportSize(
+    wrap: HTMLDivElement | null,
+    canvas: HTMLCanvasElement | null
+): { width: number; height: number } {
+    const wrapRect = wrap?.getBoundingClientRect();
+
+    const width = Math.max(
+        1,
+        Math.floor(
+            wrapRect?.width ||
+            canvas?.clientWidth ||
+            window.innerWidth ||
+            1024
+        )
+    );
+
+    const height = Math.max(
+        1,
+        Math.floor(
+            wrapRect?.height ||
+            canvas?.clientHeight ||
+            window.innerHeight ||
+            1024
+        )
+    );
+
+    return { width, height };
+}
+
+function getCanvasPoint(
+    canvas: HTMLCanvasElement,
+    clientX: number,
+    clientY: number
+): { x: number; y: number } {
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+    };
+}
 export {
-  sleep, waitNextFrame, getRectFromPoints
+  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize
 }
