@@ -112,7 +112,7 @@ export default function App() {
       </div>
 
       <div className="absolute top-0 left-0 z-50">
-        <AppToolbar onChangeState={onChangeStateForToolbar} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef}/>
+        <AppToolbar onChangeState={onChangeStateForToolbar} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} appColorAnalysisRef={colorAnalysisRef}/>
       </div>
     </div>
   );

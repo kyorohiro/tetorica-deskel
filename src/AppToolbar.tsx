@@ -6,10 +6,12 @@ import { Menu, MousePointerClick, Pin, Image, Monitor } from "lucide-react";
 import { isTauri } from "./native";
 import { useDialog } from "./useDialog";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
+import { AppColorAnalysisHandle } from "./AppColorAnalysis";
 
 export function AppToolbar(props: {
     onChangeState?: () => void
-    appBackgroundImageCanvasRef: RefObject<AppBackgroundImageCanvasHandle | null>;
+    appBackgroundImageCanvasRef?: RefObject<AppBackgroundImageCanvasHandle | null>;
+    appColorAnalysisRef?: RefObject<AppColorAnalysisHandle | null>;
 }) {
     const [visible, setVisible] = useState(false);
     const [hasBackgroundImage, setHasBackgroundImage] = useState(false);
@@ -31,11 +33,11 @@ export function AppToolbar(props: {
     }, [appState.getState()]);
 
     useEffect(() => {
-        setHasBackgroundImage(!!props.appBackgroundImageCanvasRef.current?.hasImage());
+        setHasBackgroundImage(!!props.appBackgroundImageCanvasRef?.current?.hasImage());
     }, [props.appBackgroundImageCanvasRef]);
 
     const syncBackgroundImageState = () => {
-        setHasBackgroundImage(!!props.appBackgroundImageCanvasRef.current?.hasImage());
+        setHasBackgroundImage(!!props.appBackgroundImageCanvasRef?.current?.hasImage());
         props.onChangeState?.();
     };
 
@@ -369,7 +371,18 @@ export function AppToolbar(props: {
                     Color Check
                 </label>
                 <div className="px-3">
-                    <div></div>
+                        <button
+                            onClick={() => {
+                                props.appColorAnalysisRef?.current?.setVisible(false)
+                                closeMenuIfNeeded();
+                            }}
+                            className={`rounded-lg border px-3 py-1 text-sm shadow transition
+                                ${false
+                                    ? "border-sky-400 bg-sky-700 text-white"
+                                    : "border-slate-500 bg-slate-800 text-white hover:bg-slate-700"}`}
+                        >
+                            Clear
+                        </button>
                 </div>
             </div>
 
