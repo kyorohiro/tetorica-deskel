@@ -1,13 +1,13 @@
-const APP_VERSION = "0.12.13";
+const APP_VERSION = "0.12.15";
 const CACHE_PREFIX = "tetorica-deskel-";
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 
 const APP_SHELL = [
-  "/tetorica-deskel/demo/",
-  "/tetorica-deskel/demo/index.html",
-  "/tetorica-deskel/demo/manifest.webmanifest",
-  "/tetorica-deskel/demo/icon-192x192.png",
-  "/tetorica-deskel/demo/icon-512x512.png",
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icon-192x192.png",
+  "./icon-512x512.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -40,12 +40,16 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== location.origin) return;
 
-  const isDemoAsset = url.pathname.startsWith("/tetorica-deskel/demo/");
+  const isDemoAsset = url.pathname.includes("/demo/");
   if (!isDemoAsset) return;
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
+  const isHtmlRequest =
+    event.request.mode === "navigate" ||
+    event.request.destination === "document";
+
+  if (isHtmlRequest) {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
           if (response && response.ok) {
             const cloned = response.clone();
@@ -55,9 +59,24 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => cached);
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
 
-      return cached || networkFetch;
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+
+      return fetch(event.request).then((response) => {
+        if (response && response.ok) {
+          const cloned = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, cloned);
+          });
+        }
+        return response;
+      });
     })
   );
 });
