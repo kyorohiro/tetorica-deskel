@@ -247,5 +247,5 @@ mv /tmp/butler/butler ~/bin/butler
 ```
 npm run build:web
 cd dist
-zip -r ../web-build_0.12.13.zip .
+zip -r ../web-build_0.12.14.zip .
 ```
