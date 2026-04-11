@@ -22,11 +22,10 @@ const toolbarButtonBase =
   "flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none";
 
 function toolbarButtonClass(active = false) {
-  return `${toolbarButtonBase} ${
-    active
+  return `${toolbarButtonBase} ${active
       ? "border-emerald-500 bg-emerald-950 text-emerald-300"
       : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-  }`;
+    }`;
 }
 
 const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref) {
@@ -106,15 +105,15 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
           transform: "translate(-50%, -50%)",
           zIndex: 8,
           pointerEvents: "none",
+          display: "none",
         }}
       >
         <canvas id="color-analysis" ref={canvasRef} className="w-full h-full" />
       </div>
 
       <div
-        className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 pointer-events-auto ${
-          state.tool === "color" ? "flex" : "hidden"
-        }`}
+        className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 pointer-events-auto ${state.tool === "color" ? "flex" : "hidden"
+          }`}
       >
         <button
           className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
@@ -126,11 +125,10 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
         </button>
 
         <div
-          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${
-            colorToolbarOpen
+          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${colorToolbarOpen
               ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
               : "max-w-0 opacity-0 translate-x-2 border border-transparent"
-          }`}
+            }`}
         >
           <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
             <button
