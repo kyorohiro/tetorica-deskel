@@ -17,6 +17,8 @@ import { appState, useAppState } from "./state";
 import { RotateCcw, Scan } from "lucide-react";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { useDialog } from "./useDialog";
+import { captureAndCrop } from "./nativeScreenshot";
+import { isTauri } from "./native";
 
 type GridMode = "none" | "cross" | "rule3" | "rule4" | "rule9";
 type SourceType = "none" | "camera" | "image" | "video";
@@ -462,6 +464,35 @@ export default function CameraDeskel(props: {
     [cleanupObjectUrl, stopCamera]
   );
 
+  const setImageFromBlob = useCallback(
+    async (blob: Blob, name = "capture.png") => {
+      setError("");
+      stopCamera();
+      cleanupObjectUrl();
+
+      const url = URL.createObjectURL(blob);
+      objectUrlRef.current = url;
+
+      setModel(cloneModel());
+      setPivot(null);
+
+      const img = hiddenImageRef.current;
+      if (!img) {
+        setError("image element not found");
+        return;
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("failed to load image"));
+        img.src = url;
+      });
+
+      setSourceType("image");
+      setStatus(`image loaded: ${name}`);
+    },
+    [cleanupObjectUrl, stopCamera]
+  );
   const setBackgroundImage = useCallback(async () => {
     const canvas = previewCanvasRef.current;
     if (!canvas) {
@@ -475,33 +506,55 @@ export default function CameraDeskel(props: {
     if (!blob) {
       return;
     }
-   
+
     const previewUrl = URL.createObjectURL(blob);
 
     try {
-        const ok = await dialog.showImageConfirmDialog({
-            title: "Set background image",
-            message: "Would you like to use this image as your background?",
-            imageUrl: previewUrl,
-            imageAlt: "background preview",
-            okText: "Use image",
-            cancelText: "Cancel",
-        });
+      const ok = await dialog.showImageConfirmDialog({
+        title: "Set background image",
+        message: "Would you like to use this image as your background?",
+        imageUrl: previewUrl,
+        imageAlt: "background preview",
+        okText: "Use image",
+        cancelText: "Cancel",
+      });
 
-        if (!ok) {
-            return;
-        }
+      if (!ok) {
+        return;
+      }
 
-        if (props.appBackgroundImageCanvasRef?.current) {
-            await props.appBackgroundImageCanvasRef.current.addImage(blob);
-        }
+      if (props.appBackgroundImageCanvasRef?.current) {
+        await props.appBackgroundImageCanvasRef.current.addImage(blob);
+      }
 
-        appState.setTool("measure");
+      appState.setTool("measure");
     } finally {
-        URL.revokeObjectURL(previewUrl);
+      URL.revokeObjectURL(previewUrl);
     }
 
   }, []);
+
+  const onCaptureScreen = useCallback(async () => {
+    try {
+      setError("");
+      setStatus("capturing screen...");
+
+      const result = await captureAndCrop({
+        targetRect: null,
+        hideWindow: true,
+      });
+
+      const blob = new Blob([new Uint8Array(result.pngBuffer)], {
+        type: "image/png",
+      });
+
+      await setImageFromBlob(blob, "screen-capture.png");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "failed to capture screen";
+      setError(message);
+      setStatus("capture error");
+    }
+  }, [setImageFromBlob]);
 
   useEffect(() => {
     drawPreview();
@@ -693,26 +746,23 @@ export default function CameraDeskel(props: {
   );
 
   const controlButtonClass = (mode: Exclude<ControlMode, "none">) =>
-    `flex h-14 w-14 select-none items-center justify-center rounded-full border text-[11px] font-medium shadow-lg backdrop-blur touch-none ${
-      activeControl === mode
-        ? "border-emerald-400 bg-emerald-500/30 text-emerald-100"
-        : "border-slate-500/80 bg-slate-900/70 text-slate-100 hover:bg-slate-800/80"
+    `flex h-14 w-14 select-none items-center justify-center rounded-full border text-[11px] font-medium shadow-lg backdrop-blur touch-none ${activeControl === mode
+      ? "border-emerald-400 bg-emerald-500/30 text-emerald-100"
+      : "border-slate-500/80 bg-slate-900/70 text-slate-100 hover:bg-slate-800/80"
     }`;
 
   return (
     <>
       <div
-        className={`flex flex-col gap-3 text-slate-100 ${
-          state.tool === "deskel" ? "flex" : "hidden"
-        }`}
+        className={`flex flex-col gap-3 text-slate-100 ${state.tool === "deskel" ? "flex" : "hidden"
+          }`}
       >
         <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 p-3"></div>
       </div>
 
       <div
-        className={`fixed inset-0 z-[1000] flex items-center justify-center p-4 pointer-events-none ${
-          state.tool === "deskel" ? "flex" : "hidden"
-        }`}
+        className={`fixed inset-0 z-[1000] flex items-center justify-center p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"
+          }`}
       >
         <div className="pointer-events-auto flex h-full w-[70vw] max-w-full flex-col items-center justify-center">
           <div
@@ -769,23 +819,20 @@ export default function CameraDeskel(props: {
       </div>
 
       <div
-        className={`fixed inset-0 z-[2500] flex items-center justify-center gap-2 p-4 pointer-events-none ${
-          state.tool === "deskel" ? "flex" : "hidden"
-        }`}
+        className={`fixed inset-0 z-[2500] flex items-center justify-center gap-2 p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"
+          }`}
       >
         <button
-          className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${
-            state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
-          }`}
+          className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
+            }`}
           onClick={() => void startCamera()}
         >
           Camera
         </button>
 
         <label
-          className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${
-            state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
-          }`}
+          className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
+            }`}
         >
           Image/Video
           <input
@@ -799,17 +846,26 @@ export default function CameraDeskel(props: {
             }}
           />
         </label>
+
+        {
+          isTauri() &&
+          <button
+            className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
+              }`}
+            onClick={() => void onCaptureScreen()}
+          >
+            Capture
+          </button>
+        }
       </div>
 
       <div
-        className={`fixed bottom-4 right-4 z-[9999] flex items-end gap-2 ${
-          state.tool === "deskel" ? "flex" : "hidden"
-        } ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
+        className={`fixed bottom-4 right-4 z-[9999] flex items-end gap-2 ${state.tool === "deskel" ? "flex" : "hidden"
+          } ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
       >
         <button
-          className={`rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800 ${
-            state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
-          }`}
+          className={`rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
+            }`}
           onClick={() => {
             setDekselToolbarOpen(!dekselToolbarOpen);
           }}
@@ -820,11 +876,10 @@ export default function CameraDeskel(props: {
         </button>
 
         <div
-          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${
-            dekselToolbarOpen
-              ? "max-w-[1000px] translate-x-0 border border-slate-800 opacity-100"
-              : "max-w-0 translate-x-2 border border-transparent opacity-0"
-          }`}
+          className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${dekselToolbarOpen
+            ? "max-w-[1000px] translate-x-0 border border-slate-800 opacity-100"
+            : "max-w-0 translate-x-2 border border-transparent opacity-0"
+            }`}
         >
           <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
             <button
