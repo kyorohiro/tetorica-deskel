@@ -288,8 +288,7 @@ function AppSimpleDrawCanvas() {
                                 </div>
 
                                 <div
-                                    className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${state.tool === "draw" ? "flex" : "hidden"
-                                        }`}
+                                    className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${state.tool === "draw" ? "flex" : "hidden"}`}
                                 >
                                     <button
                                         className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"

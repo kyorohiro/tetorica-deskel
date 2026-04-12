@@ -21,21 +21,21 @@ export default function App() {
   const deskelRef = useRef<AppDeskelHandle | null>(null);
   const appImportImageRef = useRef<AppImportImageHandle | null>(null);
   const colorAnalysisRef = useRef<AppColorAnalysisHandle | null>(null);
-  const appBackgroundImageCanvasRef = useRef<AppBackgroundImageCanvasHandle|null>(null);
+  const appBackgroundImageCanvasRef = useRef<AppBackgroundImageCanvasHandle | null>(null);
   const state = useAppState();
 
-  useEffect(()=>{
-    if(!isTauri()) {
+  useEffect(() => {
+    if (!isTauri()) {
       // Taruiでないなら image だけ
       appState.setTarget("image");
     }
-  },[]);
+  }, []);
 
   const handleResize = useCallback(({ payload }: { payload: { width: number; height: number } }) => {
     console.log(">> win.onResized NEW !", payload)
     deskelRef.current?.redraw({ isResizeCanvas: true });
     //showToolbar()
-    updateWindowTitle().catch((e)=>{
+    updateWindowTitle().catch((e) => {
       console.log(e);
     })
   }, [])
@@ -73,7 +73,7 @@ export default function App() {
     };
 
     setupTauriOnly();
-    
+
     //initToolbar();
     //showToolbar();
 
@@ -90,9 +90,9 @@ export default function App() {
   return (
     <div id="app" className="relative w-screen h-screen">
       {
-      <div className="" >
-        <AppBackgroundImageCanvas ref={appBackgroundImageCanvasRef} />
-      </div>
+        <div className="" >
+          <AppBackgroundImageCanvas ref={appBackgroundImageCanvasRef} />
+        </div>
       }
       <div className="absolute inset-0 z-10">
         <ScreenCaptureCanvas image={state.captureImage} mode={state.captureMode} />
@@ -100,7 +100,7 @@ export default function App() {
 
 
       <div className="absolute inset-0 z-20">
-        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef}/>
+        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} />
       </div>
 
       <div className={`absolute inset-0 z-30 ${state.tool === "color" ? "pointer-events-none" : "pointer-events-none"}`}>
@@ -108,26 +108,26 @@ export default function App() {
       </div>
 
       <div
-        className={`absolute inset-0 z-40 ${state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"
-          }`}
+        className={`absolute inset-0 z-40 ${state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"}`}
       >
         <AppSimpleDrawCanvas />
       </div>
 
-      <div className="absolute top-0 left-0 z-50">
-        <AppImportImage ref={appImportImageRef} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef}/>
+      <div className="absolute top-0 left-0 z-44">
+        <AppImportImage ref={appImportImageRef} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} />
       </div>
 
       <div className="absolute top-0 left-0 z-50">
-        <AppToolbar onChangeState={onChangeStateForToolbar} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} appColorAnalysisRef={colorAnalysisRef} appImportImageRef={appImportImageRef}/>
+        <AppToolbar onChangeState={onChangeStateForToolbar} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} appColorAnalysisRef={colorAnalysisRef} appImportImageRef={appImportImageRef} />
       </div>
-  
 
-      {
-      <div className="absolute top-0 left-0 z-50">
-        <CameraDeskel/>
-      </div> 
-      }
+
+
+      <div
+        className={`absolute inset-0 z-48 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
+      >
+        <CameraDeskel />
+      </div>
     </div>
   );
 }

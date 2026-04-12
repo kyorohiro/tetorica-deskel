@@ -9,7 +9,7 @@ import { AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { isPwaDistributionLocation, PWA_URL } from "./pwa";
 import { AppImportImageHandle } from "./AppImportImage";
 
-type ToolType = "measure" | "draw" | "capture" | "color";
+type ToolType = "measure" | "draw" | "capture" | "color" | "deskel";
 
 function ToolbarSection(props: {
   title: string;
@@ -97,6 +97,7 @@ const TOOL_ITEMS: { key: ToolType; label: string }[] = [
   { key: "draw", label: "Draw" },
   { key: "capture", label: "Capture" },
   { key: "color", label: "Color" },
+  { key: "deskel", label: "Deskel" },
 ];
 
 export function AppToolbar(props: {
