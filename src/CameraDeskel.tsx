@@ -88,6 +88,10 @@ export default function CameraDeskel(props: {
   const [model, setModel] = useState<TransformModel>(() => cloneModel());
   const [pivot, setPivot] = useState<Point | null>(null);
   const [deskelRatioId, setDeskelRatioId] = useState("3x4-portrait");
+  //
+  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
+  const [cameraDeviceId, setCameraDeviceId] = useState("");
+
 
   const moveInput = useMemo(() => createMoveInput(), []);
   const rotateInput = useMemo(() => createRotateInput({ speed: 2.0 }), []);
@@ -132,6 +136,26 @@ export default function CameraDeskel(props: {
       video.srcObject = null;
       video.removeAttribute("src");
       video.load();
+    }
+  }, []);
+
+  const refreshCameraDevices = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videos = devices.filter((d) => d.kind === "videoinput");
+      setCameraDevices(videos);
+
+      setCameraDeviceId((prev) => {
+        if (prev && videos.some((v) => v.deviceId === prev)) {
+          return prev;
+        }
+        return videos[0]?.deviceId ?? "";
+      });
+
+      return videos;
+    } catch {
+      setCameraDevices([]);
+      return [];
     }
   }, []);
 
@@ -383,44 +407,110 @@ export default function CameraDeskel(props: {
     drawPivotMarker(ctx, getPivotPoint());
   }, [drawOverlay, drawPivotMarker, getPivotPoint, getSourceSize, model, sourceType]);
 
-  const startCamera = useCallback(async () => {
-    setError("");
-    setStatus("requesting camera...");
+  const startCamera = useCallback(
+    async (nextDeviceId?: string) => {
+      setError("");
+      setStatus("requesting camera...");
 
-    try {
-      cleanupObjectUrl();
-      stopCamera();
+      try {
+        cleanupObjectUrl();
+        stopCamera();
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "environment",
-        },
-        audio: false,
-      });
+        const requestedDeviceId = nextDeviceId || cameraDeviceId;
 
-      const video = hiddenVideoRef.current;
-      if (!video) {
-        stopStream(stream);
-        throw new Error("video element not found");
+        let stream: MediaStream;
+
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: requestedDeviceId
+              ? {
+                deviceId: { exact: requestedDeviceId },
+              }
+              : {
+                facingMode: "environment",
+              },
+            audio: false,
+          });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        }
+
+        const video = hiddenVideoRef.current;
+        if (!video) {
+          stopStream(stream);
+          throw new Error("video element not found");
+        }
+
+        streamRef.current = stream;
+        video.srcObject = stream;
+        video.muted = true;
+        video.playsInline = true;
+        await video.play();
+
+        const track = stream.getVideoTracks()[0];
+        const actualDeviceId = track?.getSettings?.().deviceId;
+        if (actualDeviceId) {
+          setCameraDeviceId(actualDeviceId);
+        }
+
+        await refreshCameraDevices();
+
+        setModel(cloneModel());
+        setPivot(null);
+        setSourceType("camera");
+        setStatus("camera started");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "failed to start camera";
+        setError(message);
+        setStatus("camera error");
       }
+    },
+    [cameraDeviceId, cleanupObjectUrl, refreshCameraDevices, stopCamera]
+  );
 
-      streamRef.current = stream;
-      video.srcObject = stream;
-      video.muted = true;
-      video.playsInline = true;
-      await video.play();
+  const switchCamera = useCallback(
+    async (nextDeviceId: string) => {
+      setCameraDeviceId(nextDeviceId);
+      await startCamera(nextDeviceId);
+    },
+    [startCamera]
+  );
 
-      setModel(cloneModel());
-      setPivot(null);
-      setSourceType("camera");
-      setStatus("camera started");
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "failed to start camera";
-      setError(message);
-      setStatus("camera error");
+  const cycleCamera = useCallback(async () => {
+    if (cameraDevices.length <= 1) {
+      return;
     }
-  }, [cleanupObjectUrl, stopCamera]);
 
+    const currentIndex = cameraDevices.findIndex(
+      (d) => d.deviceId === cameraDeviceId
+    );
+    const nextIndex =
+      currentIndex >= 0 ? (currentIndex + 1) % cameraDevices.length : 0;
+
+    const next = cameraDevices[nextIndex];
+    if (!next) {
+      return;
+    }
+
+    await switchCamera(next.deviceId);
+  }, [cameraDevices, cameraDeviceId, switchCamera]);
+
+  useEffect(() => {
+    void refreshCameraDevices();
+
+    const handler = () => {
+      void refreshCameraDevices();
+    };
+
+    navigator.mediaDevices?.addEventListener?.("devicechange", handler);
+
+    return () => {
+      navigator.mediaDevices?.removeEventListener?.("devicechange", handler);
+    };
+  }, [refreshCameraDevices]);
   const onPickFile = useCallback(
     async (file: File | null) => {
       if (!file) {
@@ -875,7 +965,7 @@ export default function CameraDeskel(props: {
         <button
           className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
             }`}
-          onClick={() => void startCamera()}
+          onClick={() => void startCamera(cameraDeviceId || undefined)}
         >
           Camera
         </button>
@@ -1013,6 +1103,36 @@ export default function CameraDeskel(props: {
                 <option value="2.4">2.4</option>
               </select>
             </label>
+            { }
+            {sourceType === "camera" && cameraDevices.length > 0 && (
+              <>
+                <label className="ml-0 flex flex-col items-center gap-0 text-xs text-amber-100 sm:flex-row sm:flex-wrap">
+                  Camera
+                  <select
+                    className="rounded border border-slate-100 bg-slate-300 px-0 py-0 text-xs text-emerald-700 hover:bg-slate-200"
+                    value={cameraDeviceId}
+                    onChange={(e) => void switchCamera(e.target.value)}
+                  >
+                    {cameraDevices.map((device, index) => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Camera ${index + 1}`}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {cameraDevices.length > 1 && (
+                  <button
+                    className="m-0.5 rounded-2xl border border-slate-700 bg-slate-900/90 px-2 py-1 text-xs text-slate-100"
+                    onClick={() => void cycleCamera()}
+                    title="switch camera"
+                    aria-label="switch camera"
+                  >
+                    Flip
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

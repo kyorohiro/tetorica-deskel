@@ -248,7 +248,7 @@ mv /tmp/butler/butler ~/bin/butler
 
 % ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.14.3_x64.dmg kyorohiro/tetorica-deskel:mac-intel-prelease --userversion 0.14.3
 
-% ~/bin/butler push "src-tauri/target/release/bundle/nsis/tetorica-deskel_0.14.3_x64-setup.exe" kyorohiro/tetorica-deskel:windows-prelease --userversion 0.14.3
+% ~/bin/butler push "tetorica-deskel_0.14.3_x64-setup.exe" kyorohiro/tetorica-deskel:windows-prelease --userversion 0.14.3
 ```
 
 
