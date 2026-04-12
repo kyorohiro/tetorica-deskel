@@ -14,7 +14,7 @@ import {
     translateMat3,
 } from "./transform2d";
 import { useAppState } from "./state";
-import { Pencil, RotateCcw } from "lucide-react";
+import { Pencil, RotateCcw, Scan } from "lucide-react";
 
 type GridMode = "none" | "cross" | "rule3" | "rule4" | "rule9";
 type SourceType = "none" | "camera" | "image" | "video";
@@ -49,7 +49,7 @@ export default function CameraDeskel() {
     const [status, setStatus] = useState("no source");
     const [error, setError] = useState("");
     const [gridMode, setGridMode] = useState<GridMode>("rule3");
-    const [opacity, setOpacity] = useState(0.85);
+    const [opacity, setOpacity] = useState(0.5);
     const [lineWidth, setLineWidth] = useState(1.2);
     const [activeControl, setActiveControl] = useState<ControlMode>("none");
     const [model, setModel] = useState<TransformModel>(() => cloneModel());
@@ -639,55 +639,8 @@ export default function CameraDeskel() {
             <div className={`flex flex-col gap-3 text-slate-100 ${state.tool === "deskel" ? "flex" : "hidden"}`}>
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 p-3 z-3000">
 
-                    <button
-                        className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
-                        onClick={() => void savePng()}
-                    >
-                        Save PNG
-                    </button>
 
 
-
-                    <label className="ml-2 flex items-center gap-2 text-sm">
-                        Grid
-                        <select
-                            className="rounded border border-slate-600 bg-slate-950 px-2 py-1"
-                            value={gridMode}
-                            onChange={(e) => setGridMode(e.target.value as GridMode)}
-                        >
-                            <option value="none">none</option>
-                            <option value="cross">cross</option>
-                            <option value="rule3">3x3</option>
-                            <option value="rule4">4x4</option>
-                            <option value="rule9">9x9</option>
-                        </select>
-                    </label>
-
-                    <label className="flex items-center gap-2 text-sm">
-                        Opacity
-                        <input
-                            type="range"
-                            min="0.1"
-                            max="1"
-                            step="0.05"
-                            value={opacity}
-                            onChange={(e) => setOpacity(Number(e.target.value))}
-                        />
-                        <span className="w-10 text-right">{opacity.toFixed(2)}</span>
-                    </label>
-
-                    <label className="flex items-center gap-2 text-sm">
-                        Line
-                        <input
-                            type="range"
-                            min="0.5"
-                            max="4"
-                            step="0.1"
-                            value={lineWidth}
-                            onChange={(e) => setLineWidth(Number(e.target.value))}
-                        />
-                        <span className="w-10 text-right">{lineWidth.toFixed(1)}</span>
-                    </label>
                 </div>
             </div>
             {
@@ -759,7 +712,7 @@ export default function CameraDeskel() {
             }
             <div className={`fixed inset-0 z-2500 flex items-center justify-center p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"}`}>
                 <button
-                    className=" z-2500 rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200"
+                    className={` rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
                     onClick={() => void startCamera()}
                 >
                     Start Camera
@@ -825,6 +778,69 @@ export default function CameraDeskel() {
                         >
                             <RotateCcw size={12} />
                         </button>
+
+                        <button
+                            className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${true
+                                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                                }`}
+                            title="scan"
+                            aria-label="save png"
+                            onClick={() => void savePng()}
+                        >
+                            <Scan size={12} />
+                        </button>
+                        {
+                            //
+                            //
+                            //
+                        }
+                    <label className="ml-0 flex flex-col items-center gap-0 text-amber-100 text-xs sm:flex-row sm:flex-wrap">
+                        Grid
+                        <select
+                            className="rounded borderborder border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
+                            value={gridMode}
+                            onChange={(e) => setGridMode(e.target.value as GridMode)}
+                        >
+                            <option value="none">none</option>
+                            <option value="cross">2x2</option>
+                            <option value="rule3">3x3</option>
+                            <option value="rule4">4x4</option>
+                            <option value="rule9">9x9</option>
+                        </select>
+                    </label>
+                    <label className="ml-0 flex flex-col items-center gap-0 text-amber-100 text-xs sm:flex-row sm:flex-wrap">
+                        Opacity
+                        <select
+                            className="rounded borderborder border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
+                            value={opacity}
+                            onChange={(e) => setOpacity(+e.target.value)}
+                        >
+                            <option value="0">0</option>
+                            <option value="0.25">0.25</option>
+                            <option value="0.5">0.5</option>
+                            <option value="0.75">0.75</option>
+                        </select>
+                    </label>
+                    <label className="ml-0 flex flex-col items-center gap-0 text-amber-100 text-xs sm:flex-row sm:flex-wrap">
+                        Line
+                        <select
+                            className="rounded borderborder border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
+                            value={lineWidth}
+                            onChange={(e) => setLineWidth(+e.target.value)}
+                        >
+                            <option value="0">0.1</option>
+                            <option value="0.6">0.6</option>
+                            <option value="1.2">1.2</option>
+                            <option value="2.4">2.4</option>
+                        </select>
+                    </label>
+
+                        {
+                            //
+                            //
+                            //
+                        }
                     </div>
                 </div>
             </div>
