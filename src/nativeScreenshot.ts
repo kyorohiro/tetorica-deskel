@@ -264,7 +264,8 @@ export async function captureAndCrop(params: {
         await new Promise((r) => setTimeout(r, 16));
       }
 
-      await sleep(25);
+      //await sleep(25);
+      await sleep(300);
     }
 
     const pngBuffer = await invoke<ArrayBuffer>("capture_and_crop_bytes", {

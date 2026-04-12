@@ -113,6 +113,7 @@ export default function CameraDeskel(props: {
     () => sourceType === "camera" || sourceType === "video",
     [sourceType]
   );
+  const hasCanvasSource = sourceType !== "none";
 
   const cleanupObjectUrl = useCallback(() => {
     if (objectUrlRef.current) {
@@ -202,96 +203,96 @@ export default function CameraDeskel(props: {
   }, []);
 
   const drawOverlay = useCallback(
-  (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    ctx.save();
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
 
-    const whiteWidth = lineWidth;
-    const blackWidth = lineWidth * 2;
+      const whiteWidth = lineWidth;
+      const blackWidth = lineWidth * 2;
 
-    const strokeGuide = (draw: () => void) => {
-      // 下地の黒
-      ctx.beginPath();
-      draw();
-      ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
-      ctx.lineWidth = blackWidth;
-      ctx.stroke();
+      const strokeGuide = (draw: () => void) => {
+        // 下地の黒
+        ctx.beginPath();
+        draw();
+        ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
+        ctx.lineWidth = blackWidth;
+        ctx.stroke();
 
-      // 上の白
-      ctx.beginPath();
-      draw();
-      ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
-      ctx.lineWidth = whiteWidth;
-      ctx.stroke();
-    };
+        // 上の白
+        ctx.beginPath();
+        draw();
+        ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
+        ctx.lineWidth = whiteWidth;
+        ctx.stroke();
+      };
 
-    const drawVertical = (x: number) => {
+      const drawVertical = (x: number) => {
+        strokeGuide(() => {
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, height);
+        });
+      };
+
+      const drawHorizontal = (y: number) => {
+        strokeGuide(() => {
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+        });
+      };
+
+      // 外枠
       strokeGuide(() => {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
+        ctx.rect(0.5, 0.5, width - 1, height - 1);
       });
-    };
 
-    const drawHorizontal = (y: number) => {
-      strokeGuide(() => {
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-      });
-    };
-
-    // 外枠
-    strokeGuide(() => {
-      ctx.rect(0.5, 0.5, width - 1, height - 1);
-    });
-
-    if (
-      gridMode === "cross" ||
-      gridMode === "rule3" ||
-      gridMode === "rule4" ||
-      gridMode === "rule9"
-    ) {
-      drawVertical(width / 2);
-      drawHorizontal(height / 2);
-    }
-
-    if (gridMode === "rule3" || gridMode === "rule9") {
-      drawVertical(width / 3);
-      drawVertical((width * 2) / 3);
-      drawHorizontal(height / 3);
-      drawHorizontal((height * 2) / 3);
-    }
-
-    if (gridMode === "rule4" || gridMode === "rule9") {
-      drawVertical(width / 4);
-      drawVertical((width * 3) / 4);
-      drawHorizontal(height / 4);
-      drawHorizontal((height * 3) / 4);
-    }
-
-    if (gridMode === "rule9") {
-      for (let i = 1; i < 9; i++) {
-        drawVertical((width * i) / 9);
-        drawHorizontal((height * i) / 9);
+      if (
+        gridMode === "cross" ||
+        gridMode === "rule3" ||
+        gridMode === "rule4" ||
+        gridMode === "rule9"
+      ) {
+        drawVertical(width / 2);
+        drawHorizontal(height / 2);
       }
-    }
 
-    // 中心マーク
-    const cx = width / 2;
-    const cy = height / 2;
-    const mark = 12;
+      if (gridMode === "rule3" || gridMode === "rule9") {
+        drawVertical(width / 3);
+        drawVertical((width * 2) / 3);
+        drawHorizontal(height / 3);
+        drawHorizontal((height * 2) / 3);
+      }
 
-    strokeGuide(() => {
-      ctx.moveTo(cx - mark, cy);
-      ctx.lineTo(cx + mark, cy);
-      ctx.moveTo(cx, cy - mark);
-      ctx.lineTo(cx, cy + mark);
-    });
+      if (gridMode === "rule4" || gridMode === "rule9") {
+        drawVertical(width / 4);
+        drawVertical((width * 3) / 4);
+        drawHorizontal(height / 4);
+        drawHorizontal((height * 3) / 4);
+      }
 
-    ctx.restore();
-  },
-  [gridMode, lineWidth, opacity]
-);
+      if (gridMode === "rule9") {
+        for (let i = 1; i < 9; i++) {
+          drawVertical((width * i) / 9);
+          drawHorizontal((height * i) / 9);
+        }
+      }
+
+      // 中心マーク
+      const cx = width / 2;
+      const cy = height / 2;
+      const mark = 12;
+
+      strokeGuide(() => {
+        ctx.moveTo(cx - mark, cy);
+        ctx.lineTo(cx + mark, cy);
+        ctx.moveTo(cx, cy - mark);
+        ctx.lineTo(cx, cy + mark);
+      });
+
+      ctx.restore();
+    },
+    [gridMode, lineWidth, opacity]
+  );
 
   const drawPivotMarker = useCallback((ctx: CanvasRenderingContext2D, p: Point) => {
     ctx.save();
@@ -549,12 +550,17 @@ export default function CameraDeskel(props: {
         await props.appBackgroundImageCanvasRef.current.addImage(blob);
       }
 
+      if (sourceType === "camera") {
+        stopCamera();
+        setSourceType("none");
+      }
+
       appState.setTool("measure");
     } finally {
       URL.revokeObjectURL(previewUrl);
     }
 
-  }, []);
+  }, [dialog, props.appBackgroundImageCanvasRef, sourceType, stopCamera]);
 
   const onCaptureScreen = useCallback(async () => {
     try {
@@ -578,6 +584,28 @@ export default function CameraDeskel(props: {
     }
   }, [setImageFromBlob]);
 
+  useEffect(() => {
+    if (state.tool !== "deskel" && sourceType === "camera") {
+      stopCamera();
+      setSourceType("none");
+      setStatus("camera stopped");
+    }
+  }, [state.tool, sourceType, stopCamera]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.hidden && sourceType === "camera") {
+        stopCamera();
+        setSourceType("none");
+        setStatus("camera stopped");
+      }
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [sourceType, stopCamera]);
   useEffect(() => {
     drawPreview();
   }, [drawPreview]);
@@ -841,7 +869,7 @@ export default function CameraDeskel(props: {
       </div>
 
       <div
-        className={`fixed inset-0 z-[2500] flex items-center justify-center gap-2 p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"
+        className={`fixed inset-0 z-[2500] items-center justify-center gap-2 p-4 pointer-events-none ${state.tool === "deskel" && !hasCanvasSource ? "flex" : "hidden"
           }`}
       >
         <button
@@ -869,8 +897,7 @@ export default function CameraDeskel(props: {
           />
         </label>
 
-        {
-          isTauri() &&
+        {isTauri() && (
           <button
             className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"
               }`}
@@ -878,7 +905,7 @@ export default function CameraDeskel(props: {
           >
             Capture
           </button>
-        }
+        )}
       </div>
 
       <div
