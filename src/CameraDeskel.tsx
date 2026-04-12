@@ -14,7 +14,7 @@ import {
     translateMat3,
 } from "./transform2d";
 import { useAppState } from "./state";
-import { Pencil } from "lucide-react";
+import { Pencil, RotateCcw } from "lucide-react";
 
 type GridMode = "none" | "cross" | "rule3" | "rule4" | "rule9";
 type SourceType = "none" | "camera" | "image" | "video";
@@ -661,36 +661,12 @@ export default function CameraDeskel() {
 
                     <button
                         className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
-                        onClick={clearSource}
-                    >
-                        Clear
-                    </button>
-
-                    <button
-                        className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
                         onClick={() => void savePng()}
                     >
                         Save PNG
                     </button>
 
-                    <button
-                        className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
-                        onClick={() => {
-                            sessionRef.current = null;
-                            setActiveControl("none");
-                            setModel(cloneModel());
-                            setPivot(null);
-                        }}
-                    >
-                        Reset
-                    </button>
 
-                    <button
-                        className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
-                        onClick={() => setPivot(null)}
-                    >
-                        Pivot Center
-                    </button>
 
                     <label className="ml-2 flex items-center gap-2 text-sm">
                         Grid
@@ -734,7 +710,7 @@ export default function CameraDeskel() {
                     </label>
                 </div>
             </div>
-            { 
+            {
                 // deskel
             }
             <div className={`fixed inset-0 z-1000 flex items-center justify-center p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"}`}>
@@ -785,57 +761,67 @@ export default function CameraDeskel() {
                                 ))}
                             </div>
                         </div>
-                                            {/* ステータス表示 */}
-                    <div className="mb-2 text-center text-sm text-slate-300 shrink-0">
-                        <div>Status: {status}</div>
-                        <div className="hidden sm:block">Tap canvas to set pivot. Bottom controls: rotate / scale / move</div>
-                        {error ? <div className="text-rose-400">Error: {error}</div> : null}
-                    </div>
+                        {/* ステータス表示 */}
+                        <div className="mb-2 text-center text-sm text-slate-300 shrink-0">
+                            <div>Status: {status}</div>
+                            <div className="hidden sm:block">Tap canvas to set pivot. Bottom controls: rotate / scale / move</div>
+                            {error ? <div className="text-rose-400">Error: {error}</div> : null}
+                        </div>
                     </div>
 
                     <video ref={hiddenVideoRef} className="hidden" muted playsInline />
                     <img ref={hiddenImageRef} className="hidden" alt="" />
                 </div>
-                
+
             </div>
             {
                 //
             }
-                                <div
-                                    className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${state.tool === "deskel" ? "flex" : "hidden"}`}
-                                >
-                                    <button
-                                        className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
-                                        onClick={() => {
-                                            console.log(">>>> dekselToolbarOpen---", dekselToolbarOpen)
-                                            setDekselToolbarOpen(!dekselToolbarOpen)
-                                        }}
-                                        title="toggle measure toolbar"
-                                        aria-label="toggle measure toolbar"
-                                    >
-                                        {dekselToolbarOpen ? ">" : "<"}
-                                    </button>
-                                    <div
-                                        className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${dekselToolbarOpen
-                                            ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
-                                            : "max-w-0 opacity-0 translate-x-2 border border-transparent"
-                                            }`}
-                                    >
-                                        <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
-                                            <button
-                                                className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${true
-                                                    ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                                                    : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
-                                                    }`}
-                                                onClick={() => {}}
-                                                title="ペン"
-                                                aria-label="ペン"
-                                            >
-                                                <Pencil size={12} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+            <div
+                className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${state.tool === "deskel" ? "flex" : "hidden"}`}
+            >
+                <button
+                    className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
+                    onClick={() => {
+                        console.log(">>>> dekselToolbarOpen---", dekselToolbarOpen)
+                        setDekselToolbarOpen(!dekselToolbarOpen)
+                    }}
+                    title="toggle measure toolbar"
+                    aria-label="toggle measure toolbar"
+                >
+                    {dekselToolbarOpen ? ">" : "<"}
+                </button>
+                <div
+                    className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${dekselToolbarOpen
+                        ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
+                        : "max-w-0 opacity-0 translate-x-2 border border-transparent"
+                        }`}
+                >
+                    <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
+                        <button
+                            className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${true
+                                ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                                : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                                }`}
+                            onClick={() => {
+                                // reset
+                                sessionRef.current = null;
+                                setActiveControl("none");
+                                setModel(cloneModel());
+                                setPivot(null);
+                                // Clear
+                                clearSource();
+                                // pivot clear
+                                setPivot(null)
+                            }}
+                            title="clear"
+                            aria-label="clear"
+                        >
+                            <RotateCcw size={12} />
+                        </button>
+                    </div>
+                </div>
+            </div>
 
         </>
     );
