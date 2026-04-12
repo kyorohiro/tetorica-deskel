@@ -202,74 +202,96 @@ export default function CameraDeskel(props: {
   }, []);
 
   const drawOverlay = useCallback(
-    (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-      ctx.save();
+  (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    const whiteWidth = lineWidth;
+    const blackWidth = lineWidth * 2;
+
+    const strokeGuide = (draw: () => void) => {
+      // 下地の黒
+      ctx.beginPath();
+      draw();
+      ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
+      ctx.lineWidth = blackWidth;
+      ctx.stroke();
+
+      // 上の白
+      ctx.beginPath();
+      draw();
       ctx.strokeStyle = `rgba(255,255,255,${opacity})`;
-      ctx.lineWidth = lineWidth;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
+      ctx.lineWidth = whiteWidth;
+      ctx.stroke();
+    };
 
-      ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
-
-      const drawVertical = (x: number) => {
-        ctx.beginPath();
+    const drawVertical = (x: number) => {
+      strokeGuide(() => {
         ctx.moveTo(x, 0);
         ctx.lineTo(x, height);
-        ctx.stroke();
-      };
+      });
+    };
 
-      const drawHorizontal = (y: number) => {
-        ctx.beginPath();
+    const drawHorizontal = (y: number) => {
+      strokeGuide(() => {
         ctx.moveTo(0, y);
         ctx.lineTo(width, y);
-        ctx.stroke();
-      };
+      });
+    };
 
-      if (
-        gridMode === "cross" ||
-        gridMode === "rule3" ||
-        gridMode === "rule4" ||
-        gridMode === "rule9"
-      ) {
-        drawVertical(width / 2);
-        drawHorizontal(height / 2);
+    // 外枠
+    strokeGuide(() => {
+      ctx.rect(0.5, 0.5, width - 1, height - 1);
+    });
+
+    if (
+      gridMode === "cross" ||
+      gridMode === "rule3" ||
+      gridMode === "rule4" ||
+      gridMode === "rule9"
+    ) {
+      drawVertical(width / 2);
+      drawHorizontal(height / 2);
+    }
+
+    if (gridMode === "rule3" || gridMode === "rule9") {
+      drawVertical(width / 3);
+      drawVertical((width * 2) / 3);
+      drawHorizontal(height / 3);
+      drawHorizontal((height * 2) / 3);
+    }
+
+    if (gridMode === "rule4" || gridMode === "rule9") {
+      drawVertical(width / 4);
+      drawVertical((width * 3) / 4);
+      drawHorizontal(height / 4);
+      drawHorizontal((height * 3) / 4);
+    }
+
+    if (gridMode === "rule9") {
+      for (let i = 1; i < 9; i++) {
+        drawVertical((width * i) / 9);
+        drawHorizontal((height * i) / 9);
       }
+    }
 
-      if (gridMode === "rule3" || gridMode === "rule9") {
-        drawVertical(width / 3);
-        drawVertical((width * 2) / 3);
-        drawHorizontal(height / 3);
-        drawHorizontal((height * 2) / 3);
-      }
+    // 中心マーク
+    const cx = width / 2;
+    const cy = height / 2;
+    const mark = 12;
 
-      if (gridMode === "rule4" || gridMode === "rule9") {
-        drawVertical(width / 4);
-        drawVertical((width * 3) / 4);
-        drawHorizontal(height / 4);
-        drawHorizontal((height * 3) / 4);
-      }
-
-      if (gridMode === "rule9") {
-        for (let i = 1; i < 9; i++) {
-          drawVertical((width * i) / 9);
-          drawHorizontal((height * i) / 9);
-        }
-      }
-
-      const cx = width / 2;
-      const cy = height / 2;
-      const mark = 12;
-      ctx.beginPath();
+    strokeGuide(() => {
       ctx.moveTo(cx - mark, cy);
       ctx.lineTo(cx + mark, cy);
       ctx.moveTo(cx, cy - mark);
       ctx.lineTo(cx, cy + mark);
-      ctx.stroke();
+    });
 
-      ctx.restore();
-    },
-    [gridMode, lineWidth, opacity]
-  );
+    ctx.restore();
+  },
+  [gridMode, lineWidth, opacity]
+);
 
   const drawPivotMarker = useCallback((ctx: CanvasRenderingContext2D, p: Point) => {
     ctx.save();
