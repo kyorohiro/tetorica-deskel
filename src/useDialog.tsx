@@ -38,8 +38,10 @@ export const DialogProvider: React.FC<{ children: ReactNode }> = ({
 
             {/* 一番上だけ表示するスタック方式 */}
             {stack.length > 0 && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                    {stack[stack.length - 1]?.node}
+                <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 p-4">
+                    <div className="flex min-h-full items-center justify-center">
+                        {stack[stack.length - 1]?.node}
+                    </div>
                 </div>
             )}
         </DialogContext.Provider>
@@ -530,6 +532,61 @@ export function useDialog() {
         [showDialog]
     );
 
+    type ImageConfirmDialogOptions = {
+        title?: string;
+        message?: React.ReactNode;
+        imageUrl: string;
+        imageAlt?: string;
+        okText?: string;
+        cancelText?: string;
+    };
+
+    const showImageConfirmDialog = useCallback(
+        (opts: ImageConfirmDialogOptions): Promise<boolean | null> => {
+            return showDialog<boolean>(({ resolve, close }) => (
+                <div className="flex w-[min(96vw,1200px)] max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-xl">
+                    <div className="shrink-0 border-b border-slate-700 px-4 py-3">
+                        <h2 className="text-lg font-semibold text-slate-100">
+                            {opts.title ?? "画像を確認"}
+                        </h2>
+                        {opts.message && (
+                            <div className="mt-1 text-sm text-slate-300">
+                                {opts.message}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="min-h-0 flex-1 overflow-auto bg-black">
+                        <img
+                            src={opts.imageUrl}
+                            alt={opts.imageAlt ?? "preview"}
+                            className="block w-full h-auto"
+                        />
+                    </div>
+
+                    <div className="shrink-0 border-t border-slate-700 px-4 py-3">
+                        <div className="flex justify-end gap-2 text-sm">
+                            <button
+                                type="button"
+                                onClick={close}
+                                className="rounded-lg border border-slate-600 px-3 py-1.5 text-slate-300 hover:bg-slate-800"
+                            >
+                                {opts.cancelText ?? "キャンセル"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => resolve(true)}
+                                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-slate-100 hover:bg-emerald-500"
+                            >
+                                {opts.okText ?? "OK"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ));
+        },
+        [showDialog]
+    );
     const showProgressDialog = React.useCallback(
         (options: ProgressDialogOptions): { close: () => void } => {
             const id = crypto.randomUUID();
@@ -590,6 +647,7 @@ export function useDialog() {
         showInputDialog,
         showInputPasswordDialog,
         showConfirmDialog,
+        showImageConfirmDialog,
         showProgressDialog,
         showSelectDialog,
         showFileDialog,

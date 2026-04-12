@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Point, TransformModel, TransformSession } from "./transform2d";
 import {
   cloneModel,
@@ -13,8 +13,10 @@ import {
   scaleMat3,
   translateMat3,
 } from "./transform2d";
-import { useAppState } from "./state";
+import { appState, useAppState } from "./state";
 import { RotateCcw, Scan } from "lucide-react";
+import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
+import { useDialog } from "./useDialog";
 
 type GridMode = "none" | "cross" | "rule3" | "rule4" | "rule9";
 type SourceType = "none" | "camera" | "image" | "video";
@@ -56,7 +58,9 @@ function controlLabel(mode: Exclude<ControlMode, "none">) {
   return "Move";
 }
 
-export default function CameraDeskel() {
+export default function CameraDeskel(props: {
+  appBackgroundImageCanvasRef?: RefObject<AppBackgroundImageCanvasHandle | null>;
+}) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -86,6 +90,7 @@ export default function CameraDeskel() {
   const moveInput = useMemo(() => createMoveInput(), []);
   const rotateInput = useMemo(() => createRotateInput({ speed: 2.0 }), []);
   const scaleInput = useMemo(() => createScaleInput({ speed: 0.01 }), []);
+  const dialog = useDialog();
 
   const deskelRatio = useMemo(() => {
     return (
@@ -457,7 +462,7 @@ export default function CameraDeskel() {
     [cleanupObjectUrl, stopCamera]
   );
 
-  const savePng = useCallback(async () => {
+  const setBackgroundImage = useCallback(async () => {
     const canvas = previewCanvasRef.current;
     if (!canvas) {
       return;
@@ -470,13 +475,32 @@ export default function CameraDeskel() {
     if (!blob) {
       return;
     }
+   
+    const previewUrl = URL.createObjectURL(blob);
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "deskel-cut.png";
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+        const ok = await dialog.showImageConfirmDialog({
+            title: "Set background image",
+            message: "Would you like to use this image as your background?",
+            imageUrl: previewUrl,
+            imageAlt: "background preview",
+            okText: "Use image",
+            cancelText: "Cancel",
+        });
+
+        if (!ok) {
+            return;
+        }
+
+        if (props.appBackgroundImageCanvasRef?.current) {
+            await props.appBackgroundImageCanvasRef.current.addImage(blob);
+        }
+
+        appState.setTool("measure");
+    } finally {
+        URL.revokeObjectURL(previewUrl);
+    }
+
   }, []);
 
   useEffect(() => {
@@ -819,10 +843,10 @@ export default function CameraDeskel() {
             </button>
 
             <button
-              className="m-0.5 rounded-2xl border border-emerald-500 bg-emerald-950 px-2 py-1 text-xs text-emerald-300"
+              className="m-0.5 rounded-2xl border border-b-rose-600 bg-emerald-950 px-2 py-1 text-xs text-red-300"
               title="scan"
               aria-label="save png"
-              onClick={() => void savePng()}
+              onClick={() => void setBackgroundImage()}
             >
               <Scan size={12} />
             </button>

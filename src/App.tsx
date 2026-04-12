@@ -110,7 +110,7 @@ export default function App() {
       <div
         className={`absolute inset-0 z-40 ${state.tool === "draw" ? "pointer-events-auto" : "pointer-events-none"}`}
       >
-        <AppSimpleDrawCanvas />
+        <AppSimpleDrawCanvas  />
       </div>
 
       <div className="absolute top-0 left-0 z-44">
@@ -126,7 +126,7 @@ export default function App() {
       <div
         className={`absolute inset-0 z-48 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
       >
-        <CameraDeskel />
+        <CameraDeskel appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} />
       </div>
     </div>
   );
