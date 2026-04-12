@@ -638,26 +638,6 @@ export default function CameraDeskel() {
         <>
             <div className={`flex flex-col gap-3 text-slate-100 ${state.tool === "deskel" ? "flex" : "hidden"}`}>
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 p-3 z-3000">
-                    <button
-                        className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
-                        onClick={() => void startCamera()}
-                    >
-                        Start Camera
-                    </button>
-
-                    <label className="cursor-pointer rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800">
-                        Open Image/Video
-                        <input
-                            type="file"
-                            accept="image/*,video/*"
-                            className="hidden"
-                            onChange={(e) => {
-                                const file = e.target.files?.[0] ?? null;
-                                void onPickFile(file);
-                                e.currentTarget.value = "";
-                            }}
-                        />
-                    </label>
 
                     <button
                         className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm hover:bg-slate-800"
@@ -775,13 +755,39 @@ export default function CameraDeskel() {
 
             </div>
             {
+                // image buttob
+            }
+            <div className={`fixed inset-0 z-2500 flex items-center justify-center p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"}`}>
+                <button
+                    className=" z-2500 rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200"
+                    onClick={() => void startCamera()}
+                >
+                    Start Camera
+                </button>
+
+                <label className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
+                >
+                    Open Image/Video
+                    <input
+                        type="file"
+                        accept="image/*,video/*"
+                        className="hidden"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+                            void onPickFile(file);
+                            e.currentTarget.value = "";
+                        }}
+                    />
+                </label>
+            </div>
+            {
                 //
             }
             <div
-                className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${state.tool === "deskel" ? "flex" : "hidden"}`}
+                className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${state.tool === "deskel" ? "flex" : "hidden"} ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
             >
                 <button
-                    className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
+                    className={`rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
                     onClick={() => {
                         console.log(">>>> dekselToolbarOpen---", dekselToolbarOpen)
                         setDekselToolbarOpen(!dekselToolbarOpen)
