@@ -925,8 +925,8 @@ export default function CameraDeskel(props: {
               }}
             />
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center">
-              <div className="pointer-events-auto flex items-end gap-3 rounded-full border border-slate-600/60 bg-slate-950/40 px-3 py-2 backdrop-blur">
+            <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[2600] flex justify-center">
+              <div className="pointer-events-auto flex items-end gap-3 rounded-full border border-slate-600/60 bg-slate-950/70 px-3 py-2 shadow-2xl backdrop-blur">
                 {(["rotate", "scale", "move"] as const).map((mode) => (
                   <div key={mode} className="flex flex-col items-center gap-1">
                     <button
