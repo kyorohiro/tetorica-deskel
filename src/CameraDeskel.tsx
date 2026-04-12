@@ -710,17 +710,17 @@ export default function CameraDeskel() {
             {
                 // image buttob
             }
-            <div className={`fixed inset-0 z-2500 flex items-center justify-center p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"}`}>
+            <div className={`fixed gap-2 inset-0 z-2500 flex items-center justify-center p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"}`}>
                 <button
                     className={` rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
                     onClick={() => void startCamera()}
                 >
-                    Start Camera
+                    Camera
                 </button>
 
                 <label className={`rounded-lg border border-slate-100 bg-slate-300 px-3 py-1.5 text-sm text-emerald-700 hover:bg-slate-200 ${state.tool === "deskel" ? "pointer-events-auto" : "pointer-events-none"}`}
                 >
-                    Open Image/Video
+                    Image/Video
                     <input
                         type="file"
                         accept="image/*,video/*"
@@ -798,7 +798,7 @@ export default function CameraDeskel() {
                     <label className="ml-0 flex flex-col items-center gap-0 text-amber-100 text-xs sm:flex-row sm:flex-wrap">
                         Grid
                         <select
-                            className="rounded borderborder border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
+                            className="rounded border border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
                             value={gridMode}
                             onChange={(e) => setGridMode(e.target.value as GridMode)}
                         >
@@ -812,7 +812,7 @@ export default function CameraDeskel() {
                     <label className="ml-0 flex flex-col items-center gap-0 text-amber-100 text-xs sm:flex-row sm:flex-wrap">
                         Opacity
                         <select
-                            className="rounded borderborder border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
+                            className="rounded borderß border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
                             value={opacity}
                             onChange={(e) => setOpacity(+e.target.value)}
                         >
@@ -825,11 +825,11 @@ export default function CameraDeskel() {
                     <label className="ml-0 flex flex-col items-center gap-0 text-amber-100 text-xs sm:flex-row sm:flex-wrap">
                         Line
                         <select
-                            className="rounded borderborder border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
+                            className="rounded border border-slate-100 bg-slate-300 px-0 py-2 text-xs text-emerald-700 hover:bg-slate-200 px-0 py-0"
                             value={lineWidth}
                             onChange={(e) => setLineWidth(+e.target.value)}
                         >
-                            <option value="0">0.1</option>
+                            <option value="0.1">0.1</option>
                             <option value="0.6">0.6</option>
                             <option value="1.2">1.2</option>
                             <option value="2.4">2.4</option>
