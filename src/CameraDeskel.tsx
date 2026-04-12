@@ -904,10 +904,10 @@ export default function CameraDeskel(props: {
         className={`fixed inset-0 z-[1000] flex items-center justify-center p-4 pointer-events-none ${state.tool === "deskel" ? "flex" : "hidden"
           }`}
       >
-        <div className="pointer-events-auto flex h-full w-[70vw] max-w-full flex-col items-center justify-center">
+        <div className="pointer-events-auto flex h-full w-[80vw] max-w-full -translate-y-[5vh] flex-col items-center justify-center">
           <div
             ref={hostRef}
-            className="absolute h-auto w-full max-h-[90vh] overflow-hidden rounded-2xl border border-slate-700 bg-black touch-none shadow-2xl"
+            className="absolute h-auto w-full max-h-[80vh] overflow-hidden rounded-2xl border border-slate-700 bg-black touch-none shadow-2xl"
             style={{
               width: "100%",
               aspectRatio: deskelAspectRatio,
@@ -925,7 +925,7 @@ export default function CameraDeskel(props: {
               }}
             />
 
-            <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[2600] flex justify-center">
+            <div className="pointer-events-none fixed inset-x-0 bottom-2 z-[2600] flex justify-center">
               <div className="pointer-events-auto flex items-end gap-3 rounded-full border border-slate-600/60 bg-slate-950/70 px-3 py-2 shadow-2xl backdrop-blur">
                 {(["rotate", "scale", "move"] as const).map((mode) => (
                   <div key={mode} className="flex flex-col items-center gap-1">
@@ -941,6 +941,20 @@ export default function CameraDeskel(props: {
                     </div>
                   </div>
                 ))}
+                <div className="flex flex-col items-center gap-1">
+                  <button
+                    type="button"
+                    className="flex h-14 w-14 select-none items-center justify-center rounded-full border text-[11px] font-medium shadow-lg backdrop-blur touch-none border-slate-500/80 bg-red-900/70 text-slate-100 hover:bg-red-800/80"
+                    onClick={() => void setBackgroundImage()}
+                    title="scan"
+                    aria-label="scan"
+                  >
+                    <Scan size={12} />
+                  </button>
+                  <div className="text-[10px] text-slate-200">
+                    Scan
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1036,15 +1050,16 @@ export default function CameraDeskel(props: {
               <RotateCcw size={12} />
             </button>
 
-            <button
-              className="m-0.5 rounded-2xl border border-b-rose-600 bg-emerald-950 px-2 py-1 text-xs text-red-300"
-              title="scan"
-              aria-label="save png"
-              onClick={() => void setBackgroundImage()}
-            >
-              <Scan size={12} />
-            </button>
-
+            {
+              //<button
+              //  className="m-0.5 rounded-2xl border border-b-rose-600 bg-emerald-950 px-2 py-1 text-xs text-red-300"
+              //  title="scan"
+              //  aria-label="save png"
+              //  onClick={() => void setBackgroundImage()}
+              //>
+              //  <Scan size={12} />
+              //</button>
+            }
             <label className="ml-0 flex flex-col items-center gap-0 text-xs text-amber-100 sm:flex-row sm:flex-wrap">
               Ratio
               <select
