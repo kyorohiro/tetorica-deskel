@@ -122,6 +122,82 @@ function normalizeToBytes(buffer: unknown): Uint8Array {
 
   throw new Error(`Unsupported buffer type: ${Object.prototype.toString.call(buffer)}`);
 }
+
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFileForNative } from "./native";
+
+type SaveFileOptions = {
+  title: string;
+  filename: string;
+  data: BlobPart;
+  filters?: {
+    name: string;
+    extensions: string[];
+  }[];
+  mimeType?: string;
+  showToast?: (message: string) => void;
+};
+
+function isTauri() {
+  return "__TAURI_INTERNALS__" in window;
+}
+
+export async function saveFileWithFallback({
+  title,
+  filename,
+  data,
+  filters,
+  mimeType = "application/octet-stream",
+  showToast,
+}: SaveFileOptions) {
+  if (isTauri()) {
+    const path = await save({
+      title,
+      defaultPath: filename,
+      filters,
+    });
+
+    if (!path) return null;
+
+    await writeFileForNative(path, data as any);
+    showToast?.(`saved: ${path}`);
+    return path;
+  }
+
+  const blob = new Blob([data], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+
+  try {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    showToast?.(`downloaded: ${filename}`);
+    return filename;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function makeTimestampForFilename(date = new Date()) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mi = String(date.getMinutes()).padStart(2, "0");
+  const ss = String(date.getSeconds()).padStart(2, "0");
+  const ms = String(date.getMilliseconds()).padStart(3, "0");
+
+  return `${yyyy}${mm}${dd}-${hh}${mi}${ss}-${ms}`;
+}
+
+function makeCaptureFilename(prefix = "captureimage", ext = "png") {
+  return `${prefix}-${makeTimestampForFilename()}.${ext}`;
+}
 export {
-  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize, normalizeToBytes
+  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize, normalizeToBytes, makeCaptureFilename
 }

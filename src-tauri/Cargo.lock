@@ -5378,7 +5378,7 @@ dependencies = [
 
 [[package]]
 name = "tetorica-deskel"
-version = "0.14.5"
+version = "0.14.6"
 dependencies = [
  "chrono",
  "core-foundation 0.10.1",

@@ -39,6 +39,7 @@ import type {
 import { MeasureHandler } from "./MeasureHandler";
 import { CaptureHandler } from "./CaptureHandler";
 import { ColorHandler } from "./ColorHandler";
+import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
 
 type AppDeskelHandle = {
   redraw: (props?: { isResizeCanvas: boolean }) => void;
@@ -55,6 +56,7 @@ const AppDeslel = forwardRef<
     ) => Promise<void>;
     onBeforeCapture?: () => Promise<void>;
     appBackgroundImageCanvasRef: RefObject<AppBackgroundImageCanvasHandle | null>;
+    appScreenCaptureCanvasRef: RefObject<ScreenCaptureCanvasHandle|null>;
   }
 >(function AppDeslel(props, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -446,6 +448,7 @@ const AppDeslel = forwardRef<
       </div>
 
       <AppDeskelCaptureToolbar
+       appScreenCaptureCanvasRef={props.appScreenCaptureCanvasRef}
         visible={uAppState.tool === "capture"}
         open={captureToolbarOpen}
         onToggle={() => setCaptureToolbarOpen((v) => !v)}

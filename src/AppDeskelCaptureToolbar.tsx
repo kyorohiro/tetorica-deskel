@@ -1,4 +1,8 @@
+import { RefObject } from "react";
 import { CollapsibleToolbar, ModeButton } from "./AppDeskelToolbarParts";
+import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
+import { makeCaptureFilename, saveFileWithFallback } from "./utils";
+import { showToast } from "./toast";
 
 type AppDeskelCaptureMode =
   | "none"
@@ -12,14 +16,15 @@ const CAPTURE_MODE_ITEMS: {
   label: string;
   title: string;
 }[] = [
-  { key: "none", label: "None", title: "none" },
-  { key: "lightness", label: "Grayscale", title: "grayscale value check" },
-  { key: "protan", label: "Protan", title: "protan preview" },
-  { key: "deutan", label: "Deutan", title: "deutan preview" },
-  { key: "tritan", label: "Tritan", title: "tritan preview" },
-];
+    { key: "none", label: "None", title: "none" },
+    { key: "lightness", label: "Grayscale", title: "grayscale value check" },
+    { key: "protan", label: "Protan", title: "protan preview" },
+    { key: "deutan", label: "Deutan", title: "deutan preview" },
+    { key: "tritan", label: "Tritan", title: "tritan preview" },
+  ];
 
 function AppDeskelCaptureToolbar(props: {
+  appScreenCaptureCanvasRef?: RefObject<ScreenCaptureCanvasHandle | null>
   visible: boolean;
   open: boolean;
   onToggle: () => void;
@@ -27,6 +32,24 @@ function AppDeskelCaptureToolbar(props: {
   onChangeCaptureMode: (mode: AppDeskelCaptureMode) => void;
   onClearCaptureImage: () => void;
 }) {
+  const hundleExport = async () => {
+    if (props.appScreenCaptureCanvasRef && props.appScreenCaptureCanvasRef.current) {
+      const data = await props.appScreenCaptureCanvasRef.current?.getBlobFromCanvas();
+      if (data) {
+        await saveFileWithFallback({
+          title: "Save Procreate Palette",
+          filename: makeCaptureFilename(`captureimage`, `png`),
+          data,
+          filters: [
+            { name: "Procreate Swatches", extensions: ["swatches"] },
+          ],
+          mimeType: "application/octet-stream",
+          showToast,
+        });
+      }
+    }
+    return;
+  }
   return (
     <CollapsibleToolbar
       open={props.open}
@@ -52,6 +75,14 @@ function AppDeskelCaptureToolbar(props: {
         title="clear capture image"
       >
         Clear
+      </ModeButton>
+
+      <ModeButton
+        active={false}
+        onClick={hundleExport}
+        title="clear capture image"
+      >
+        Export
       </ModeButton>
     </CollapsibleToolbar>
   );

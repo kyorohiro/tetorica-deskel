@@ -11,7 +11,7 @@ import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { AppSimpleDrawCanvas } from "./AppSimpleDrawCanvas";
 import { ColorCount } from "./nativeScreenshot";
 import { useAppState, appState } from "./state";
-import ScreenCaptureCanvas from "./AppScreenCaptureCanvas";
+import ScreenCaptureCanvas, { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
 import { getAppWindow, isTauri } from "./native";
 import { AppBackgroundImageCanvas, AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { AppImportImage, AppImportImageHandle } from "./AppImportImage";
@@ -22,6 +22,7 @@ export default function App() {
   const appImportImageRef = useRef<AppImportImageHandle | null>(null);
   const colorAnalysisRef = useRef<AppColorAnalysisHandle | null>(null);
   const appBackgroundImageCanvasRef = useRef<AppBackgroundImageCanvasHandle | null>(null);
+  const appScreenCaptureCanvas = useRef<ScreenCaptureCanvasHandle| null> (null);
   const state = useAppState();
 
   useEffect(() => {
@@ -95,12 +96,12 @@ export default function App() {
         </div>
       }
       <div className="absolute inset-0 z-10">
-        <ScreenCaptureCanvas image={state.captureImage} mode={state.captureMode} />
+        <ScreenCaptureCanvas ref={appScreenCaptureCanvas} image={state.captureImage} mode={state.captureMode} />
       </div>
 
 
       <div className="absolute inset-0 z-20">
-        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} />
+        <AppDeslel ref={deskelRef} onColorAnalysis={onColorAnalysis} appBackgroundImageCanvasRef={appBackgroundImageCanvasRef} appScreenCaptureCanvasRef={appScreenCaptureCanvas} />
       </div>
 
       <div className={`absolute inset-0 z-30 ${state.tool === "color" ? "pointer-events-none" : "pointer-events-none"}`}>
