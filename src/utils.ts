@@ -126,10 +126,23 @@ function normalizeToBytes(buffer: unknown): Uint8Array {
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFileForNative } from "./native";
 
+
+function isTauri() {
+  return "__TAURI_INTERNALS__" in window;
+}
+
+
+
+type SaveFileData =
+  | string
+  | Blob
+  | ArrayBuffer
+  | ArrayBufferView;
+
 type SaveFileOptions = {
   title: string;
   filename: string;
-  data: BlobPart;
+  data: SaveFileData;
   filters?: {
     name: string;
     extensions: string[];
@@ -138,8 +151,52 @@ type SaveFileOptions = {
   showToast?: (message: string) => void;
 };
 
-function isTauri() {
-  return "__TAURI_INTERNALS__" in window;
+function isArrayBufferView(value: unknown): value is ArrayBufferView {
+  return ArrayBuffer.isView(value);
+}
+
+async function normalizeToUint8Array(data: SaveFileData): Promise<Uint8Array> {
+  if (typeof data === "string") {
+    return new TextEncoder().encode(data);
+  }
+
+  if (data instanceof Blob) {
+    return new Uint8Array(await data.arrayBuffer());
+  }
+
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data);
+  }
+
+  if (isArrayBufferView(data)) {
+    const bytes = new Uint8Array(data.byteLength);
+    bytes.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+    return bytes;
+  }
+
+  throw new Error("Unsupported save data type");
+}
+
+async function normalizeToBlobPart(data: SaveFileData): Promise<BlobPart> {
+  if (typeof data === "string") {
+    return data;
+  }
+
+  if (data instanceof Blob) {
+    return data;
+  }
+
+  if (data instanceof ArrayBuffer) {
+    return data;
+  }
+
+  if (isArrayBufferView(data)) {
+    const bytes = new Uint8Array(data.byteLength);
+    bytes.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+    return bytes;
+  }
+
+  throw new Error("Unsupported blob data type");
 }
 
 export async function saveFileWithFallback({
@@ -159,12 +216,17 @@ export async function saveFileWithFallback({
 
     if (!path) return null;
 
-    await writeFileForNative(path, data as any);
+    const bytes = await normalizeToUint8Array(data);
+    await writeFileForNative(path, bytes);
     showToast?.(`saved: ${path}`);
     return path;
   }
 
-  const blob = new Blob([data], { type: mimeType });
+  const blob =
+    data instanceof Blob
+      ? data
+      : new Blob([await normalizeToBlobPart(data)], { type: mimeType });
+
   const url = URL.createObjectURL(blob);
 
   try {
@@ -195,9 +257,9 @@ function makeTimestampForFilename(date = new Date()) {
   return `${yyyy}${mm}${dd}-${hh}${mi}${ss}-${ms}`;
 }
 
-function makeCaptureFilename(prefix = "captureimage", ext = "png") {
+function makeFilenameWithTimestamp(prefix = "captureimage", ext = "png") {
   return `${prefix}-${makeTimestampForFilename()}.${ext}`;
 }
 export {
-  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize, normalizeToBytes, makeCaptureFilename
+  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize, normalizeToBytes, makeFilenameWithTimestamp
 }

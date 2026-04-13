@@ -1,7 +1,7 @@
 import { RefObject } from "react";
 import { CollapsibleToolbar, ModeButton } from "./AppDeskelToolbarParts";
 import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
-import { makeCaptureFilename, saveFileWithFallback } from "./utils";
+import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
 import { showToast } from "./toast";
 
 type AppDeskelCaptureMode =
@@ -38,7 +38,7 @@ function AppDeskelCaptureToolbar(props: {
       if (data) {
         await saveFileWithFallback({
           title: "Save Procreate Palette",
-          filename: makeCaptureFilename(`captureimage`, `png`),
+          filename: makeFilenameWithTimestamp(`captureimage`, `png`),
           data,
           filters: [
             { name: "Procreate Swatches", extensions: ["swatches"] },
