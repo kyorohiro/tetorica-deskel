@@ -328,7 +328,7 @@ const FileDialog: React.FC<{
     return (
         <div className="w-full max-w-lg rounded-2xl bg-slate-900 p-6 shadow-xl border border-slate-700 text-slate-100">
             <h2 className="text-lg font-semibold mb-3">
-                {options.title ?? "ファイルを選択"}
+                {options.title ?? "Select File"}
             </h2>
 
             {options.message && (
@@ -359,10 +359,10 @@ const FileDialog: React.FC<{
                 ].join(" ")}
             >
                 <p className="text-sm font-medium text-slate-100">
-                    ここにファイルを Drag & Drop
+                    Drag & Drop files here
                 </p>
                 <p className="mt-1 text-xs text-slate-400">
-                    または下のボタンから選択
+                    or choose files using the button below
                 </p>
 
                 <button
@@ -370,14 +370,14 @@ const FileDialog: React.FC<{
                     onClick={handleChooseClick}
                     className="mt-4 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm"
                 >
-                    ファイルを選択
+                    Choose Files
                 </button>
             </div>
 
             <div className="mt-4 max-h-40 overflow-y-auto rounded-xl border border-slate-700 bg-slate-800/50 p-3">
                 {files.length === 0 ? (
                     <p className="text-xs text-slate-400">
-                        まだファイルは選択されていません
+                        No files selected yet
                     </p>
                 ) : (
                     <ul className="space-y-1">
@@ -399,7 +399,7 @@ const FileDialog: React.FC<{
                     onClick={onCancel}
                     className="px-3 py-1.5 rounded-lg border border-slate-600 hover:bg-slate-800"
                 >
-                    {options.cancelText ?? "キャンセル"}
+                    {options.cancelText ?? "Cancel"}
                 </button>
                 <button
                     type="button"
