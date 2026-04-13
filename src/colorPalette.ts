@@ -2,7 +2,7 @@
 import { ColorCount } from "./nativeScreenshot";
 import { showToast } from "./toast";
 import { createSwatchesFile } from "procreate-swatches";
-import { isTauri, saveDialog, writeFileForNative } from "./native";
+import { isTauri } from "./native";
 import { UseDialogReturn } from "./useDialog";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
 
