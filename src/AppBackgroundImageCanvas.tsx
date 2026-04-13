@@ -7,7 +7,7 @@ import {
 } from "react";
 import { useDialog } from "./useDialog";
 import { useSyncExternalStore } from "react";
-import { getCurrentViewportSize, waitNextFrame } from "./utils";
+import { canvasToBlob, getCurrentViewportSize, waitNextFrame } from "./utils";
 
 type CropImageResult = {
     blob: Blob;
@@ -25,6 +25,7 @@ type AppBackgroundImageCanvasHandle = {
         width: number;
         height: number;
     }) => Promise<CropImageResult | null>;
+    getBlob: () => Promise<Blob| null | undefined>;
 };
 
 const INITIAL_FIT_RATIO = 0.7;
@@ -134,6 +135,14 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
             ref,
             () => ({
                 hasImage: () => imageRef.current != undefined && imageRef.current != null,
+                getBlob: async () =>  {
+                    let canvas = canvasRef.current;
+                    if(canvas) {
+                        return canvasToBlob({canvas});
+                    } else {
+                        return null;
+                    }
+                },
                 addImage: async (data: Blob) => {
                     console.log("> addImage ", data);
 

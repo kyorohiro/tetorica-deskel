@@ -2,6 +2,8 @@ import { RefObject } from "react";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { CollapsibleToolbar, ModeButton } from "./AppDeskelToolbarParts";
 import { useDialog } from "./useDialog";
+import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
+import { showToast } from "./toast";
 
 type MeasureMode = "line" | "chain" | "setUnit" | "setVanishingPoint";
 type QuadMode = "off" | "view" | "apply";
@@ -13,15 +15,37 @@ function AppDeskelImageToolbar(props: {
   onToggle: () => void;
 }) {
   const dialog = useDialog();
-    const handleImportImage = async () => {
-        const ret = await dialog.showFileDialog({});
-        if (props.appBackgroundImageCanvasRef?.current) {
-            if (ret?.files && ret.files.length > 0) {
-                await props.appBackgroundImageCanvasRef.current.addImage(ret.files[0]);
-                //syncBackgroundImageState()
-            }
-        }
-    };
+  const handleImportImage = async () => {
+    const ret = await dialog.showFileDialog({});
+    if (props.appBackgroundImageCanvasRef?.current) {
+      if (ret?.files && ret.files.length > 0) {
+        await props.appBackgroundImageCanvasRef.current.addImage(ret.files[0]);
+        //syncBackgroundImageState()
+      }
+    }
+  };
+  const handleExportImage = async () => {
+    if (props.appBackgroundImageCanvasRef?.current) {
+      if (!props.appBackgroundImageCanvasRef.current.hasImage()) {
+        console.log("not found image");
+        return
+      }
+      const data = await props.appBackgroundImageCanvasRef.current.getBlob();
+      if (data) {
+        await saveFileWithFallback({
+          title: "Save Procreate Palette",
+          filename: makeFilenameWithTimestamp(`image`, `png`),
+          data,
+          filters: [
+            { name: "Procreate Swatches", extensions: ["swatches"] },
+          ],
+          mimeType: "application/octet-stream",
+          showToast,
+        });
+      }
+    }
+  };
+
   return (
     <CollapsibleToolbar
       open={props.open}
@@ -32,7 +56,7 @@ function AppDeskelImageToolbar(props: {
         active={false}
         onClick={() => {
           //
-           handleImportImage();
+          handleImportImage();
         }}
         title="chain measure"
         className="justify-center px-2 py-1"
@@ -44,6 +68,7 @@ function AppDeskelImageToolbar(props: {
         active={false}
         onClick={() => {
           //props.setMeasureMode("setUnit");
+          handleExportImage();
         }}
         title="set unit"
         className="justify-center px-2 py-1"

@@ -55,45 +55,45 @@ function getRectFromPoints(params: {
 }
 
 function getCurrentViewportSize(
-    wrap: HTMLDivElement | null,
-    canvas: HTMLCanvasElement | null
+  wrap: HTMLDivElement | null,
+  canvas: HTMLCanvasElement | null
 ): { width: number; height: number } {
-    const wrapRect = wrap?.getBoundingClientRect();
+  const wrapRect = wrap?.getBoundingClientRect();
 
-    const width = Math.max(
-        1,
-        Math.floor(
-            wrapRect?.width ||
-            canvas?.clientWidth ||
-            window.innerWidth ||
-            1024
-        )
-    );
+  const width = Math.max(
+    1,
+    Math.floor(
+      wrapRect?.width ||
+      canvas?.clientWidth ||
+      window.innerWidth ||
+      1024
+    )
+  );
 
-    const height = Math.max(
-        1,
-        Math.floor(
-            wrapRect?.height ||
-            canvas?.clientHeight ||
-            window.innerHeight ||
-            1024
-        )
-    );
+  const height = Math.max(
+    1,
+    Math.floor(
+      wrapRect?.height ||
+      canvas?.clientHeight ||
+      window.innerHeight ||
+      1024
+    )
+  );
 
-    return { width, height };
+  return { width, height };
 }
 
 function getCanvasPoint(
-    canvas: HTMLCanvasElement,
-    clientX: number,
-    clientY: number
+  canvas: HTMLCanvasElement,
+  clientX: number,
+  clientY: number
 ): { x: number; y: number } {
-    const rect = canvas.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
 
-    return {
-        x: clientX - rect.left,
-        y: clientY - rect.top,
-    };
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top,
+  };
 }
 
 function normalizeToBytes(buffer: unknown): Uint8Array {
@@ -260,6 +260,29 @@ function makeTimestampForFilename(date = new Date()) {
 function makeFilenameWithTimestamp(prefix = "captureimage", ext = "png") {
   return `${prefix}-${makeTimestampForFilename()}.${ext}`;
 }
+
+async function canvasToBlob(params: {
+  canvas: HTMLCanvasElement | null | undefined
+  type?: string
+  quality?: number
+}): Promise<Blob> {
+  const type =  params.type ?? "image/png";
+  const canvas = params.canvas;
+  if (!canvas) {
+    throw new Error("canvas is null");
+  }
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, type, params.quality);
+  });
+
+  if (!blob) {
+    throw new Error("failed to create blob");
+  }
+
+  return blob;
+}
 export {
-  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize, normalizeToBytes, makeFilenameWithTimestamp
+  sleep, waitNextFrame, getRectFromPoints, getCanvasPoint, getCurrentViewportSize, normalizeToBytes, makeFilenameWithTimestamp,
+  canvasToBlob
 }
