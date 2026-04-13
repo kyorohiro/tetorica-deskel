@@ -31,7 +31,7 @@ type Settings = {
 
 }
 
-export type ToolMode = "measure" | "draw" | "color" | "capture" | "deskel"
+export type ToolMode = "measure" | "draw" | "color" | "capture" | "deskel" | "image"
 type Target = "screen" | "image"
 type AppState = Settings & {
     clickThrough: boolean

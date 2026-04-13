@@ -97,6 +97,7 @@ const TOOL_ITEMS: { key: ToolMode; label: string }[] = [
   { key: "capture", label: "Capture" },
   { key: "color", label: "Color" },
   { key: "deskel", label: "Deskel" },
+  { key: "image", label: "Image" },
 ];
 
 export function AppToolbar(props: {

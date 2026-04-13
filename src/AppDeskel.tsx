@@ -22,6 +22,7 @@ import { getTaurPlatformInfo } from "./native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { analyzeImageBlob } from "./colorAnalysis";
 import { AppDeskelMeasureToolbar } from "./AppDeskelMeasureToolbar";
+import { AppDeskelImageToolbar } from "./AppDeskelImageToolbar";
 import {
   AppDeskelCaptureToolbar,
   AppDeskelCaptureMode,
@@ -34,7 +35,6 @@ import type {
   MeasureMode,
   QuadMode,
   SelectionRect,
-  ToolKind,
 } from "./DeskelToolHandler";
 import { MeasureHandler } from "./MeasureHandler";
 import { CaptureHandler } from "./CaptureHandler";
@@ -80,6 +80,7 @@ const AppDeslel = forwardRef<
 
   const [captureToolbarOpen, setCaptureToolbarOpen] = useState(true);
   const [measureToolbarOpen, setMeasureToolbarOpen] = useState(true);
+  const [imageToolbarOpen, setImageToolbarOpen] = useState(true);
   
 
   const setDraggingValue = useCallback((value: boolean) => {
@@ -236,7 +237,7 @@ const AppDeslel = forwardRef<
   }, []);
 
   const getCurrentHandler = useCallback((): DeskelToolHandler => {
-    const tool = uAppState.tool as ToolKind;
+    const tool = uAppState.tool;
     if (tool === "measure") return measureHandlerRef.current;
     if (tool === "capture") return captureHandlerRef.current;
     return colorHandlerRef.current;
@@ -248,7 +249,7 @@ const AppDeslel = forwardRef<
         canvas,
         ctx,
         state: {
-          tool: uAppState.tool as ToolKind,
+          tool: uAppState.tool,
           target: uAppState.target as "image" | "screen",
           color: uAppState.color,
           measureUnit: uAppState.measureUnit,
@@ -428,6 +429,7 @@ const AppDeslel = forwardRef<
         }}
       />
 
+      <AppDeskelImageToolbar visible={uAppState.tool === "image"} open={imageToolbarOpen}  onToggle={() => setImageToolbarOpen((v) => !v)} appBackgroundImageCanvasRef={props.appBackgroundImageCanvasRef}/>
       <div
         className={`fixed top-4 right-4 z-9999 items-center gap-2 ${
           (uAppState.tool === "capture" || uAppState.tool === "color") && isMac
