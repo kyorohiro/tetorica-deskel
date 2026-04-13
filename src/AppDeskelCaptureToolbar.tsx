@@ -41,7 +41,7 @@ function AppDeskelCaptureToolbar(props: {
           filename: makeFilenameWithTimestamp(`captureimage`, `png`),
           data,
           filters: [
-            { name: "Procreate Swatches", extensions: ["swatches"] },
+            { name: "Png", extensions: ["png"] },
           ],
           mimeType: "application/octet-stream",
           showToast,

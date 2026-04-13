@@ -37,7 +37,7 @@ function AppDeskelImageToolbar(props: {
           filename: makeFilenameWithTimestamp(`image`, `png`),
           data,
           filters: [
-            { name: "Procreate Swatches", extensions: ["swatches"] },
+            { name: "png", extensions: ["png"] },
           ],
           mimeType: "application/octet-stream",
           showToast,
