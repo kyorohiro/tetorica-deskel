@@ -1,4 +1,4 @@
-const APP_VERSION = "0.14.9";
+const APP_VERSION = "0.14.10";
 const CACHE_PREFIX = "tetorica-deskel-";
 const CACHE_NAME = `${CACHE_PREFIX}${APP_VERSION}`;
 
