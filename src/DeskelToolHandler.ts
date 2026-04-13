@@ -1,4 +1,5 @@
 import type { MutableRefObject } from "react";
+import { ToolMode } from "./state";
 
 export type AppDeskelPoint = { x: number; y: number };
 
@@ -10,8 +11,6 @@ export type MeasureMode =
 
 export type QuadMode = "off" | "view" | "apply";
 
-export type ToolKind = "measure" | "capture" | "color";
-
 export type ToolTarget = "image" | "screen";
 
 export type SelectionRect = {
@@ -22,7 +21,7 @@ export type SelectionRect = {
 };
 
 export type DeskelStateSnapshot = {
-  tool: ToolKind;
+  tool: ToolMode;
   target: ToolTarget;
   color: string;
   measureUnit: number;

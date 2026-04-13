@@ -1,5 +1,5 @@
 import { RefObject, useEffect, useState } from "react";
-import { saveSettings, appState, useAppState } from "./state";
+import { saveSettings, appState, useAppState, ToolMode } from "./state";
 import { setAlwaysOnTop, setClickThrough } from "./window";
 import { showToast } from "./toast";
 import { Menu, MousePointerClick, Pin, Image, Monitor } from "lucide-react";
@@ -9,7 +9,6 @@ import { AppColorAnalysisHandle } from "./AppColorAnalysis";
 import { isPwaDistributionLocation, PWA_URL } from "./pwa";
 import { AppImportImageHandle } from "./AppImportImage";
 
-type ToolType = "measure" | "draw" | "capture" | "color" | "deskel";
 
 function ToolbarSection(props: {
   title: string;
@@ -92,7 +91,7 @@ function ToolbarActionButton(props: {
   );
 }
 
-const TOOL_ITEMS: { key: ToolType; label: string }[] = [
+const TOOL_ITEMS: { key: ToolMode; label: string }[] = [
   { key: "measure", label: "Measure" },
   { key: "draw", label: "Draw" },
   { key: "capture", label: "Capture" },
