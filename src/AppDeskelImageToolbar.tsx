@@ -46,6 +46,12 @@ function AppDeskelImageToolbar(props: {
     }
   };
 
+  const handleClearImage = async () => {
+    if (props.appBackgroundImageCanvasRef?.current) {   
+        await props.appBackgroundImageCanvasRef.current.clear();;
+    }
+  };
+
   return (
     <CollapsibleToolbar
       open={props.open}
@@ -76,6 +82,17 @@ function AppDeskelImageToolbar(props: {
         Export
       </ModeButton>
 
+      <ModeButton
+        active={false}
+        onClick={() => {
+          //props.setMeasureMode("setUnit");
+          handleClearImage();
+        }}
+        title="set unit"
+        className="justify-center px-2 py-1"
+      >
+        Clear
+      </ModeButton>
     </CollapsibleToolbar>
   );
 }

@@ -303,6 +303,7 @@ export function AppToolbar(props: {
             <ToolbarActionButton
               onClick={() => {
                 void handleClearImage();
+                closeMenuIfNeeded();
               }}
             >
               Clear
@@ -310,8 +311,18 @@ export function AppToolbar(props: {
           </div>
         </ToolbarSection>
 
-        <ToolbarSection title="Snapshot">
-          <div />
+        <ToolbarSection title="Capture">
+          <div className="flex flex-wrap items-center gap-2">
+            <ToolbarActionButton
+              onClick={() => {
+                // 要修正
+                appState.setCaptureImage(undefined);
+                closeMenuIfNeeded();
+              }}
+            >
+              Clear
+            </ToolbarActionButton>
+          </div>
         </ToolbarSection>
 
         <ToolbarSection title="Color Check">
