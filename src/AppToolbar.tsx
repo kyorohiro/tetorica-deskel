@@ -359,7 +359,6 @@ export function AppToolbar(props: {
             </ToolbarActionButton>
           </ToolbarSection>
         )}
-        // isRunningAsPwa()
       </div>
     </>
   );
