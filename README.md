@@ -19,7 +19,7 @@ It offers a design scale, measuring lines, color analysis, drawing guides, and p
 ---
 
 Japanese:    
-Tetorica Deskel は PC向けのデスケルアプリです。Windows と Mac と Wec で動作します。他のウィンドウに重ねて利用できます。   
+Tetorica Deskel は PC向けのデスケルアプリです。Windows と Mac と Web で動作します。他のウィンドウに重ねて利用できます。   
 デザインスケール、はかり棒、色相分析、補助線、パレット作成などの機能を備えています。   
    
 ---
@@ -240,7 +240,7 @@ mv /tmp/butler/butler ~/bin/butler
 
 % ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.14.16_x64.dmg kyorohiro/tetorica-deskel:mac-intel --userversion 0.14.16
 
-% ~/bin/butler push "src-tauri/target/release/bundle/nsis/tetorica-deskel_0.14.16_x64-setup.exe" kyorohiro/tetorica-deskel:windows --userversion 0.14.16
+% ~/bin/butler push "tetorica-deskel_0.14.16_x64-setup.exe" kyorohiro/tetorica-deskel:windows --userversion 0.14.16
 ```
 
 ```
