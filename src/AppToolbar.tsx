@@ -6,7 +6,7 @@ import { Menu, MousePointerClick, Pin, Image, Monitor } from "lucide-react";
 import { isTauri } from "./native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { AppColorAnalysisHandle } from "./AppColorAnalysis";
-import { hardResetPwa, isPwaDistributionLocation, isRunningAsPwa, PWA_URL } from "./pwa";
+import { isPwaDistributionLocation, isRunningAsPwa, PWA_URL, updatePwaNow } from "./pwa";
 import { AppImportImageHandle } from "./AppImportImage";
 
 
@@ -350,12 +350,13 @@ export function AppToolbar(props: {
         {isRunningAsPwa() && !tauriMode && (
           <ToolbarSection title="PWA">
             <ToolbarActionButton
-              onClick={() => {
+              onClick={async () => {
                 //
-                hardResetPwa();
+                //hardResetPwa();
+                await updatePwaNow();
               }}
             >
-              Update PWA
+              Update PWA Now
             </ToolbarActionButton>
           </ToolbarSection>
         )}
