@@ -1,4 +1,6 @@
 const PWA_URL = "https://kyorohiro.github.io/tetorica-deskel/demo/";
+const PWA_HOST = "kyorohiro.github.io"
+const PWA_PATH = "/tetorica-deskel/"
 
 function isPwaDistributionLocation() {
   const host = window.location.hostname;
@@ -9,8 +11,8 @@ function isPwaDistributionLocation() {
   //}
 
   return (
-    host === "kyorohiro.github.io" &&
-    path.startsWith("/tetorica-deskel/")
+    host === PWA_HOST &&
+    path.startsWith(PWA_PATH)
   );
 }
 
@@ -70,12 +72,94 @@ function showPwaLink(url: string) {
 //if (!isOfficialPwaHost()) {
 //  showPwaLink(PWA_URL);
 //}
+
+//
+//
+//
+async function updatePwaNow() {
+  if (!("serviceWorker" in navigator)) {
+    window.location.reload();
+    return;
+  }
+
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) {
+    window.location.reload();
+    return;
+  }
+
+  let reloading = false;
+  const reloadOnce = () => {
+    if (reloading) return;
+    reloading = true;
+    window.location.reload();
+  };
+
+  navigator.serviceWorker.addEventListener("controllerchange", reloadOnce, {
+    once: true,
+  });
+
+  // 手動で更新チェック
+  await reg.update();
+
+  // すでに waiting がいれば即切り替え
+  if (reg.waiting) {
+    reg.waiting.postMessage({ type: "SKIP_WAITING" });
+    return;
+  }
+
+  // 今 install 中なら、installed 後に切り替え
+  if (reg.installing) {
+    reg.installing.addEventListener("statechange", () => {
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+    });
+    return;
+  }
+
+  // 何も起きなければ通常リロード
+  window.location.reload();
+}
+
+async function hardResetPwa() {
+  if ("serviceWorker" in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map((r) => r.unregister()));
+  }
+
+  if ("caches" in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((k) => caches.delete(k)));
+  }
+
+  window.location.href = "/tetorica-deskel/demo/";
+}
+
+function isRunningAsPwa(): boolean {
+  const iosStandalone =
+    "standalone" in navigator && (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+  const displayModeStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: fullscreen)").matches ||
+    window.matchMedia("(display-mode: minimal-ui)").matches ||
+    window.matchMedia("(display-mode: window-controls-overlay)").matches;
+
+  return iosStandalone || displayModeStandalone;
+}
+
 export {
-    isOfficialPwaHost,
-    isPwaDistributionLocation,
-    shouldShowPwaLink,
-    showPwaLink,
-    PWA_URL
+  isOfficialPwaHost,
+  isPwaDistributionLocation,
+  shouldShowPwaLink,
+  showPwaLink,
+  PWA_URL,
+  PWA_HOST,
+  PWA_PATH,
+  updatePwaNow,
+  hardResetPwa,
+  isRunningAsPwa,
 }
 
 

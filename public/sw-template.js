@@ -10,28 +10,44 @@ const APP_SHELL = [
   "./icon-512x512.png",
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
-  self.skipWaiting();
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
+self.addEventListener("install", (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(APP_SHELL);
+    await self.skipWaiting();
+  })());
+});
+
+//
+// 更新ボタンで明示的に切り替えたい場合
+//self.addEventListener("install", (event) => {
+//  event.waitUntil(
+//    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+//  );
+//});
+//
+
+
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (!key.startsWith(CACHE_PREFIX)) return Promise.resolve();
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-          return Promise.resolve();
-        })
-      )
-    )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+
+    await Promise.all(
+      keys.map((key) => {
+        if (!key.startsWith(CACHE_PREFIX)) return Promise.resolve();
+        if (key === CACHE_NAME) return Promise.resolve();
+        return caches.delete(key);
+      })
+    );
+
+    await clients.claim();
+  })());
 });
 
 self.addEventListener("fetch", (event) => {
@@ -51,11 +67,13 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          if (response && response.ok) {
+          if (response?.ok) {
             const cloned = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, cloned);
-            });
+            event.waitUntil(
+              caches.open(CACHE_NAME).then((cache) => {
+                return cache.put(event.request, cloned);
+              })
+            );
           }
           return response;
         })
@@ -69,11 +87,13 @@ self.addEventListener("fetch", (event) => {
       if (cached) return cached;
 
       return fetch(event.request).then((response) => {
-        if (response && response.ok) {
+        if (response?.ok) {
           const cloned = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, cloned);
-          });
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => {
+              return cache.put(event.request, cloned);
+            })
+          );
         }
         return response;
       });
