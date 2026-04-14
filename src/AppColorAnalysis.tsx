@@ -58,7 +58,7 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
       colors01: props?.colors01 ?? colorsRef.current.colors01,
       colorAnalysisMode: props?.colorAnalysisMode ?? colorAnalysisMode,
     };
-    console.log(">>next", next);
+    //console.log(">>next", next);
     colorsRef.current = {
       colors: next.colors,
       colors01: next.colors01,

@@ -8,6 +8,7 @@ import {
 import { useDialog } from "./useDialog";
 import { useSyncExternalStore } from "react";
 import { canvasToBlob, getCurrentViewportSize, waitNextFrame } from "./utils";
+import { cleanupVideo } from "./nativeWebScreenshot";
 
 type CropImageResult = {
     blob: Blob;
@@ -18,6 +19,7 @@ type CropImageResult = {
 type AppBackgroundImageCanvasHandle = {
     hasImage: () => boolean;
     addImage: (data: Blob) => Promise<void>;
+    addVideo: (data: HTMLVideoElement) => Promise<void>;
     clear: () => Promise<void>;
     getCropImage: (rect: {
         x: number;
@@ -25,7 +27,7 @@ type AppBackgroundImageCanvasHandle = {
         width: number;
         height: number;
     }) => Promise<CropImageResult | null>;
-    getBlob: () => Promise<Blob| null | undefined>;
+    getBlob: () => Promise<Blob | null | undefined>;
 };
 
 const INITIAL_FIT_RATIO = 0.7;
@@ -35,7 +37,12 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
         const dialog = useDialog();
         const canvasRef = useRef<HTMLCanvasElement | null>(null);
         const wrapRef = useRef<HTMLDivElement | null>(null);
+
         const imageRef = useRef<ImageBitmap | null>(null);
+
+        // ★ 追加
+        const videoRef = useRef<HTMLVideoElement | null>(null);
+        const videoHostRef = useRef<HTMLDivElement | null>(null);
 
         const cssSizeRef = useRef({ width: 0, height: 0 });
         const dprRef = useRef(1);
@@ -46,6 +53,7 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
             drawHeight: 0,
             drawScale: 1,
         });
+
         const redrawAll = useCallback(() => {
             const canvas = canvasRef.current;
             if (!canvas) return;
@@ -58,18 +66,13 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
 
             if (width <= 0 || height <= 0) return;
 
-            // 内部ピクセル全体を消す
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // CSSピクセル基準に戻す
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
             const image = imageRef.current;
             if (!image) return;
 
-
-            //ctx.drawImage(image, x, y, drawWidth, drawHeight);
             const fitScale = Math.min(
                 width / image.width,
                 height / image.height,
@@ -106,11 +109,9 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
             dprRef.current = dpr;
             cssSizeRef.current = { width: cssWidth, height: cssHeight };
 
-            // CSS表示サイズを明示固定
             canvas.style.width = `${cssWidth}px`;
             canvas.style.height = `${cssHeight}px`;
 
-            // 内部解像度
             canvas.width = Math.floor(cssWidth * dpr);
             canvas.height = Math.floor(cssHeight * dpr);
 
@@ -118,31 +119,66 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
         }, [redrawAll]);
 
         useEffect(() => {
-            const onResize = () => {
-                resizeCanvas();
-            };
-
+            const onResize = () => resizeCanvas();
             onResize();
             window.addEventListener("resize", onResize);
-
-            return () => {
-                window.removeEventListener("resize", onResize);
-            };
+            return () => window.removeEventListener("resize", onResize);
         }, [resizeCanvas]);
-
 
         useImperativeHandle(
             ref,
             () => ({
-                hasImage: () => imageRef.current != undefined && imageRef.current != null,
-                getBlob: async () =>  {
+                hasImage: () =>
+                    imageRef.current != null || videoRef.current != null,
+
+                getBlob: async () => {
                     let canvas = canvasRef.current;
-                    if(canvas) {
-                        return canvasToBlob({canvas});
+                    if (canvas) {
+                        return canvasToBlob({ canvas });
                     } else {
                         return null;
                     }
                 },
+
+                // ★ ここが今回の本命
+                addVideo: async (data: HTMLVideoElement) => {
+                    await waitNextFrame();
+                    resizeCanvas();
+
+                    // image消す
+                    imageRef.current?.close?.();
+                    imageRef.current = null;
+
+                    // 既存video削除
+                    if (videoRef.current?.parentNode) {
+                        videoRef.current.parentNode.removeChild(videoRef.current);
+                    }
+
+                    const host = videoHostRef.current;
+                    if (!host) return;
+
+                    videoRef.current = data;
+
+                    data.style.position = "absolute";
+                    data.style.inset = "0";
+                    data.style.width = "100%";
+                    data.style.height = "100%";
+                    data.style.objectFit = "contain";
+                    data.style.pointerEvents = "none";
+                    data.muted = true;
+                    data.playsInline = true;
+
+                    host.innerHTML = "";
+                    host.appendChild(data);
+
+                    try {
+                        await data.play();
+                    } catch { }
+
+                    setBackgroundImageExists(true);
+                    redrawAll();
+                },
+
                 addImage: async (data: Blob) => {
                     console.log("> addImage ", data);
 
@@ -193,6 +229,16 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
 
                         imageRef.current?.close?.();
                         imageRef.current = nextImage;
+                        //
+                        //
+                        // video消す
+                        if (videoRef.current?.parentNode) {
+                            videoRef.current.parentNode.removeChild(videoRef.current);
+                        }
+                        cleanupVideo(videoRef.current);
+                        videoRef.current = null;
+                        //
+                        //
                         resizeCanvas();
                         setBackgroundImageExists(true);
                     } catch (e) {
@@ -200,92 +246,224 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
                         throw e;
                     }
                 },
+
                 clear: async () => {
                     imageRef.current?.close?.();
                     imageRef.current = null;
+
+                    if (videoRef.current) {
+                        const stream = videoRef.current.srcObject;
+                        if (stream instanceof MediaStream) {
+                            stream.getTracks().forEach((t) => t.stop());
+                        }
+
+                        videoRef.current.remove();
+                        videoRef.current = null;
+                    }
+
                     setBackgroundImageExists(false);
                     redrawAll();
-                    
                 },
-                getCropImage: async (rect) => {
+                getCropImage: async (_rect) => {
+                    console.log("> getCropImage", _rect);
+
                     const image = imageRef.current;
-                    if (!image) return null;
+                    if (image) {
+                        const draw = lastDrawRef.current;
+                        if (draw.drawWidth <= 0 || draw.drawHeight <= 0 || draw.drawScale <= 0) {
+                            console.log(">> invalid draw info");
+                            return null;
+                        }
 
-                    const draw = lastDrawRef.current;
-                    if (draw.drawWidth <= 0 || draw.drawHeight <= 0 || draw.drawScale <= 0) {
+                        const imageLeft = draw.x;
+                        const imageTop = draw.y;
+                        const imageRight = draw.x + draw.drawWidth;
+                        const imageBottom = draw.y + draw.drawHeight;
+
+                        const selLeft = _rect.x;
+                        const selTop = _rect.y;
+                        const selRight = _rect.x + _rect.width;
+                        const selBottom = _rect.y + _rect.height;
+
+                        const clippedLeft = Math.max(selLeft, imageLeft);
+                        const clippedTop = Math.max(selTop, imageTop);
+                        const clippedRight = Math.min(selRight, imageRight);
+                        const clippedBottom = Math.min(selBottom, imageBottom);
+
+                        const clippedWidth = clippedRight - clippedLeft;
+                        const clippedHeight = clippedBottom - clippedTop;
+
+                        if (clippedWidth <= 0 || clippedHeight <= 0) {
+                            console.log(">> clipped size <= 0");
+                            return null;
+                        }
+
+                        const srcX = Math.max(0, Math.floor((clippedLeft - draw.x) / draw.drawScale));
+                        const srcY = Math.max(0, Math.floor((clippedTop - draw.y) / draw.drawScale));
+                        const srcWidth = Math.min(
+                            image.width - srcX,
+                            Math.ceil(clippedWidth / draw.drawScale)
+                        );
+                        const srcHeight = Math.min(
+                            image.height - srcY,
+                            Math.ceil(clippedHeight / draw.drawScale)
+                        );
+
+                        if (srcWidth <= 0 || srcHeight <= 0) {
+                            console.log(">> src size <= 0");
+                            return null;
+                        }
+
+                        const canvas = document.createElement("canvas");
+                        canvas.width = srcWidth;
+                        canvas.height = srcHeight;
+
+                        const ctx = canvas.getContext("2d");
+                        if (!ctx) {
+                            console.log(">> ctx is null");
+                            return null;
+                        }
+
+                        ctx.drawImage(
+                            image,
+                            srcX,
+                            srcY,
+                            srcWidth,
+                            srcHeight,
+                            0,
+                            0,
+                            srcWidth,
+                            srcHeight
+                        );
+
+                        const blob = await new Promise<Blob | null>((resolve) =>
+                            canvas.toBlob(resolve, "image/png")
+                        );
+
+                        if (!blob) {
+                            console.log(">> blob is null");
+                            return null;
+                        }
+
+                        console.log(">> image crop", srcWidth, srcHeight);
+                        return {
+                            blob,
+                            width: srcWidth,
+                            height: srcHeight,
+                        };
+                    } else {
+                        const video = videoRef.current;
+                        const wrap = wrapRef.current;
+
+                        if (video && wrap) {
+                            const wrapRect = wrap.getBoundingClientRect();
+                            const wrapWidth = wrapRect.width;
+                            const wrapHeight = wrapRect.height;
+
+                            const videoWidth = video.videoWidth;
+                            const videoHeight = video.videoHeight;
+
+                            if (wrapWidth <= 0 || wrapHeight <= 0 || videoWidth <= 0 || videoHeight <= 0) {
+                                console.log(">> invalid video or wrap size");
+                                return null;
+                            }
+
+                            // CSS の objectFit: contain と同じ計算
+                            const fitScale = Math.min(
+                                wrapWidth / videoWidth,
+                                wrapHeight / videoHeight,
+                                1
+                            );
+
+                            const drawWidth = videoWidth * fitScale;
+                            const drawHeight = videoHeight * fitScale;
+                            const drawX = (wrapWidth - drawWidth) / 2;
+                            const drawY = (wrapHeight - drawHeight) / 2;
+
+                            // _rect は wrap 内座標
+                            const selLeft = _rect.x;
+                            const selTop = _rect.y;
+                            const selRight = _rect.x + _rect.width;
+                            const selBottom = _rect.y + _rect.height;
+
+                            // video の表示範囲と交差した部分だけ切り出す
+                            const videoLeft = drawX;
+                            const videoTop = drawY;
+                            const videoRight = drawX + drawWidth;
+                            const videoBottom = drawY + drawHeight;
+
+                            const clippedLeft = Math.max(selLeft, videoLeft);
+                            const clippedTop = Math.max(selTop, videoTop);
+                            const clippedRight = Math.min(selRight, videoRight);
+                            const clippedBottom = Math.min(selBottom, videoBottom);
+
+                            const clippedWidth = clippedRight - clippedLeft;
+                            const clippedHeight = clippedBottom - clippedTop;
+
+                            if (clippedWidth <= 0 || clippedHeight <= 0) {
+                                console.log(">> clipped video size <= 0");
+                                return null;
+                            }
+
+                            // wrap 内の表示座標 -> 元 video 座標へ逆変換
+                            const srcX = Math.max(0, Math.floor((clippedLeft - drawX) / fitScale));
+                            const srcY = Math.max(0, Math.floor((clippedTop - drawY) / fitScale));
+                            const srcWidth = Math.min(
+                                videoWidth - srcX,
+                                Math.ceil(clippedWidth / fitScale)
+                            );
+                            const srcHeight = Math.min(
+                                videoHeight - srcY,
+                                Math.ceil(clippedHeight / fitScale)
+                            );
+
+                            if (srcWidth <= 0 || srcHeight <= 0) {
+                                console.log(">> src video size <= 0");
+                                return null;
+                            }
+
+                            const canvas = document.createElement("canvas");
+                            canvas.width = srcWidth;
+                            canvas.height = srcHeight;
+
+                            const ctx = canvas.getContext("2d");
+                            if (!ctx) {
+                                console.log(">> ctx is null");
+                                return null;
+                            }
+
+                            ctx.drawImage(
+                                video,
+                                srcX,
+                                srcY,
+                                srcWidth,
+                                srcHeight,
+                                0,
+                                0,
+                                srcWidth,
+                                srcHeight
+                            );
+
+                            const blob = await new Promise<Blob | null>((resolve) =>
+                                canvas.toBlob(resolve, "image/png")
+                            );
+
+                            if (!blob) {
+                                console.log(">> blob is null");
+                                return null;
+                            }
+
+                            console.log(">> video crop", srcWidth, srcHeight);
+                            return {
+                                blob,
+                                width: srcWidth,
+                                height: srcHeight,
+                            };
+                        }
+
+                        console.log(">> return null");
                         return null;
                     }
-
-                    // 選択矩形を、表示中画像の範囲に合わせて画像座標へ逆変換
-                    const imageLeft = draw.x;
-                    const imageTop = draw.y;
-                    const imageRight = draw.x + draw.drawWidth;
-                    const imageBottom = draw.y + draw.drawHeight;
-
-                    const selLeft = rect.x;
-                    const selTop = rect.y;
-                    const selRight = rect.x + rect.width;
-                    const selBottom = rect.y + rect.height;
-
-                    // 画像の表示範囲と交差した部分だけ使う
-                    const clippedLeft = Math.max(selLeft, imageLeft);
-                    const clippedTop = Math.max(selTop, imageTop);
-                    const clippedRight = Math.min(selRight, imageRight);
-                    const clippedBottom = Math.min(selBottom, imageBottom);
-
-                    const clippedWidth = clippedRight - clippedLeft;
-                    const clippedHeight = clippedBottom - clippedTop;
-
-                    if (clippedWidth <= 0 || clippedHeight <= 0) {
-                        return null;
-                    }
-
-                    // CSS px -> 元画像 px
-                    const srcX = Math.max(0, Math.floor((clippedLeft - draw.x) / draw.drawScale));
-                    const srcY = Math.max(0, Math.floor((clippedTop - draw.y) / draw.drawScale));
-                    const srcWidth = Math.min(
-                        image.width - srcX,
-                        Math.ceil(clippedWidth / draw.drawScale)
-                    );
-                    const srcHeight = Math.min(
-                        image.height - srcY,
-                        Math.ceil(clippedHeight / draw.drawScale)
-                    );
-
-                    if (srcWidth <= 0 || srcHeight <= 0) {
-                        return null;
-                    }
-
-                    const outCanvas = document.createElement("canvas");
-                    outCanvas.width = srcWidth;
-                    outCanvas.height = srcHeight;
-
-                    const outCtx = outCanvas.getContext("2d");
-                    if (!outCtx) return null;
-
-                    outCtx.drawImage(
-                        image,
-                        srcX,
-                        srcY,
-                        srcWidth,
-                        srcHeight,
-                        0,
-                        0,
-                        srcWidth,
-                        srcHeight
-                    );
-
-                    const blob = await new Promise<Blob | null>((resolve) => {
-                        outCanvas.toBlob((b) => resolve(b), "image/png");
-                    });
-
-                    if (!blob) return null;
-
-                    return {
-                        blob,
-                        width: srcWidth,
-                        height: srcHeight,
-                    };
                 },
             }),
             [redrawAll, resizeCanvas]
@@ -296,7 +474,13 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
                 <div ref={wrapRef} className="absolute inset-0 overflow-hidden">
                     <canvas
                         ref={canvasRef}
-                        className="block"
+                        className="block absolute inset-0"
+                    />
+
+                    {/* ★ video表示レイヤー */}
+                    <div
+                        ref={videoHostRef}
+                        className="absolute inset-0 pointer-events-none"
                     />
                 </div>
             </div>
@@ -304,39 +488,29 @@ const AppBackgroundImageCanvas = forwardRef<AppBackgroundImageCanvasHandle, {}>(
     }
 );
 
-///---
-/// 外部と共有する状態
-///---
-let _sharedState: {
-  hasImage: boolean;
-} = { hasImage: false };
-
+/// --- state ---
+let _sharedState = { hasImage: false };
 const _sharedStateListeners = new Set<() => void>();
 
-function _sharedStateEmit() {
-  _sharedStateListeners.forEach((l) => l());
+function _emit() {
+    _sharedStateListeners.forEach((l) => l());
 }
 
 function setBackgroundImageExists(v: boolean) {
-  if (_sharedState.hasImage === v) return;
-
-  _sharedState = {
-    ..._sharedState,
-    hasImage: v,
-  };
-
-  _sharedStateEmit();
+    if (_sharedState.hasImage === v) return;
+    _sharedState = { hasImage: v };
+    _emit();
 }
 
 function useBackgroundImageState() {
-  return useSyncExternalStore(
-    (listener) => {
-      _sharedStateListeners.add(listener);
-      return () => _sharedStateListeners.delete(listener);
-    },
-    () => _sharedState
-  );
+    return useSyncExternalStore(
+        (listener) => {
+            _sharedStateListeners.add(listener);
+            return () => _sharedStateListeners.delete(listener);
+        },
+        () => _sharedState
+    );
 }
 
-export { AppBackgroundImageCanvas, useBackgroundImageState, setBackgroundImageExists };
+export { AppBackgroundImageCanvas, useBackgroundImageState };
 export type { AppBackgroundImageCanvasHandle };

@@ -4,7 +4,7 @@ import { CollapsibleToolbar, ModeButton } from "./AppDeskelToolbarParts";
 import { useDialog } from "./useDialog";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
 import { showToast } from "./toast";
-
+import { getVideo } from "./nativeWebScreenshot";
 type MeasureMode = "line" | "chain" | "setUnit" | "setVanishingPoint";
 type QuadMode = "off" | "view" | "apply";
 
@@ -47,8 +47,8 @@ function AppDeskelImageToolbar(props: {
   };
 
   const handleClearImage = async () => {
-    if (props.appBackgroundImageCanvasRef?.current) {   
-        await props.appBackgroundImageCanvasRef.current.clear();;
+    if (props.appBackgroundImageCanvasRef?.current) {
+      await props.appBackgroundImageCanvasRef.current.clear();;
     }
   };
 
@@ -92,6 +92,22 @@ function AppDeskelImageToolbar(props: {
         className="justify-center px-2 py-1"
       >
         Clear
+      </ModeButton>
+      {
+        //
+      }
+      <ModeButton
+        active={false}
+        onClick={async () => {
+          //props.setMeasureMode("setUnit");
+          //const data = await captureSelfAreaFromDisplaySurface(document.getElementById('root')!);
+          const data = await getVideo();
+          await props.appBackgroundImageCanvasRef!.current!.addVideo(data!);
+        }}
+        title="set unit"
+        className="justify-center px-2 py-1"
+      >
+        Capture
       </ModeButton>
     </CollapsibleToolbar>
   );
