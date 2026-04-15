@@ -15,7 +15,7 @@ import ScreenCaptureCanvas, { ScreenCaptureCanvasHandle } from "./AppScreenCaptu
 import { getAppWindow, isTauri } from "./native";
 import { AppBackgroundImageCanvas, AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { AppImportImage, AppImportImageHandle } from "./AppImportImage";
-import CameraDeskel from "./CameraDeskel";
+import CameraDeskel from "./AppCameraDeskel";
 
 export default function App() {
   const deskelRef = useRef<AppDeskelHandle | null>(null);
