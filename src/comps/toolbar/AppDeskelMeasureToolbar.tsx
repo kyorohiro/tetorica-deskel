@@ -1,4 +1,4 @@
-import { SubToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
+import { SubToolbar, ModeButton } from "../../parts/AppDeskelToolbarParts";
 
 type MeasureMode = "line" | "chain" | "setUnit" | "setVanishingPoint";
 type QuadMode = "off" | "view" | "apply";

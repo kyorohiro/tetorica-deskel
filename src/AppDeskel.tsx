@@ -21,12 +21,12 @@ import { getRectFromPoints } from "./utils";
 import { getTaurPlatformInfo } from "./native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { analyzeImageBlob } from "./colorAnalysis";
-import { AppDeskelMeasureToolbar } from "./AppDeskelMeasureToolbar";
-import { AppDeskelImageToolbar } from "./AppDeskelImageToolbar";
+import { AppDeskelMeasureToolbar } from "./comps/toolbar/AppDeskelMeasureToolbar";
+import { AppDeskelImageToolbar } from "./comps/toolbar/AppDeskelImageToolbar";
 import {
   AppDeskelCaptureToolbar,
   AppDeskelCaptureMode,
-} from "./AppDeskelCaptureToolbar";
+} from "./comps/toolbar/AppDeskelCaptureToolbar";
 
 import type {
   AppDeskelPoint,

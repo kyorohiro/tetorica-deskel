@@ -1,10 +1,10 @@
 import { RefObject } from "react";
-import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
-import { SubToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
-import { useDialog } from "./useDialog";
-import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
-import { showToast } from "./toast";
-import { getVideo } from "./nativeWebScreenshot";
+import { AppBackgroundImageCanvasHandle } from "../../AppBackgroundImageCanvas";
+import { SubToolbar, ModeButton } from "../../parts/AppDeskelToolbarParts";
+import { useDialog } from "../../useDialog";
+import { makeFilenameWithTimestamp, saveFileWithFallback } from "../../utils";
+import { showToast } from "../../toast";
+import { getVideo } from "../../nativeWebScreenshot";
 type MeasureMode = "line" | "chain" | "setUnit" | "setVanishingPoint";
 type QuadMode = "off" | "view" | "apply";
 

@@ -1,11 +1,11 @@
 import { RefObject } from "react";
-import { SubToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
-import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
-import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
-import { showToast } from "./toast";
+import { SubToolbar, ModeButton } from "../../parts/AppDeskelToolbarParts";
+import { ScreenCaptureCanvasHandle } from "../../AppScreenCaptureCanvas";
+import { makeFilenameWithTimestamp, saveFileWithFallback } from "../../utils";
+import { showToast } from "../../toast";
 import { Monitor, Image } from "lucide-react";
-import { isTauri } from "./native";
-import { appState, useAppState } from "./state";
+import { isTauri } from "../../native";
+import { appState, useAppState } from "../../state";
 
 type AppDeskelCaptureMode =
   | "none"
