@@ -35,10 +35,10 @@ import type {
   MeasureMode,
   QuadMode,
   SelectionRect,
-} from "../../types/DeskelToolHandler";
-import { MeasureHandler } from "../../types/MeasureHandler";
-import { CaptureHandler } from "../../types/CaptureHandler";
-import { ColorHandler } from "../../types/ColorHandler";
+} from "./appDeskelImpl/DeskelToolHandler";
+import { MeasureHandler } from "./appDeskelImpl/MeasureHandler";
+import { CaptureHandler } from "./appDeskelImpl/CaptureHandler";
+import { ColorHandler } from "./appDeskelImpl/ColorHandler";
 import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
 
 type AppDeskelHandle = {
