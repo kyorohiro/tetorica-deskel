@@ -1,9 +1,9 @@
 import { RefObject } from "react";
 import { AppBackgroundImageCanvasHandle } from "../../AppBackgroundImageCanvas";
 import { SubToolbar, ModeButton } from "../../parts/AppDeskelToolbarParts";
-import { useDialog } from "../../useDialog";
+import { useDialog } from "../utils/useDialog";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "../../utils";
-import { showToast } from "../../toast";
+import { showToast } from "../utils/toast";
 import { getVideo } from "../../natives/nativeWebScreenshot";
 type MeasureMode = "line" | "chain" | "setUnit" | "setVanishingPoint";
 type QuadMode = "off" | "view" | "apply";

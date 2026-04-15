@@ -5,7 +5,7 @@ import {
     useImperativeHandle,
     useRef,
 } from "react";
-import { useDialog } from "./useDialog";
+import { useDialog } from "./comps/utils/useDialog";
 import { useSyncExternalStore } from "react";
 import { canvasToBlob, getCurrentViewportSize, waitNextFrame } from "./utils";
 import { cleanupVideo } from "./natives/nativeWebScreenshot";

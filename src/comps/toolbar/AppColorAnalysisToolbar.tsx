@@ -4,7 +4,7 @@ import { handleExport } from "../../colorPalette";
 import { isTauri } from "../../natives/native";
 import { SubToolbar, toolbarButtonClass } from "../../parts/AppDeskelToolbarParts";
 import { AppColorAnalysisMode } from "../../colorAnalysisDarw";
-import { useDialog } from "../../useDialog";
+import { useDialog } from "../utils/useDialog";
 import { ColorCount } from "../../natives/nativeScreenshot";
 
 const AppColorAnalysisToolbar = (props: {

@@ -1,4 +1,4 @@
-import { showToast } from "../toast";
+import { showToast } from "../comps/utils/toast";
 import { toggleClickCursorThrough } from "../window";
 import {
   register,

@@ -14,8 +14,8 @@ import {
   captureAndCropToAnalysis,
   ColorCount,
 } from "./natives/nativeScreenshot";
-import { showToast } from "./toast";
-import { useDialog } from "./useDialog";
+import { showToast } from "./comps/utils/toast";
+import { useDialog } from "./comps/utils/useDialog";
 import { openPrivacySettings } from "./natives/nativePermissionCheck";
 import { getRectFromPoints } from "./utils";
 import { getTaurPlatformInfo } from "./natives/native";

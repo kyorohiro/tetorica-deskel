@@ -6,7 +6,7 @@ import {
 } from "react";
 import * as THREE from "three";
 import { CaptureMode } from "./state";
-import { useDialog } from "./useDialog";
+import { useDialog } from "./comps/utils/useDialog";
 import { normalizeToBytes } from "./utils";
 
 export type ScreenCaptureImage = {

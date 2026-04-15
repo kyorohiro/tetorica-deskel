@@ -1,12 +1,12 @@
 import { RefObject, useEffect, useState } from "react";
 import { saveSettings, appState, useAppState, ToolMode } from "../../state";
 import { setAlwaysOnTop, setClickThrough } from "../../window";
-import { showToast } from "../../toast";
+import { showToast } from "../utils/toast";
 import { Menu, MousePointerClick, Pin, Image, Monitor } from "lucide-react";
 import { isTauri } from "../../natives/native";
 import { AppBackgroundImageCanvasHandle } from "../../AppBackgroundImageCanvas";
 import { AppColorAnalysisHandle } from "../../AppColorAnalysis";
-import { isPwaDistributionLocation, isRunningAsPwa, PWA_URL, updatePwaNow } from "../../pwa";
+import { isPwaDistributionLocation, isRunningAsPwa, PWA_URL, updatePwaNow } from "../../natives/pwa";
 import { AppImportImageHandle } from "../../AppImportImage";
 
 

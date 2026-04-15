@@ -2,7 +2,7 @@ import { RefObject } from "react";
 import { SubToolbar, ModeButton } from "../../parts/AppDeskelToolbarParts";
 import { ScreenCaptureCanvasHandle } from "../../AppScreenCaptureCanvas";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "../../utils";
-import { showToast } from "../../toast";
+import { showToast } from "../utils/toast";
 import { Monitor, Image } from "lucide-react";
 import { isTauri } from "../../natives/native";
 import { appState, useAppState } from "../../state";

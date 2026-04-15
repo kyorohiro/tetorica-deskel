@@ -16,7 +16,7 @@ import {
 import { appState, useAppState } from "./state";
 import { RotateCcw, Scan } from "lucide-react";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
-import { useDialog } from "./useDialog";
+import { useDialog } from "./comps/utils/useDialog";
 import { captureAndCrop } from "./natives/nativeScreenshot";
 import { isTauri } from "./natives/native";
 

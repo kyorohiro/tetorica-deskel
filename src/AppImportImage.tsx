@@ -1,6 +1,6 @@
 import { forwardRef, RefObject, useImperativeHandle } from "react"
 import { isTauri } from "./natives/native";
-import { useDialog } from "./useDialog";
+import { useDialog } from "./comps/utils/useDialog";
 import { AppBackgroundImageCanvasHandle, useBackgroundImageState } from "./AppBackgroundImageCanvas";
 
 export type AppImportImageHandle = {
