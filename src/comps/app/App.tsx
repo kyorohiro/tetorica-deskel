@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react"
 //import { showToolbar, initToolbar } from "./toolbar"
-import { updateWindowTitle } from "../../window";
+import { updateWindowTitle } from "../../natives/nativeWindow";
 import { setupShortcuts } from "../../natives/nativeShortcut";
 
 import "../../style.css"

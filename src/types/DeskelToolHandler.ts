@@ -1,5 +1,5 @@
 import type { MutableRefObject } from "react";
-import { ToolMode } from "./state";
+import { ToolMode } from "../state";
 
 export type AppDeskelPoint = { x: number; y: number };
 

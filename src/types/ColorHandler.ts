@@ -1,10 +1,10 @@
-import { drawClipRect } from "./algos/deskelClipRect";
+import { drawClipRect } from "../algos/deskelClipRect";
 import type {
   DeskelToolContext,
   DeskelToolHandler,
 } from "./DeskelToolHandler";
 
-export class CaptureHandler implements DeskelToolHandler {
+export class ColorHandler implements DeskelToolHandler {
   redraw(ctx: DeskelToolContext) {
     drawClipRect({
       canvas: ctx.canvas,
@@ -34,9 +34,9 @@ export class CaptureHandler implements DeskelToolHandler {
     if (!rect) return;
 
     if (ctx.state.target === "image") {
-      await ctx.captureFromImage(rect);
+      await ctx.analyzeFromImage(rect);
     } else {
-      await ctx.captureFromScreen(rect);
+      await ctx.analyzeFromScreen(rect);
     }
   }
 

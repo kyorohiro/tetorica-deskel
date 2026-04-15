@@ -7,7 +7,7 @@ import {
 } from "react";
 import { useDialog } from "../utils/useDialog";
 import { useSyncExternalStore } from "react";
-import { canvasToBlob, getCurrentViewportSize, waitNextFrame } from "../../utils";
+import { canvasToBlob, getCurrentViewportSize, waitNextFrame } from "../../algos/utils";
 import { cleanupVideo } from "../../natives/nativeWebScreenshot";
 
 type CropImageResult = {

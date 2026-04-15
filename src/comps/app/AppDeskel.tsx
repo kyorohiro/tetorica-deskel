@@ -17,7 +17,7 @@ import {
 import { showToast } from "../utils/toast";
 import { useDialog } from "../utils/useDialog";
 import { openPrivacySettings } from "../../natives/nativePermissionCheck";
-import { getRectFromPoints } from "../../utils";
+import { getRectFromPoints } from "../../algos/utils";
 import { getTaurPlatformInfo } from "../../natives/native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { analyzeImageBlob } from "../../algos/colorAnalysis";
@@ -35,10 +35,10 @@ import type {
   MeasureMode,
   QuadMode,
   SelectionRect,
-} from "../../DeskelToolHandler";
-import { MeasureHandler } from "../../MeasureHandler";
-import { CaptureHandler } from "../../CaptureHandler";
-import { ColorHandler } from "../../ColorHandler";
+} from "../../types/DeskelToolHandler";
+import { MeasureHandler } from "../../types/MeasureHandler";
+import { CaptureHandler } from "../../types/CaptureHandler";
+import { ColorHandler } from "../../types/ColorHandler";
 import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
 
 type AppDeskelHandle = {

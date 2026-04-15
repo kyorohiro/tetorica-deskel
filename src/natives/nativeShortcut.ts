@@ -1,5 +1,5 @@
 import { showToast } from "../comps/utils/toast";
-import { toggleClickCursorThrough } from "../window";
+import { toggleClickCursorThrough } from "./nativeWindow";
 import {
   register,
   unregisterAll,

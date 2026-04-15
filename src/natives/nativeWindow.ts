@@ -1,7 +1,7 @@
-import { appState } from "./state";
-import { TOGGLE_CLICK_SHORTCUT } from "./natives/nativeShortcut";
+import { appState } from "../state";
+import { TOGGLE_CLICK_SHORTCUT } from "./nativeShortcut";
 //import { showToolbar, hideToolbarSoon } from "./toolbar";
-import { getAppWindow } from "./natives/native";
+import { getAppWindow } from "./native";
 
 //const win = getCurrentWindow();
 

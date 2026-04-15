@@ -7,7 +7,7 @@ import {
 import * as THREE from "three";
 import { CaptureMode } from "../../state";
 import { useDialog } from "../utils/useDialog";
-import { normalizeToBytes } from "../../utils";
+import { normalizeToBytes } from "../../algos/utils";
 
 export type ScreenCaptureImage = {
   path?: string;
