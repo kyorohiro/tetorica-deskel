@@ -254,53 +254,58 @@ function AppSimpleDrawCanvas() {
     }, []);
 
     return (
-        <div
-            className="fixed inset-0 z-0 select-none"
-            style={{
-                userSelect: "none",
-                WebkitUserSelect: "none",
-                WebkitTouchCallout: "none",
-            }}
-        >
-            <div className="h-screen w-screen text-slate-50">
-                <div className="flex h-full w-full flex-col">
-                    <div className="flex-1 p-0">
-                        <div className="h-full w-full rounded-2xl border border-slate-800 shadow-xl">
-                            <div className="flex h-full w-full flex-col space-y-0 p-0">
-                                <div
-                                    ref={wrapRef}
-                                    className="min-h-0 flex-1 rounded-2xl border border-slate-800 p-0 m-1"
-                                >
-                                    <canvas
-                                        ref={canvasRef}
-                                        onPointerDown={onPointerDown}
-                                        onPointerMove={onPointerMove}
-                                        onPointerUp={onPointerUp}
-                                        onPointerCancel={endDraw}
-                                        className="block h-full w-full touch-none rounded-xl"
-                                    />
+        <>
+            <div
+                className="fixed inset-0 z-0 select-none"
+                style={{
+                    userSelect: "none",
+                    WebkitUserSelect: "none",
+                    WebkitTouchCallout: "none",
+                }}
+            >
+                <div className="h-screen w-screen text-slate-50">
+                    <div className="flex h-full w-full flex-col">
+                        <div className="flex-1 p-0">
+                            <div className="h-full w-full rounded-2xl border border-slate-800 shadow-xl">
+                                <div className="flex h-full w-full flex-col space-y-0 p-0">
+                                    <div
+                                        ref={wrapRef}
+                                        className="min-h-0 flex-1 rounded-2xl border border-slate-800 p-0 m-1"
+                                    >
+                                        <canvas
+                                            ref={canvasRef}
+                                            onPointerDown={onPointerDown}
+                                            onPointerMove={onPointerMove}
+                                            onPointerUp={onPointerUp}
+                                            onPointerCancel={endDraw}
+                                            className="block h-full w-full touch-none rounded-xl"
+                                        />
+                                    </div>
+                                    {
+                                        
+                                    }
                                 </div>
-                                {
-                                    // Subtoolbar
-                                    <AppDeskelDrawToolbar
-                                        color={color}
-                                        setColor={async (v) => { setColor(v) }}
-                                        tool={tool}
-                                        setTool={async (v) => { setTool(v) }}
-                                        drawToolbarOpen={drawToolbarOpen}
-                                        setDrawToolbarOpen={async (v) => setDrawToolbarOpen(v)}
-                                        toolMode={state.tool}
-                                        undo={() => { undo() }}
-                                        hasUndo={strokes.length >= 0}
-                                        clearAll={() => { clearAll() }}
-                                    />
-                                }
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+            {
+                // Subtoolbar
+                <AppDeskelDrawToolbar
+                    color={color}
+                    setColor={async (v) => { setColor(v) }}
+                    tool={tool}
+                    setTool={async (v) => { setTool(v) }}
+                    drawToolbarOpen={drawToolbarOpen}
+                    setDrawToolbarOpen={async (v) => setDrawToolbarOpen(v)}
+                    toolMode={state.tool}
+                    undo={() => { undo() }}
+                    hasUndo={strokes.length >= 0}
+                    clearAll={() => { clearAll() }}
+                />
+            }
+        </>
     );
 }
 

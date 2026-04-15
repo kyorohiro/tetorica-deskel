@@ -113,13 +113,26 @@ function hslaToRgba({ h, s, l, a }: Hsla): Rgba {
   }
 }
 
-function makeShadowColorFromGrid(h: number, s: number, l: number, a: number) {
-  const shadowH = (h + 180) % 360
-  const shadowS = s * 0.55
-  const shadowL = Math.max(l, 70) // HSLのLを0-100で扱う想定
-  return { h: shadowH, s: shadowS, l: shadowL, a }
-}
+//function makeShadowColorFromGrid(h: number, s: number, l: number, a: number) {
+//  const shadowH = (h + 180) % 360
+//  const shadowS = s * 0.55
+//  const shadowL = Math.max(l, 70) // HSLのLを0-100で扱う想定
+//  return { h: shadowH, s: shadowS, l: shadowL, a }
+//}
 
+
+function makeShadowColorFromGrid(h: number, s: number, l: number, a: number) {
+  const shadowH = (h + 180) % 360;
+  //const shadowH = (h + 140) % 360;
+
+  // 彩度をかなり落とす
+  const shadowS = Math.abs(100-s)
+
+  // 元が明るいなら暗く、元が暗いなら明るく
+  const shadowL = Math.abs(100-l)
+
+  return { h: shadowH, s: shadowS, l: shadowL, a};
+}
 export {
     hexToRgba,
       makeShadowColorFromGrid,
