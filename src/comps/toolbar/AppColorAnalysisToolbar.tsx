@@ -3,7 +3,7 @@ import { Download, BrushCleaning, Monitor, Image } from "lucide-react";
 import { handleExport } from "../../algos/colorPalette";
 import { isTauri } from "../../natives/native";
 import { SubToolbar, toolbarButtonClass } from "../../parts/AppDeskelToolbarParts";
-import { AppColorAnalysisMode } from "../../colorAnalysisDarw";
+import { AppColorAnalysisMode } from "../../algos/colorAnalysisDarw";
 import { useDialog } from "../utils/useDialog";
 import { ColorCount } from "../../natives/nativeScreenshot";
 

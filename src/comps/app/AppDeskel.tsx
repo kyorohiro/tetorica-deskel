@@ -20,7 +20,7 @@ import { openPrivacySettings } from "../../natives/nativePermissionCheck";
 import { getRectFromPoints } from "../../utils";
 import { getTaurPlatformInfo } from "../../natives/native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
-import { analyzeImageBlob } from "../../colorAnalysis";
+import { analyzeImageBlob } from "../../algos/colorAnalysis";
 import { AppDeskelMeasureToolbar } from "../toolbar/AppDeskelMeasureToolbar";
 import { AppDeskelImageToolbar } from "../toolbar/AppDeskelImageToolbar";
 import {

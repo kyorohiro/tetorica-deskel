@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { ColorCount } from "../../natives/nativeScreenshot";
-import { AppColorAnalysisMode, drawColorAnalysisChart, RedrawParams } from "../../colorAnalysisDarw";
+import { AppColorAnalysisMode, drawColorAnalysisChart, RedrawParams } from "../../algos/colorAnalysisDarw";
 import { AppColorAnalysisToolbar } from "../toolbar/AppColorAnalysisToolbar";
 
 type AppColorAnalysisHandle = {
