@@ -1,5 +1,5 @@
 import { RefObject } from "react";
-import { CollapsibleToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
+import { SubToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
 import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
 import { showToast } from "./toast";
@@ -55,7 +55,7 @@ function AppDeskelCaptureToolbar(props: {
     return;
   }
   return (
-    <CollapsibleToolbar
+    <SubToolbar
       open={props.open}
       onToggle={props.onToggle}
       hidden={!props.visible}
@@ -133,7 +133,7 @@ function AppDeskelCaptureToolbar(props: {
       {
         //
       }
-    </CollapsibleToolbar>
+    </SubToolbar>
   );
 }
 

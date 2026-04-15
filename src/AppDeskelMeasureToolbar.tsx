@@ -1,4 +1,4 @@
-import { CollapsibleToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
+import { SubToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
 
 type MeasureMode = "line" | "chain" | "setUnit" | "setVanishingPoint";
 type QuadMode = "off" | "view" | "apply";
@@ -14,7 +14,7 @@ function AppDeskelMeasureToolbar(props: {
   onApplyQuad?: () => void;
 }) {
   return (
-    <CollapsibleToolbar
+    <SubToolbar
       open={props.open}
       onToggle={props.onToggle}
       hidden={!props.visible}
@@ -91,7 +91,7 @@ function AppDeskelMeasureToolbar(props: {
           </div>
         </div>
       </div>
-    </CollapsibleToolbar>
+    </SubToolbar>
   );
 }
 

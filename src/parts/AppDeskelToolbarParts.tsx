@@ -30,7 +30,7 @@ function ModeButton(props: {
   );
 }
 
-function CollapsibleToolbar(props: {
+function SubToolbar(props: {
   open: boolean;
   onToggle: () => void;
   hidden: boolean;
@@ -40,6 +40,8 @@ function CollapsibleToolbar(props: {
     <div
       className={`fixed bottom-4 right-4 z-9999 items-end gap-2 ${
         props.hidden ? "hidden" : "flex"
+      } ${
+        props.hidden ? "pointer-events-none" : "pointer-events-auto" }
       }`}
     >
       <button
@@ -74,4 +76,4 @@ function toolbarButtonClass(active = false) {
     : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
     }`;
 }
-export { ModeButton, CollapsibleToolbar, toolbarButtonClass };
+export { ModeButton, SubToolbar, toolbarButtonClass };
