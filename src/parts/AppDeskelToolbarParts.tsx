@@ -64,4 +64,14 @@ function CollapsibleToolbar(props: {
   );
 }
 
-export { ModeButton, CollapsibleToolbar };
+//
+const toolbarButtonBase =
+  "flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none";
+
+function toolbarButtonClass(active = false) {
+  return `${toolbarButtonBase} ${active
+    ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+    : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
+    }`;
+}
+export { ModeButton, CollapsibleToolbar, toolbarButtonClass };

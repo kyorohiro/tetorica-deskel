@@ -12,22 +12,13 @@ import { useDialog } from "./useDialog";
 import { handleExport } from "./colorPalette";
 import { AppColorAnalysisMode, drawColorAnalysisChart, RedrawParams } from "./colorAnalysisDarw";
 import { isTauri } from "./native";
+import { toolbarButtonClass } from "./parts/AppDeskelToolbarParts";
 
 type AppColorAnalysisHandle = {
   redraw: (props?: { colors: ColorCount[]; colors01: ColorCount[] }) => void;
   setVisible: (visible: boolean) => void;
   getCanvas: () => HTMLCanvasElement | null;
 };
-
-const toolbarButtonBase =
-  "flex items-center gap-2 rounded-2xl border px-2 py-2 m-0.5 text-xs transition-colors outline-none";
-
-function toolbarButtonClass(active = false) {
-  return `${toolbarButtonBase} ${active
-    ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-    : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 active:bg-slate-700"
-    }`;
-}
 
 const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -208,10 +199,10 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
                           appState.setTarget(mode);
                         }}
                       >
-                        {mode === "image" ? <Image size={12} /> :<Monitor size={12} />}
-                         <span className="text-xs px-1 sm:hidden">{mode}</span>
+                        {mode === "image" ? <Image size={12} /> : <Monitor size={12} />}
+                        <span className="text-xs px-1 sm:hidden">{mode}</span>
                       </button>
-                     
+
                     ))}
                   </div>
                 </div>
