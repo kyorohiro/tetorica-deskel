@@ -8,6 +8,7 @@ import {
     PenLine
 } from "lucide-react";
 import { useAppState } from "./state";
+import { SubToolbar } from "./parts/AppDeskelToolbarParts";
 
 type Tool = "pen" | "eraser" | "line";
 
@@ -286,100 +287,78 @@ function AppSimpleDrawCanvas() {
                                         className="block h-full w-full touch-none rounded-xl"
                                     />
                                 </div>
+                                <SubToolbar open={drawToolbarOpen} onToggle={() => { setDrawToolbarOpen(!drawToolbarOpen) }} hidden={state.tool !== "draw"}>
 
-                                <div
-                                    className={`fixed bottom-4 right-4 z-9999 flex items-end gap-2 ${state.tool === "draw" ? "flex" : "hidden"}`}
-                                >
                                     <button
-                                        className="rounded-2xl border border-slate-700 bg-slate-900/90 px-3 py-3 text-xs text-slate-100 shadow-xl transition-colors hover:bg-slate-800"
-                                        onClick={() => {
-                                            console.log(">>>> colorToolbarOpen---", drawToolbarOpen)
-                                            setDrawToolbarOpen(!drawToolbarOpen)
-                                        }}
-                                        title="toggle measure toolbar"
-                                        aria-label="toggle measure toolbar"
-                                    >
-                                        {drawToolbarOpen ? ">" : "<"}
-                                    </button>
-                                    <div
-                                        className={`overflow-hidden rounded-2xl bg-slate-950/80 shadow-xl backdrop-blur transition-all duration-200 ${drawToolbarOpen
-                                            ? "max-w-[1000px] opacity-100 translate-x-0 border border-slate-800"
-                                            : "max-w-0 opacity-0 translate-x-2 border border-transparent"
+                                        className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "pen"
+                                            ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                                            : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
                                             }`}
+                                        onClick={() => setTool("pen")}
+                                        title="ペン"
+                                        aria-label="ペン"
                                     >
-                                        <div className="flex flex-col gap-1 p-1 sm:flex-row sm:flex-wrap">
-                                            <button
-                                                className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "pen"
-                                                    ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                                                    : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
-                                                    }`}
-                                                onClick={() => setTool("pen")}
-                                                title="ペン"
-                                                aria-label="ペン"
-                                            >
-                                                <Pencil size={12} />
-                                            </button>
-                                            <button
-                                                className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "line"
-                                                    ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                                                    : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
-                                                    }`}
-                                                onClick={() => setTool("line")}
-                                                title="line"
-                                                aria-label="line"
-                                            >
-                                                <PenLine size={12} />
-                                            </button>
-                                            <button
-                                                className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "eraser"
-                                                    ? "border-emerald-500 bg-emerald-950 text-emerald-300"
-                                                    : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
-                                                    }`}
-                                                onClick={() => setTool("eraser")}
-                                                title="消しゴム"
-                                                aria-label="消しゴム"
-                                            >
-                                                <Eraser size={12} />
-                                            </button>
+                                        <Pencil size={12} />
+                                    </button>
+                                    <button
+                                        className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "line"
+                                            ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                                            : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                                            }`}
+                                        onClick={() => setTool("line")}
+                                        title="line"
+                                        aria-label="line"
+                                    >
+                                        <PenLine size={12} />
+                                    </button>
+                                    <button
+                                        className={`rounded-2xl border px-2 py-1 m-0.5 text-xs  ${tool === "eraser"
+                                            ? "border-emerald-500 bg-emerald-950 text-emerald-300"
+                                            : "border-slate-700 bg-slate-900 text-slate-100 hover:bg-slate-800"
+                                            }`}
+                                        onClick={() => setTool("eraser")}
+                                        title="消しゴム"
+                                        aria-label="消しゴム"
+                                    >
+                                        <Eraser size={12} />
+                                    </button>
 
-                                            <label
-                                                className="flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950 px-2 py-1 m-0.5 text-xs "
-                                                title="色"
-                                                aria-label="色"
-                                            >
-                                                <div className="relative flex items-center justify-center">
-                                                    <Palette size={18} className="pointer-events-none" color={color} />
-                                                    <input
-                                                        type="color"
-                                                        value={color}
-                                                        onChange={(e) => setColor(e.target.value)}
-                                                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                                                    //disabled={tool === "eraser"}
-                                                    />
-                                                </div>
-                                            </label>
-
-                                            <button
-                                                className="rounded-2xl border border-slate-700 bg-slate-900 px-2 py-1 m-0.5 text-xs  text-slate-100 hover:bg-slate-800 disabled:opacity-40"
-                                                onClick={undo}
-                                                disabled={strokes.length === 0}
-                                                title="1つ戻す"
-                                                aria-label="1つ戻す"
-                                            >
-                                                <Undo2 size={12} />
-                                            </button>
-
-                                            <button
-                                                className="rounded-2xl border border-slate-700 bg-slate-900 px-2 py-1 m-0.5 text-xs  text-slate-100 hover:bg-slate-800"
-                                                onClick={clearAll}
-                                                title="クリア"
-                                                aria-label="クリア"
-                                            >
-                                                <Trash2 size={12} />
-                                            </button>
+                                    <label
+                                        className="flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950 px-2 py-1 m-0.5 text-xs "
+                                        title="色"
+                                        aria-label="色"
+                                    >
+                                        <div className="relative flex items-center justify-center">
+                                            <Palette size={18} className="pointer-events-none" color={color} />
+                                            <input
+                                                type="color"
+                                                value={color}
+                                                onChange={(e) => setColor(e.target.value)}
+                                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                            //disabled={tool === "eraser"}
+                                            />
                                         </div>
-                                    </div>
-                                </div>
+                                    </label>
+
+                                    <button
+                                        className="rounded-2xl border border-slate-700 bg-slate-900 px-2 py-1 m-0.5 text-xs  text-slate-100 hover:bg-slate-800 disabled:opacity-40"
+                                        onClick={undo}
+                                        disabled={strokes.length === 0}
+                                        title="1つ戻す"
+                                        aria-label="1つ戻す"
+                                    >
+                                        <Undo2 size={12} />
+                                    </button>
+
+                                    <button
+                                        className="rounded-2xl border border-slate-700 bg-slate-900 px-2 py-1 m-0.5 text-xs  text-slate-100 hover:bg-slate-800"
+                                        onClick={clearAll}
+                                        title="クリア"
+                                        aria-label="クリア"
+                                    >
+                                        <Trash2 size={12} />
+                                    </button>
+                                </SubToolbar>
                             </div>
                         </div>
                     </div>
