@@ -236,19 +236,19 @@ mv /tmp/butler/butler ~/bin/butler
 ``` 
 % sh deploy_mac.sh
 % ~/bin/butler login
-% ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.14.16_aarch64.dmg kyorohiro/tetorica-deskel:mac-apple-silicon --userversion 0.14.16
+% ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.15.1_aarch64.dmg kyorohiro/tetorica-deskel:mac-apple-silicon --userversion 0.15.1
 
-% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.14.16_x64.dmg kyorohiro/tetorica-deskel:mac-intel --userversion 0.14.16
+% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.15.1_x64.dmg kyorohiro/tetorica-deskel:mac-intel --userversion 0.15.1
 
-% ~/bin/butler push "tetorica-deskel_0.14.16_x64-setup.exe" kyorohiro/tetorica-deskel:windows --userversion 0.14.16
+% ~/bin/butler push "tetorica-deskel_0.15.1_x64-setup.exe" kyorohiro/tetorica-deskel:windows --userversion 0.15.1
 ```
 
 ```
- ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.14.16_aarch64.dmg kyorohiro/tetorica-deskel:mac-apple-silicon-prelease --userversion 0.14.16
+ ~/bin/butler push src-tauri/target/release/bundle/dmg/tetorica-deskel_0.15.1_aarch64.dmg kyorohiro/tetorica-deskel:mac-apple-silicon-prelease --userversion 0.15.1
 
-% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.14.16_x64.dmg kyorohiro/tetorica-deskel:mac-intel-prelease --userversion 0.14.16
+% ~/bin/butler push src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/tetorica-deskel_0.15.1_x64.dmg kyorohiro/tetorica-deskel:mac-intel-prelease --userversion 0.15.1
 
-% ~/bin/butler push "tetorica-deskel_0.14.16_x64-setup.exe" kyorohiro/tetorica-deskel:windows-prelease --userversion 0.14.16
+% ~/bin/butler push "tetorica-deskel_0.15.1_x64-setup.exe" kyorohiro/tetorica-deskel:windows-prelease --userversion 0.15.1
 ```
 
 
@@ -257,7 +257,7 @@ mv /tmp/butler/butler ~/bin/butler
 ```
 npm run build:web
 cd dist
-zip -r ../web-build_0.14.16.zip .
+zip -r ../web-build_0.15.1.zip .
 ```
 
 ### For github pages (pwa)
@@ -265,5 +265,5 @@ zip -r ../web-build_0.14.16.zip .
 ```
 npm run build:gh
 cd dist
-zip -r ../web-build_0.14.16_gh.zip .
+zip -r ../web-build_0.15.1_gh.zip .
 ```
