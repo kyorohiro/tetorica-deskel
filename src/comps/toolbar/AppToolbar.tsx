@@ -3,7 +3,7 @@ import { saveSettings, appState, useAppState, ToolMode } from "../../state";
 import { setAlwaysOnTop, setClickThrough } from "../../window";
 import { showToast } from "../../toast";
 import { Menu, MousePointerClick, Pin, Image, Monitor } from "lucide-react";
-import { isTauri } from "../../native";
+import { isTauri } from "../../natives/native";
 import { AppBackgroundImageCanvasHandle } from "../../AppBackgroundImageCanvas";
 import { AppColorAnalysisHandle } from "../../AppColorAnalysis";
 import { isPwaDistributionLocation, isRunningAsPwa, PWA_URL, updatePwaNow } from "../../pwa";

@@ -13,12 +13,12 @@ import {
   captureAndCrop,
   captureAndCropToAnalysis,
   ColorCount,
-} from "./nativeScreenshot";
+} from "./natives/nativeScreenshot";
 import { showToast } from "./toast";
 import { useDialog } from "./useDialog";
-import { openPrivacySettings } from "./nativePermissionCheck";
+import { openPrivacySettings } from "./natives/nativePermissionCheck";
 import { getRectFromPoints } from "./utils";
-import { getTaurPlatformInfo } from "./native";
+import { getTaurPlatformInfo } from "./natives/native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { analyzeImageBlob } from "./colorAnalysis";
 import { AppDeskelMeasureToolbar } from "./comps/toolbar/AppDeskelMeasureToolbar";

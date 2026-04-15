@@ -1,11 +1,11 @@
 import { appState, useAppState } from "../../state";
 import { Download, BrushCleaning, Monitor, Image } from "lucide-react";
 import { handleExport } from "../../colorPalette";
-import { isTauri } from "../../native";
+import { isTauri } from "../../natives/native";
 import { SubToolbar, toolbarButtonClass } from "../../parts/AppDeskelToolbarParts";
 import { AppColorAnalysisMode } from "../../colorAnalysisDarw";
 import { useDialog } from "../../useDialog";
-import { ColorCount } from "../../nativeScreenshot";
+import { ColorCount } from "../../natives/nativeScreenshot";
 
 const AppColorAnalysisToolbar = (props: {
   colorToolbarOpen: boolean,

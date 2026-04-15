@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { DialogProvider } from './useDialog';
-import { isTauri } from './native';
+import { isTauri } from './natives/native';
 import { isPwaDistributionLocation } from './pwa';
 
 if ("serviceWorker" in navigator && !isTauri() && isPwaDistributionLocation()) {

@@ -1,4 +1,4 @@
-import { ColorCount } from "./nativeScreenshot";
+import { ColorCount } from "./natives/nativeScreenshot";
 
 type AppColorAnalysisMode = "hue-saturation" | "hue-lightness";
 

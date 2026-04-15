@@ -17,8 +17,8 @@ import { appState, useAppState } from "./state";
 import { RotateCcw, Scan } from "lucide-react";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
 import { useDialog } from "./useDialog";
-import { captureAndCrop } from "./nativeScreenshot";
-import { isTauri } from "./native";
+import { captureAndCrop } from "./natives/nativeScreenshot";
+import { isTauri } from "./natives/native";
 
 type GridMode = "none" | "cross" | "rule3" | "rule4" | "rule9";
 type SourceType = "none" | "camera" | "image" | "video";

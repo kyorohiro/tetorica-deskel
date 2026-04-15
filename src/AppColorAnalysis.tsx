@@ -5,9 +5,7 @@ import {
   useCallback,
   useState,
 } from "react";
-import { ColorCount } from "./nativeScreenshot";
-import { useAppState } from "./state";
-import { useDialog } from "./useDialog";
+import { ColorCount } from "./natives/nativeScreenshot";
 import { AppColorAnalysisMode, drawColorAnalysisChart, RedrawParams } from "./colorAnalysisDarw";
 import { AppColorAnalysisToolbar } from "./comps/toolbar/AppColorAnalysisToolbar";
 
@@ -28,8 +26,6 @@ const AppColorAnalysis = forwardRef<AppColorAnalysisHandle, {}>(function (_, ref
   const [colorAnalysisMode, setColorAnalysisMode] =
     useState<AppColorAnalysisMode>("hue-saturation");
   const [colorToolbarOpen, setColorToolbarOpen] = useState(true);
-
-  const dialog = useDialog();
 
   const setVisible = useCallback((visible: boolean) => {
     if (!rootRef.current) return;

@@ -124,7 +124,7 @@ function normalizeToBytes(buffer: unknown): Uint8Array {
 }
 
 import { save } from "@tauri-apps/plugin-dialog";
-import { writeFileForNative } from "./native";
+import { writeFileForNative } from "./natives/native";
 
 
 function isTauri() {
