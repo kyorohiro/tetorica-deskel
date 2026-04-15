@@ -4,10 +4,10 @@ import { setAlwaysOnTop, setClickThrough } from "../../window";
 import { showToast } from "../utils/toast";
 import { Menu, MousePointerClick, Pin, Image, Monitor } from "lucide-react";
 import { isTauri } from "../../natives/native";
-import { AppBackgroundImageCanvasHandle } from "../../AppBackgroundImageCanvas";
-import { AppColorAnalysisHandle } from "../../AppColorAnalysis";
+import { AppBackgroundImageCanvasHandle } from "../app/AppBackgroundImageCanvas";
+import { AppColorAnalysisHandle } from "../app/AppColorAnalysis";
 import { isPwaDistributionLocation, isRunningAsPwa, PWA_URL, updatePwaNow } from "../../natives/pwa";
-import { AppImportImageHandle } from "../../AppImportImage";
+import { AppImportImageHandle } from "../app/AppImportImage";
 
 
 function ToolbarSection(props: {

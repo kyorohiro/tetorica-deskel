@@ -5,10 +5,10 @@ import {
     useImperativeHandle,
     useRef,
 } from "react";
-import { useDialog } from "./comps/utils/useDialog";
+import { useDialog } from "../utils/useDialog";
 import { useSyncExternalStore } from "react";
-import { canvasToBlob, getCurrentViewportSize, waitNextFrame } from "./utils";
-import { cleanupVideo } from "./natives/nativeWebScreenshot";
+import { canvasToBlob, getCurrentViewportSize, waitNextFrame } from "../../utils";
+import { cleanupVideo } from "../../natives/nativeWebScreenshot";
 
 type CropImageResult = {
     blob: Blob;

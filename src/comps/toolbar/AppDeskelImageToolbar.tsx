@@ -1,5 +1,5 @@
 import { RefObject } from "react";
-import { AppBackgroundImageCanvasHandle } from "../../AppBackgroundImageCanvas";
+import { AppBackgroundImageCanvasHandle } from "../app/AppBackgroundImageCanvas";
 import { SubToolbar, ModeButton } from "../../parts/AppDeskelToolbarParts";
 import { useDialog } from "../utils/useDialog";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "../../utils";

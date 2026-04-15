@@ -1,5 +1,5 @@
 import React, { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Point, TransformModel, TransformSession } from "./transform2d";
+import type { Point, TransformModel, TransformSession } from "../../transform2d";
 import {
   cloneModel,
   commitPreview,
@@ -12,13 +12,13 @@ import {
   multiplyMat3,
   scaleMat3,
   translateMat3,
-} from "./transform2d";
-import { appState, useAppState } from "./state";
+} from "../../transform2d";
+import { appState, useAppState } from "../../state";
 import { RotateCcw, Scan } from "lucide-react";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
-import { useDialog } from "./comps/utils/useDialog";
-import { captureAndCrop } from "./natives/nativeScreenshot";
-import { isTauri } from "./natives/native";
+import { useDialog } from "../utils/useDialog";
+import { captureAndCrop } from "../../natives/nativeScreenshot";
+import { isTauri } from "../../natives/native";
 
 type GridMode = "none" | "cross" | "rule3" | "rule4" | "rule9";
 type SourceType = "none" | "camera" | "image" | "video";

@@ -7,26 +7,26 @@ import {
   useRef,
   useState,
 } from "react";
-import { draw, resizeCanvas } from "./deskel";
-import { useAppState, appState } from "./state";
+import { draw, resizeCanvas } from "../../deskel";
+import { useAppState, appState } from "../../state";
 import {
   captureAndCrop,
   captureAndCropToAnalysis,
   ColorCount,
-} from "./natives/nativeScreenshot";
-import { showToast } from "./comps/utils/toast";
-import { useDialog } from "./comps/utils/useDialog";
-import { openPrivacySettings } from "./natives/nativePermissionCheck";
-import { getRectFromPoints } from "./utils";
-import { getTaurPlatformInfo } from "./natives/native";
+} from "../../natives/nativeScreenshot";
+import { showToast } from "../utils/toast";
+import { useDialog } from "../utils/useDialog";
+import { openPrivacySettings } from "../../natives/nativePermissionCheck";
+import { getRectFromPoints } from "../../utils";
+import { getTaurPlatformInfo } from "../../natives/native";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
-import { analyzeImageBlob } from "./colorAnalysis";
-import { AppDeskelMeasureToolbar } from "./comps/toolbar/AppDeskelMeasureToolbar";
-import { AppDeskelImageToolbar } from "./comps/toolbar/AppDeskelImageToolbar";
+import { analyzeImageBlob } from "../../colorAnalysis";
+import { AppDeskelMeasureToolbar } from "../toolbar/AppDeskelMeasureToolbar";
+import { AppDeskelImageToolbar } from "../toolbar/AppDeskelImageToolbar";
 import {
   AppDeskelCaptureToolbar,
   AppDeskelCaptureMode,
-} from "./comps/toolbar/AppDeskelCaptureToolbar";
+} from "../toolbar/AppDeskelCaptureToolbar";
 
 import type {
   AppDeskelPoint,
@@ -35,10 +35,10 @@ import type {
   MeasureMode,
   QuadMode,
   SelectionRect,
-} from "./DeskelToolHandler";
-import { MeasureHandler } from "./MeasureHandler";
-import { CaptureHandler } from "./CaptureHandler";
-import { ColorHandler } from "./ColorHandler";
+} from "../../DeskelToolHandler";
+import { MeasureHandler } from "../../MeasureHandler";
+import { CaptureHandler } from "../../CaptureHandler";
+import { ColorHandler } from "../../ColorHandler";
 import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
 
 type AppDeskelHandle = {

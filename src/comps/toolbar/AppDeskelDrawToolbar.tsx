@@ -7,7 +7,7 @@ import {
     PenLine
 } from "lucide-react";
 import { SubToolbar } from "../../parts/AppDeskelToolbarParts";
-import { Tool } from "../../AppSimpleDrawCanvas";
+import { Tool } from "../app/AppSimpleDrawCanvas";
 import { ToolMode } from "../../state";
 
 //const BG_COLOR = "#00000000";//"#111827";

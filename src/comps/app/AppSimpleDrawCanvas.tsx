@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAppState } from "./state";
-import { AppDeskelDrawToolbar } from "./comps/toolbar/AppDeskelDrawToolbar";
+import { useAppState } from "../../state";
+import { AppDeskelDrawToolbar } from "../toolbar/AppDeskelDrawToolbar";
 
 type Tool = "pen" | "eraser" | "line";
 

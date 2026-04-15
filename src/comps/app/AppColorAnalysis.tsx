@@ -5,9 +5,9 @@ import {
   useCallback,
   useState,
 } from "react";
-import { ColorCount } from "./natives/nativeScreenshot";
-import { AppColorAnalysisMode, drawColorAnalysisChart, RedrawParams } from "./colorAnalysisDarw";
-import { AppColorAnalysisToolbar } from "./comps/toolbar/AppColorAnalysisToolbar";
+import { ColorCount } from "../../natives/nativeScreenshot";
+import { AppColorAnalysisMode, drawColorAnalysisChart, RedrawParams } from "../../colorAnalysisDarw";
+import { AppColorAnalysisToolbar } from "../toolbar/AppColorAnalysisToolbar";
 
 type AppColorAnalysisHandle = {
   redraw: (props?: { colors: ColorCount[]; colors01: ColorCount[] }) => void;

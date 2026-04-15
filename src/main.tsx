@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './comps/app/App';
 import { DialogProvider } from './comps/utils/useDialog';
 import { isTauri } from './natives/native';
 import { isPwaDistributionLocation } from './natives/pwa';
