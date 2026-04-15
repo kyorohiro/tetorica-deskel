@@ -1,4 +1,4 @@
-import { appState } from "./state";
+import { appState } from "../state";
 import { hexToRgbaParams, hslaToRgba, makeShadowColorFromGrid, rgbaToHsla } from "./deskelCommon";
 
 function drawClipRect(params: {

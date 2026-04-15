@@ -1,7 +1,7 @@
 
-import { AppDeskelPoint } from "./comps/app/AppDeskel";
+import { AppDeskelPoint } from "../comps/app/AppDeskel";
 import { hexToRgbaParams, hslaToRgba, makeShadowColorFromGrid, rgbaToHsla } from "./deskelCommon";
-import { appState } from "./state";
+import { appState } from "../state";
 
 
 function drawMeasureTicks(params: {

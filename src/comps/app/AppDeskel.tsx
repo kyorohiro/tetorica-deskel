@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { draw, resizeCanvas } from "../../deskel";
+import { draw, resizeCanvas } from "../../algos/deskel";
 import { useAppState, appState } from "../../state";
 import {
   captureAndCrop,

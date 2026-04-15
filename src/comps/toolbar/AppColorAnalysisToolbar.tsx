@@ -1,6 +1,6 @@
 import { appState, useAppState } from "../../state";
 import { Download, BrushCleaning, Monitor, Image } from "lucide-react";
-import { handleExport } from "../../colorPalette";
+import { handleExport } from "../../algos/colorPalette";
 import { isTauri } from "../../natives/native";
 import { SubToolbar, toolbarButtonClass } from "../../parts/AppDeskelToolbarParts";
 import { AppColorAnalysisMode } from "../../colorAnalysisDarw";

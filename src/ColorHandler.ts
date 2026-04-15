@@ -1,4 +1,4 @@
-import { drawClipRect } from "./deskelClipRect";
+import { drawClipRect } from "./algos/deskelClipRect";
 import type {
   DeskelToolContext,
   DeskelToolHandler,

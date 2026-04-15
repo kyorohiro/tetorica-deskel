@@ -1,9 +1,9 @@
-import { ChainMeasure } from "./deskelChainMesure";
-import { drawMeasure } from "./deskelMeasure";
+import { ChainMeasure } from "./algos/deskelChainMesure";
+import { drawMeasure } from "./algos/deskelMeasure";
 import {
   drawClipQuad2,
   findNearestQuadPoint,
-} from "./deskelClipRect";
+} from "./algos/deskelClipRect";
 import type {
   AppDeskelPoint,
   DeskelToolContext,

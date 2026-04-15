@@ -1,10 +1,10 @@
 
-import { ColorCount } from "./natives/nativeScreenshot";
-import { showToast } from "./comps/utils/toast";
+import { ColorCount } from "../natives/nativeScreenshot";
+import { showToast } from "../comps/utils/toast";
 import { createSwatchesFile } from "procreate-swatches";
-import { isTauri } from "./natives/native";
-import { UseDialogReturn } from "./comps/utils/useDialog";
-import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
+import { isTauri } from "../natives/native";
+import { UseDialogReturn } from "../comps/utils/useDialog";
+import { makeFilenameWithTimestamp, saveFileWithFallback } from "../utils";
 
 function hexToRgb(hex: string): [number, number, number] {
   const normalized = hex.replace("#", "").trim();

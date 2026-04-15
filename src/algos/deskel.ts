@@ -1,6 +1,6 @@
 
 import { hexToRgba } from "./deskelCommon";
-import { appState } from "./state";
+import { appState } from "../state";
 
 function resizeCanvas(params: { canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D }): void {
   //console.log("> resizeCanvas", params);
