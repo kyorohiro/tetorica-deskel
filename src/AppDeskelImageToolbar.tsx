@@ -1,6 +1,6 @@
 import { RefObject } from "react";
 import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
-import { CollapsibleToolbar, ModeButton } from "./AppDeskelToolbarParts";
+import { CollapsibleToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
 import { useDialog } from "./useDialog";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
 import { showToast } from "./toast";

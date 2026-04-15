@@ -1,5 +1,5 @@
 import { RefObject } from "react";
-import { CollapsibleToolbar, ModeButton } from "./AppDeskelToolbarParts";
+import { CollapsibleToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
 import { ScreenCaptureCanvasHandle } from "./AppScreenCaptureCanvas";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "./utils";
 import { showToast } from "./toast";

@@ -1,4 +1,4 @@
-import { CollapsibleToolbar, ModeButton } from "./AppDeskelToolbarParts";
+import { CollapsibleToolbar, ModeButton } from "./parts/AppDeskelToolbarParts";
 
 type MeasureMode = "line" | "chain" | "setUnit" | "setVanishingPoint";
 type QuadMode = "off" | "view" | "apply";
