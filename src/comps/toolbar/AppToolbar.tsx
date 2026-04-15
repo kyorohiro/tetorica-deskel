@@ -1,13 +1,13 @@
 import { RefObject, useEffect, useState } from "react";
-import { saveSettings, appState, useAppState, ToolMode } from "./state";
-import { setAlwaysOnTop, setClickThrough } from "./window";
-import { showToast } from "./toast";
+import { saveSettings, appState, useAppState, ToolMode } from "../../state";
+import { setAlwaysOnTop, setClickThrough } from "../../window";
+import { showToast } from "../../toast";
 import { Menu, MousePointerClick, Pin, Image, Monitor } from "lucide-react";
-import { isTauri } from "./native";
-import { AppBackgroundImageCanvasHandle } from "./AppBackgroundImageCanvas";
-import { AppColorAnalysisHandle } from "./AppColorAnalysis";
-import { isPwaDistributionLocation, isRunningAsPwa, PWA_URL, updatePwaNow } from "./pwa";
-import { AppImportImageHandle } from "./AppImportImage";
+import { isTauri } from "../../native";
+import { AppBackgroundImageCanvasHandle } from "../../AppBackgroundImageCanvas";
+import { AppColorAnalysisHandle } from "../../AppColorAnalysis";
+import { isPwaDistributionLocation, isRunningAsPwa, PWA_URL, updatePwaNow } from "../../pwa";
+import { AppImportImageHandle } from "../../AppImportImage";
 
 
 function ToolbarSection(props: {

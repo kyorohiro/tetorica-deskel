@@ -4,7 +4,7 @@ import { updateWindowTitle } from "./window";
 import { setupShortcuts } from "./nativeShortcut";
 
 import "./style.css"
-import { AppToolbar } from "./AppToolbar";
+import { AppToolbar } from "./comps/toolbar/AppToolbar";
 import { AppDeslel } from "./AppDeskel";
 import type { AppDeskelHandle } from "./AppDeskel";
 import { AppColorAnalysis, AppColorAnalysisHandle } from "./AppColorAnalysis";
