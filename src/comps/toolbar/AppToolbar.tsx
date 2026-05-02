@@ -94,10 +94,10 @@ function ToolbarActionButton(props: {
 const TOOL_ITEMS: { key: ToolMode; label: string }[] = [
   { key: "measure", label: "Measure" },
   { key: "draw", label: "Draw" },
-  { key: "capture", label: "Capture" },
+  { key: "capture", label: "Color Vision" },
   { key: "color", label: "Color" },
   { key: "deskel", label: "Deskel" },
-  { key: "image", label: "Image" },
+  { key: "image", label: "Import" },
 ];
 
 export function AppToolbar(props: {
@@ -222,7 +222,7 @@ export function AppToolbar(props: {
           </label>
         </div>
 
-        <ToolbarSection title="Pen">
+        <ToolbarSection title="Tools">
           <div className="flex flex-wrap items-center gap-2">
             {TOOL_ITEMS.map((item) => (
               <ToolbarActionButton
@@ -299,7 +299,13 @@ export function AppToolbar(props: {
             >
               Image
             </ToolbarActionButton>
-
+            <ToolbarActionButton
+              onClick={() => {
+                void props.appImportImageRef?.current?.handleImportScreen();
+              }}
+            >
+              Screen
+            </ToolbarActionButton>
             <ToolbarActionButton
               onClick={() => {
                 void handleClearImage();

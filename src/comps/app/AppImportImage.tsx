@@ -2,9 +2,12 @@ import { forwardRef, RefObject, useImperativeHandle } from "react"
 import { isTauri } from "../../natives/native";
 import { useDialog } from "../utils/useDialog";
 import { AppBackgroundImageCanvasHandle, useBackgroundImageState } from "./AppBackgroundImageCanvas";
+import { isPwaDistributionLocation } from "../../natives/pwa";
+import { getVideo } from "../../natives/nativeWebScreenshot";
 
 export type AppImportImageHandle = {
     handleImportImage: () => Promise<void>;
+    handleImportScreen: () => Promise<void>;
 };
 
 type AppImportImageProps = {
@@ -31,10 +34,24 @@ export const AppImportImage = forwardRef<AppImportImageHandle,  AppImportImagePr
         }
     };
 
+    const handleImportScreen = async () => {
+          if(!isTauri() && !isPwaDistributionLocation()) {
+            // Capture は出来ない
+            await dialog.showConfirmDialog({
+              title: "",
+              body: "Screen sharing is not supported on itch.io. Please use our PWA version instead."
+            })
+            return;
+          }
+          const data = await getVideo();
+          await props.appBackgroundImageCanvasRef!.current!.addVideo(data!);
+    };
+
     useImperativeHandle(
         ref,
         () => ({
-            handleImportImage
+            handleImportImage,
+            handleImportScreen
         }),
         []
     );
@@ -55,6 +72,12 @@ export const AppImportImage = forwardRef<AppImportImageHandle,  AppImportImagePr
                             className="rounded-xl border border-sky-400 bg-sky-700 px-5 py-2 text-sm font-medium text-white shadow transition hover:bg-sky-600"
                         >
                             Import Image
+                        </button>
+                        <button
+                            onClick={handleImportScreen}
+                            className="rounded-xl border border-sky-400 bg-sky-700 px-5 py-2 text-sm font-medium text-white shadow transition hover:bg-sky-600"
+                        >
+                            Import Screen
                         </button>
                     </div>
                 </div>

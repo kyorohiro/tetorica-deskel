@@ -6,7 +6,7 @@ function isPwaDistributionLocation() {
   const host = window.location.hostname;
   const path = window.location.pathname;
 
-  //if (host === "localhost" || host === "127.0.0.1") {
+  //if (host === "localhost" || host === "127.0.0.1"  || host === "0.0.0.0") {
   //  return true;
   //}
 

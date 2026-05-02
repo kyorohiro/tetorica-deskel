@@ -5,6 +5,8 @@ import { useDialog } from "../utils/useDialog";
 import { makeFilenameWithTimestamp, saveFileWithFallback } from "../../algos/utils";
 import { showToast } from "../utils/toast";
 import { getVideo } from "../../natives/nativeWebScreenshot";
+import { isTauri } from "@tauri-apps/api/core";
+import { isPwaDistributionLocation } from "../../natives/pwa";
 type MeasureMode = "line" | "chain" | "setUnit" | "setVanishingPoint";
 type QuadMode = "off" | "view" | "apply";
 
@@ -67,7 +69,42 @@ function AppDeskelImageToolbar(props: {
         title="chain measure"
         className="justify-center px-2 py-1"
       >
-        Import
+        Image
+      </ModeButton>
+      {
+        //
+      }
+      <ModeButton
+        active={false}
+        onClick={async () => {
+          //props.setMeasureMode("setUnit");
+          //const data = await captureSelfAreaFromDisplaySurface(document.getElementById('root')!);
+          if(!isTauri() && !isPwaDistributionLocation()) {
+            // Capture は出来ない
+            await dialog.showConfirmDialog({
+              title: "",
+              body: "Screen sharing is not supported on itch.io. Please use our PWA version instead."
+            })
+            return;
+          }
+          const data = await getVideo();
+          await props.appBackgroundImageCanvasRef!.current!.addVideo(data!);
+        }}
+        title="set unit"
+        className="justify-center px-2 py-1"
+      >
+        Screen
+      </ModeButton>
+      <ModeButton
+        active={false}
+        onClick={() => {
+          //props.setMeasureMode("setUnit");
+          handleClearImage();
+        }}
+        title="set unit"
+        className="justify-center px-2 py-1"
+      >
+        Clear
       </ModeButton>
 
       <ModeButton
@@ -82,33 +119,6 @@ function AppDeskelImageToolbar(props: {
         Export
       </ModeButton>
 
-      <ModeButton
-        active={false}
-        onClick={() => {
-          //props.setMeasureMode("setUnit");
-          handleClearImage();
-        }}
-        title="set unit"
-        className="justify-center px-2 py-1"
-      >
-        Clear
-      </ModeButton>
-      {
-        //
-      }
-      <ModeButton
-        active={false}
-        onClick={async () => {
-          //props.setMeasureMode("setUnit");
-          //const data = await captureSelfAreaFromDisplaySurface(document.getElementById('root')!);
-          const data = await getVideo();
-          await props.appBackgroundImageCanvasRef!.current!.addVideo(data!);
-        }}
-        title="set unit"
-        className="justify-center px-2 py-1"
-      >
-        Capture
-      </ModeButton>
     </SubToolbar>
   );
 }
